@@ -1,0 +1,218 @@
+@font-face {
+    font-family: "flaticon_statex";
+    src: url("../fonts/flaticon_statex.ttf") format("truetype"),
+url("../fonts/flaticon_statex.woff") format("woff"),
+url("../fonts/flaticon_statex.woff2") format("woff2"),
+url("../fonts/flaticon_statex.eot") format("embedded-opentype"),
+url("../fonts/flaticon_statex.html") format("svg");
+}
+
+i[class^="flaticon-"]:before, i[class*=" flaticon-"]:before {
+    font-family: flaticon_statex !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+[class*="flaticon-"]::before{
+    font-family: "flaticon_statex";
+  }
+
+
+
+.flaticon-sun:before {
+    content: "\f101";
+}
+.flaticon-right-arrow:before {
+    content: "\f102";
+}
+.flaticon-goverment:before {
+    content: "\f103";
+}
+.flaticon-targeting:before {
+    content: "\f104";
+}
+.flaticon-open-book:before {
+    content: "\f105";
+}
+.flaticon-job-offer:before {
+    content: "\f106";
+}
+.flaticon-traffic-light:before {
+    content: "\f107";
+}
+.flaticon-star:before {
+    content: "\f108";
+}
+.flaticon-stars:before {
+    content: "\f109";
+}
+.flaticon-phone-call:before {
+    content: "\f10a";
+}
+.flaticon-map:before {
+    content: "\f10b";
+}
+.flaticon-maps-and-flags:before {
+    content: "\f10c";
+}
+.flaticon-phone-call-1:before {
+    content: "\f10d";
+}
+.flaticon-smart-city:before {
+    content: "\f10e";
+}
+.flaticon-clock:before {
+    content: "\f10f";
+}
+.flaticon-location:before {
+    content: "\f110";
+}
+.flaticon-industrial-park:before {
+    content: "\f111";
+}
+.flaticon-car-insurance:before {
+    content: "\f112";
+}
+.flaticon-scroll:before {
+    content: "\f113";
+}
+.flaticon-curved-arrow:before {
+    content: "\f114";
+}
+.flaticon-play:before {
+    content: "\f115";
+}
+.flaticon-foundation:before {
+    content: "\f116";
+}
+.flaticon-running-man:before {
+    content: "\f117";
+}
+.flaticon-landscape:before {
+    content: "\f118";
+}
+.flaticon-clock-1:before {
+    content: "\f119";
+}
+.flaticon-spark:before {
+    content: "\f11a";
+}
+.flaticon-bank:before {
+    content: "\f11b";
+}
+.flaticon-siren:before {
+    content: "\f11c";
+}
+.flaticon-office-building:before {
+    content: "\f11d";
+}
+.flaticon-parking:before {
+    content: "\f11e";
+}
+.flaticon-return-box:before {
+    content: "\f11f";
+}
+.flaticon-complexity:before {
+    content: "\f120";
+}
+.flaticon-gavel:before {
+    content: "\f121";
+}
+.flaticon-steering-wheel:before {
+    content: "\f122";
+}
+.flaticon-birth:before {
+    content: "\f123";
+}
+.flaticon-factory:before {
+    content: "\f124";
+}
+.flaticon-approved:before {
+    content: "\f125";
+}
+.flaticon-check:before {
+    content: "\f126";
+}
+.flaticon-building:before {
+    content: "\f127";
+}
+.flaticon-buildings:before {
+    content: "\f128";
+}
+.flaticon-goverment-1:before {
+    content: "\f129";
+}
+.flaticon-factory-1:before {
+    content: "\f12a";
+}
+.flaticon-suitcase:before {
+    content: "\f12b";
+}
+.flaticon-truck:before {
+    content: "\f12c";
+}
+.flaticon-email:before {
+    content: "\f12d";
+}
+.flaticon-clock-2:before {
+    content: "\f12e";
+}
+.flaticon-envelope:before {
+    content: "\f12f";
+}
+.flaticon-globe:before {
+    content: "\f130";
+}
+.flaticon-fast-time:before {
+    content: "\f131";
+}
+.flaticon-folder:before {
+    content: "\f132";
+}
+.flaticon-sun-1:before {
+    content: "\f133";
+}
+.flaticon-self-growth:before {
+    content: "\f134";
+}
+.flaticon-windrose:before {
+    content: "\f135";
+}
+.flaticon-crescent:before {
+    content: "\f136";
+}
+.flaticon-quote:before {
+    content: "\f137";
+}
+.flaticon-corporate:before {
+    content: "\f138";
+}
+.flaticon-museum:before {
+    content: "\f139";
+}
+.flaticon-verify:before {
+    content: "\f13a";
+}
+.flaticon-link:before {
+    content: "\f13b";
+}
+.flaticon-down-arrow:before {
+    content: "\f13c";
+}
+.flaticon-view:before {
+    content: "\f13d";
+}
+.flaticon-fire:before {
+    content: "\f13e";
+}
+.flaticon-love:before {
+    content: "\f13f";
+}
+.flaticon-cityscape:before {
+    content: "\f140";
+}
