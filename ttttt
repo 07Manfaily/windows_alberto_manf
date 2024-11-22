@@ -1,4 +1,18 @@
-import React, { useState } from 'react';
+export default function getCookie(cname) {
+    // Prépare le nom du cookie recherché
+    const name = `${cname}=`;
+
+    // Décoder tous les cookies et les séparer dans un tableau
+    const cookies = decodeURIComponent(document.cookie)
+        .split(';') // Séparer les cookies
+        .map(cookie => cookie.trim()); // Supprimer les espaces autour de chaque cookie
+
+    // Trouver le cookie correspondant
+    const cookie = cookies.find(cookie => cookie.startsWith(name));
+
+    // Retourner la valeur du cookie ou une chaîne vide s'il n'existe pas
+    return cookie ? cookie.substring(name.length) : "";
+}import React, { useState } from 'react';
 import {
   Box,
   Card,
