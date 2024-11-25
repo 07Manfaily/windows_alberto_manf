@@ -1,0 +1,341 @@
+export default function getCookie(cname) {
+    // Prépare le nom du cookie recherché
+    const name = `${cname}=`;
+
+    // Décoder tous les cookies et les séparer dans un tableau
+    const cookies = decodeURIComponent(document.cookie)
+        .split(';') // Séparer les cookies
+        .map(cookie => cookie.trim()); // Supprimer les espaces autour de chaque cookie
+
+    // Trouver le cookie correspondant
+    const cookie = cookies.find(cookie => cookie.startsWith(name));
+
+    // Retourner la valeur du cookie ou une chaîne vide s'il n'existe pas
+    return cookie ? cookie.substring(name.length) : "";
+}import React, { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardHeader,
+  CardContent,
+  Container,
+  Grid,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  useTheme,
+} from '@mui/material';
+import {
+  Search,
+  Person,
+  Phone,
+  LocationOn,
+  CalendarToday,
+  Work,
+  Group,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+} from '@mui/icons-material';
+import Ques from './question'
+// Custom Confetti Component
+const CustomConfetti = () => {
+  const theme = useTheme();
+  
+  return (
+    <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        pointerEvents: 'none',
+      }}
+    >
+      {[...Array(50)].map((_, i) => (
+        <Box
+          key={i}
+          sx={{
+            position: 'absolute',
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: i % 4 === 0 ? 'error.main' : 
+              i % 4 === 1 ? 'warning.main' : 
+              i % 4 === 2 ? 'success.main' : 'text.primary',
+            left: `${Math.random() * 100}%`,
+            top: `-${Math.random() * 20}%`,
+            animation: 'confetti 3s ease-in-out forwards',
+            animationDelay: `${Math.random() * 3}s`,
+            animationDuration: `${2 + Math.random() * 3}s`,
+            '@keyframes confetti': {
+              '0%': {
+                transform: 'translateY(-10px) rotate(0deg)',
+                opacity: 1,
+              },
+              '100%': {
+                transform: 'translateY(100vh) rotate(360deg)',
+                opacity: 0,
+              },
+            },
+          }}
+        />
+      ))}
+    </Box>
+  );
+};
+
+const ClientDashboard = () => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [clientId, setClientId] = useState('');
+  const [clientData, setClientData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
+  const theme = useTheme();
+
+  const steps = [
+    'Informations Personnelles',
+    'Coordonnées',
+    'Parents',
+    'Profession'
+  ];
+
+  const fetchClientData = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setClientData({
+        nom: "Jean Dupont",
+        telephone: "0123456789",
+        quartier: "Centre Ville",
+        dateNaissance: "1990-05-15",
+        nomPere: "Pierre Dupont",
+        nomMere: "Marie Dupont",
+        profession: "Ingénieur"
+      });
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleNextStep = () => {
+    if (activeStep === 3) {
+      setShowCongrats(true);
+      setTimeout(() => {
+        setShowCongrats(false);
+        setActiveStep(0);
+      }, 5000);
+    } else {
+      setActiveStep((prev) => prev + 1);
+    }
+  };
+
+  const renderStep = () => {
+    const formFields = {
+      0: [
+        { label: 'Nom', color: 'error' },
+        { label: 'Prénom', color: 'error' },
+        { label: 'Date de naissance', type: 'date', color: 'error' },
+        { label: 'Lieu de naissance', color: 'error' },
+      ],
+      1: [
+        { label: 'Téléphone', color: 'warning' },
+        { label: 'Email', color: 'warning' },
+        { label: 'Adresse', color: 'warning' },
+        { label: 'Quartier', color: 'warning' },
+      ],
+      2: [
+        { label: 'Nom du père', color: 'success' },
+        { label: 'Profession du père', color: 'success' },
+        { label: 'Nom de la mère', color: 'success' },
+        { label: 'Profession de la mère', color: 'success' },
+      ],
+      3: [
+        { label: 'Profession actuelle', color: 'info' },
+        { label: 'Employeur', color: 'info' },
+        { label: 'Ancienneté', color: 'info' },
+        { label: 'Revenu mensuel', color: 'info' },
+      ],
+    };
+
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" color={theme.palette[formFields[activeStep][0].color].main} gutterBottom>
+          {steps[activeStep]}
+        </Typography>
+        <Grid container spacing={2}>
+          {formFields[activeStep].map((field, index) => (
+            <Grid item xs={6} key={index}>
+              <TextField
+                fullWidth
+                label={field.label}
+                type={field.type || 'text'}
+                variant="outlined"
+                color={field.color}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme.palette[field.color].main,
+                    },
+                  },
+                }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  };
+
+  const InfoCard = ({ icon: Icon, title, color, children }) => (
+    <Paper
+      elevation={2}
+      sx={{
+        p: 2,
+        mb: 2,
+        borderLeft: `4px solid ${theme.palette[color].main}`,
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+        <Icon sx={{ color: theme.palette[color].main, mr: 1 }} />
+        <Typography variant="subtitle1" color={theme.palette[color].dark}>
+          {title}
+        </Typography>
+      </Box>
+      <Box sx={{ ml: 4 }}>
+        {children}
+      </Box>
+    </Paper>
+  );
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {showCongrats && (
+        <>
+          <CustomConfetti />
+          <Dialog open={showCongrats} aria-labelledby="congrats-dialog">
+            <DialogTitle sx={{ textAlign: 'center', color: 'success.main' }}>
+              Félicitations!
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: 'center', pb: 3 }}>
+              <Typography variant="h6" color="text.secondary">
+                L'enregistrement a été effectué avec succès!
+              </Typography>
+              <Check sx={{ fontSize: 64, color: 'success.main', mt: 2 }} />
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+
+      {/* Search Section */}
+      <Card sx={{ mb: 4, bgcolor: 'error.lighter' }}>
+        <CardHeader title="Recherche Client" sx={{ color: 'error.main' }} />
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs>
+              <TextField
+                fullWidth
+                placeholder="Entrez l'identifiant client"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                variant="outlined"
+                color="error"
+              />
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={fetchClientData}
+                disabled={loading}
+                startIcon={<Search />}
+              >
+                Rechercher
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Main Content Grid */}
+      <Grid container spacing={3}>
+        {/* Left Side - Client Information */}
+        <Grid item xs={12} md={3}>
+          {clientData && (
+            <Card sx={{ bgcolor: 'warning.lighter' }}>
+              <CardHeader title="Informations Client" sx={{ color: 'warning.main' }} />
+              <CardContent>
+                <InfoCard icon={Person} title={clientData.nom} color="error">
+                  <Typography color="text.secondary">
+                    Né(e) le: {clientData.dateNaissance}
+                  </Typography>
+                </InfoCard>
+
+                <InfoCard icon={Phone} title="Contact" color="warning">
+                  <Typography color="text.secondary">
+                    Tél: {clientData.telephone}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Quartier: {clientData.quartier}
+                  </Typography>
+                </InfoCard>
+
+                <InfoCard icon={Group} title="Famille" color="success">
+                  <Typography color="text.secondary">
+                    Père: {clientData.nomPere}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Mère: {clientData.nomMere}
+                  </Typography>
+                </InfoCard>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+
+        {/* Right Side - Form Wizard */}
+        <Grid item xs={12} md={9}>
+          <Card sx={{ bgcolor: 'success.lighter' }}>
+            <CardHeader title="Nouveau Client" sx={{ color: 'success.main' }} />
+            <CardContent>
+              <Stepper activeStep={activeStep} alternativeLabel>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+
+              {renderStep()}
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                <Button
+                  color="inherit"
+                  disabled={activeStep === 0}
+                  onClick={() => setActiveStep((prev) => prev - 1)}
+                  startIcon={<ChevronLeft />}
+                >
+                  Précédent
+                </Button>
+                <Button
+                  variant="contained"
+                  color={activeStep === steps.length - 1 ? 'success' : 'primary'}
+                  onClick={handleNextStep}
+                  endIcon={<ChevronRight />}
+                >
+                  {activeStep === steps.length - 1 ? 'Terminer' : 'Suivant'}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
+  );
+};
+
+export default ClientDashboard;
