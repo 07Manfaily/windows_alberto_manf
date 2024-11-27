@@ -3,7 +3,7 @@
         <div class="col-xl-12">
             <div class="tp-video-content text-center">
                 <div class="tp-video-content-icon-box">
-                    <a href="#" class="popup-video video-animation-2" onclick="document.getElementById('maVideo').play()">
+                    <a href="javascript:void(0);" class="popup-video video-animation-2" onclick="toggleVideo()">
                         <i class="flaticon-play"></i>
                     </a>
                     <video id="maVideo" class="w-100" style="display:none;">
@@ -16,3 +16,16 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleVideo() {
+    var video = document.getElementById('maVideo');
+    if (video.style.display === 'none') {
+        video.style.display = 'block';
+        video.play();
+    } else {
+        video.style.display = 'none';
+        video.pause();
+    }
+}
+</script>
