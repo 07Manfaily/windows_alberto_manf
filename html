@@ -1,31 +1,112 @@
-<div class="container">
-    <div class="row">
-        <div class="col-xl-12">
-            <div class="tp-video-content text-center">
-                <div class="tp-video-content-icon-box">
-                    <a href="javascript:void(0);" class="popup-video video-animation-2" onclick="toggleVideo()">
-                        <i class="flaticon-play"></i>
-                    </a>
-                    <video id="maVideo" class="w-100" style="display:none;">
-                        <source src="assets/video/votre-video.mp4" type="video/mp4">
-                        Votre navigateur ne supporte pas la lecture vidéo.
-                    </video>
-                </div>
-                <h6 class="tp-video-content-title">Nous vous aidons à résoudre les problèmes des gouvernements municipaux</h6>
-            </div>
-        </div>
-    </div>
-</div>
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import ReactApexChart from 'react-apexchart';
+import * as XLSX from 'xlsx';
 
-<script>
-function toggleVideo() {
-    var video = document.getElementById('maVideo');
-    if (video.style.display === 'none') {
-        video.style.display = 'block';
-        video.play();
-    } else {
-        video.style.display = 'none';
-        video.pause();
-    }
-}
-</script>
+const ApexChart = () => {
+  const [chartData, setChartData] = useState({
+    series: [
+      {
+        name: 'Sales',
+        data: [4, 3, 10, 9, 29, 19, 22, 9, 12, 7, 19, 5, 13, 9, 17, 2, 7, 5],
+      },
+    ],
+    options: {
+      chart: {
+        height: 350,
+        type: 'line',
+      },
+      forecastDataPoints: {
+        count: 7,
+      },
+      stroke: {
+        width: 5,
+        curve: 'smooth',
+      },
+      xaxis: {
+        type: 'datetime',
+        categories: [
+          '1/11/2000', '2/11/2000', '3/11/2000', '4/11/2000', '5/11/2000',
+          '6/11/2000', '7/11/2000', '8/11/2000', '9/11/2000', '10/11/2000',
+          '11/11/2000', '12/11/2000', '1/11/2001', '2/11/2001', '3/11/2001',
+          '4/11/2001', '5/11/2001', '6/11/2001',
+        ],
+        tickAmount: 10,
+        labels: {
+            formatter(value, timestamp, opts) {
+              return opts.dateFormatter(new Date(timestamp), 'dd MMM');
+            },
+          },
+      },
+      title: {
+        text: 'Forecast',
+        align: 'left',
+        style: {
+          fontSize: '16px',
+          color: '#666',
+        },
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'dark',
+          gradientToColors: ['#FDD835'],
+          shadeIntensity: 1,
+          type: 'horizontal',
+          opacityFrom: 1,
+          opacityTo: 1,
+          stops: [0, 100, 100, 100],
+        },
+      },
+    },
+  });
+
+  // Fonction pour exporter les données en Excel
+  const exportToExcel = () => {
+    // Préparer les données pour l'export
+    const dataToExport = chartData.series[0].data.map((value, index) => ({
+      Date: chartData.options.xaxis.categories[index],
+      Sales: value
+    }));
+
+    // Créer une feuille de calcul
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Data");
+
+    // Exporter le fichier
+    XLSX.writeFile(workbook, "sales_forecast.xlsx");
+  };
+
+  return (
+    <div>
+      <div id="chart">
+        <ReactApexChart
+          options={chartData.options}
+          series={chartData.series}
+          type="line"
+          height={350}
+        />
+      </div>
+      <button 
+        onClick={exportToExcel}
+        style={{
+          marginTop: '10px',
+          padding: '10px 20px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
+        Exporter en Excel
+      </button>
+    </div>
+  );
+};
+
+const domContainer = document.querySelector('#app');
+ReactDOM.render(<ApexChart />, domContainer);
+
+export default ApexChart;
