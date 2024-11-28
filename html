@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ReactDOM from 'react-dom';
 import ReactApexChart from 'react-apexchart';
 import * as XLSX from 'xlsx';
 
@@ -15,6 +14,41 @@ const ApexChart = () => {
       chart: {
         height: 350,
         type: 'line',
+        toolbar: {
+          show: true,
+          tools: {
+            download: true,
+            selection: true,
+            zoom: true,
+            zoomin: true,
+            zoomout: true,
+            pan: true,
+            reset: true,
+            customIcons: [
+              {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>',
+                index: -1,
+                title: 'Export to Excel',
+                class: 'custom-excel-export',
+                click: () => {
+                  // Prepare data for export
+                  const dataToExport = chartData.series[0].data.map((value, index) => ({
+                    Date: chartData.options.xaxis.categories[index],
+                    Sales: value
+                  }));
+
+                  // Create worksheet
+                  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                  const workbook = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Data");
+
+                  // Export file
+                  XLSX.writeFile(workbook, "sales_forecast.xlsx");
+                }
+              }
+            ]
+          }
+        }
       },
       forecastDataPoints: {
         count: 7,
@@ -33,10 +67,10 @@ const ApexChart = () => {
         ],
         tickAmount: 10,
         labels: {
-            formatter(value, timestamp, opts) {
-              return opts.dateFormatter(new Date(timestamp), 'dd MMM');
-            },
+          formatter(value, timestamp, opts) {
+            return opts.dateFormatter(new Date(timestamp), 'dd MMM');
           },
+        },
       },
       title: {
         text: 'Forecast',
@@ -61,52 +95,16 @@ const ApexChart = () => {
     },
   });
 
-  // Fonction pour exporter les données en Excel
-  const exportToExcel = () => {
-    // Préparer les données pour l'export
-    const dataToExport = chartData.series[0].data.map((value, index) => ({
-      Date: chartData.options.xaxis.categories[index],
-      Sales: value
-    }));
-
-    // Créer une feuille de calcul
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Data");
-
-    // Exporter le fichier
-    XLSX.writeFile(workbook, "sales_forecast.xlsx");
-  };
-
   return (
     <div>
-      <div id="chart">
-        <ReactApexChart
-          options={chartData.options}
-          series={chartData.series}
-          type="line"
-          height={350}
-        />
-      </div>
-      <button 
-        onClick={exportToExcel}
-        style={{
-          marginTop: '10px',
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}
-      >
-        Exporter en Excel
-      </button>
+      <ReactApexChart
+        options={chartData.options}
+        series={chartData.series}
+        type="line"
+        height={350}
+      />
     </div>
   );
 };
-
-const domContainer = document.querySelector('#app');
-ReactDOM.render(<ApexChart />, domContainer);
 
 export default ApexChart;
