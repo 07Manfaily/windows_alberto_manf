@@ -1,0 +1,91 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+const ApiResultComponent = ({ searchData }) => {
+   // États pour stocker différents résultats d'API
+   const [githubUserData, setGithubUserData] = useState(null);
+   const [countryData, setCountryData] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
+
+   useEffect(() => {
+     // Fonction pour récupérer les données
+     const fetchData = async () => {
+       // Réinitialiser les états
+       setLoading(true);
+       setError(null);
+       setGithubUserData(null);
+       setCountryData(null);
+
+       try {
+         // Requête 1 : API GitHub pour les infos utilisateur
+         const githubResponse = await axios.get(
+           `https://api.github.com/users/${searchData.username}`
+         );
+         setGithubUserData(githubResponse.data);
+
+         // Requête 2 : API REST Countries pour les infos de pays
+         const countryResponse = await axios.get(
+           `https://restcountries.com/v3.1/alpha/${searchData.country}`
+         );
+         setCountryData(countryResponse.data[0]);
+
+         setLoading(false);
+       } catch (err) {
+         setError(err.message);
+         setLoading(false);
+       }
+     };
+
+     // Appeler la fonction si des données de recherche existent
+     if (searchData) {
+       fetchData();
+     }
+   }, [searchData]);
+
+   // Gestion des états de chargement et d'erreur
+   if (loading) return <div>Chargement en cours...</div>;
+   if (error) return <div>Erreur : {error}</div>;
+
+   return (
+     <div style={{ 
+       border: '1px solid #ddd', 
+       padding: '20px', 
+       marginTop: '20px' 
+     }}>
+       <h2>Résultats de la recherche</h2>
+       
+       {/* Informations GitHub */}
+       {githubUserData && (
+         <div>
+           <h3>Informations GitHub</h3>
+           <img 
+             src={githubUserData.avatar_url} 
+             alt="Avatar GitHub" 
+             style={{ width: '100px', borderRadius: '50%' }}
+           />
+           <p>Nom : {githubUserData.name || 'Non spécifié'}</p>
+           <p>Followers : {githubUserData.followers}</p>
+           <p>Repos publics : {githubUserData.public_repos}</p>
+         </div>
+       )}
+
+       {/* Informations Pays */}
+       {countryData && (
+         <div>
+           <h3>Informations Pays</h3>
+           <img 
+             src={countryData.flags.svg} 
+             alt="Drapeau du pays" 
+             style={{ width: '150px' }}
+           />
+           <p>Nom : {countryData.name.common}</p>
+           <p>Capitale : {countryData.capital?.[0] || 'Non spécifié'}</p>
+           <p>Population : {countryData.population.toLocaleString()}</p>
+         </div>
+       )}
+     </div>
+   );
+};
+
+export default ApiResultComponent;
