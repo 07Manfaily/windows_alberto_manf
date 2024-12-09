@@ -1,0 +1,70 @@
+import React, { useState } from 'react';
+import ApiResultComponent from './learn2';
+
+function Formulaire() {
+   const [username, setUsername] = useState('');
+   const [country, setCountry] = useState('');
+   const [searchData, setSearchData] = useState(null);
+
+   const handleSubmit = (e) => {
+     e.preventDefault();
+     // Préparer les données à envoyer à l'autre composant
+     setSearchData({ 
+       username, 
+       country 
+     });
+   };
+
+   return (
+     <div style={{ 
+       maxWidth: '400px', 
+       margin: 'auto', 
+       padding: '20px', 
+       textAlign: 'center' 
+     }}>
+       <h2>Recherche d'utilisateur et de pays</h2>
+       <form onSubmit={handleSubmit}>
+         <input
+           type="text"
+           value={username}
+           onChange={(e) => setUsername(e.target.value)}
+           placeholder="Nom d'utilisateur GitHub"
+           style={{ 
+             width: '100%', 
+             padding: '10px', 
+             margin: '10px 0' 
+           }}
+         />
+         <input
+           type="text"
+           value={country}
+           onChange={(e) => setCountry(e.target.value)}
+           placeholder="Code pays (ex: FR, US, JP)"
+           style={{ 
+             width: '100%', 
+             padding: '10px', 
+             margin: '10px 0' 
+           }}
+         />
+         
+         <button 
+           type="submit"
+           style={{ 
+             padding: '10px 20px', 
+             backgroundColor: '#4CAF50', 
+             color: 'white', 
+             border: 'none', 
+             cursor: 'pointer' 
+           }}
+         >
+           Rechercher
+         </button>
+       </form>
+
+       {/* Afficher le composant de résultat si des données sont présentes */}
+       {searchData && <ApiResultComponent searchData={searchData} />}
+     </div>
+   );
+}
+
+export default Formulaire;
