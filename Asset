@@ -40,3 +40,100 @@ const AlignedTooltip = () => {
 };
 
 export default AlignedTooltip;
+
+
+
+import React, { useState } from "react";
+import Graph from "react-graph-vis";
+import Tooltip from "@mui/material/Tooltip";
+
+const GraphWithMUITooltip = () => {
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    content: "",
+  });
+
+  // Configuration des nœuds et des arrêtes du graphe
+  const graph = {
+    nodes: [
+      { id: 1, label: "Node 1" },
+      { id: 2, label: "Node 2" },
+      { id: 3, label: "Node 3" },
+    ],
+    edges: [
+      { from: 1, to: 2, label: "Edge 1" },
+      { from: 2, to: 3, label: "Edge 2" },
+    ],
+  };
+
+  // Options du graphe
+  const options = {
+    layout: {
+      hierarchical: false,
+    },
+    edges: {
+      color: "#000000",
+      smooth: true,
+    },
+    interaction: {
+      hover: true, // Active le survol
+    },
+    physics: {
+      enabled: true,
+    },
+  };
+
+  // Gestion des événements
+  const events = {
+    hoverEdge: (event) => {
+      const { pointer, edge } = event;
+      setTooltip({
+        visible: true,
+        x: pointer.DOM.x,
+        y: pointer.DOM.y,
+        content: `Émetteur: 10% - Récepteur: 20% (Edge: ${edge})`,
+      });
+    },
+    blurEdge: () => {
+      setTooltip({ visible: false, x: 0, y: 0, content: "" });
+    },
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <Graph
+        graph={graph}
+        options={options}
+        events={events}
+        style={{ height: "500px" }}
+      />
+
+      {tooltip.visible && (
+        <Tooltip
+          open={tooltip.visible}
+          title={
+            <div>
+              <strong style={{ color: "#4caf50" }}>Émetteur:</strong> 10%<br />
+              <strong style={{ color: "#f44336" }}>Récepteur:</strong> 20%
+            </div>
+          }
+          placement="top"
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: tooltip.y,
+              left: tooltip.x,
+              width: "1px",
+              height: "1px",
+            }}
+          />
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
+export default GraphWithMUITooltip;
