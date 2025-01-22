@@ -1,48 +1,3 @@
-import React from "react";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-
-const AlignedTooltip = () => {
-  return (
-    <Tooltip
-      title={
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "20px",
-            padding: 1,
-          }}
-        >
-          <Typography variant="body1" color="primary" fontWeight="bold">
-            Émetteur: <span style={{ color: "#4caf50" }}>10%</span>
-          </Typography>
-          <Typography variant="body1" color="secondary" fontWeight="bold">
-            Récepteur: <span style={{ color: "#f44336" }}>20%</span>
-          </Typography>
-        </Box>
-      }
-      arrow
-    >
-      <Typography
-        sx={{
-          backgroundColor: "#e0e0e0",
-          padding: "10px 20px",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-      >
-        Survolez-moi
-      </Typography>
-    </Tooltip>
-  );
-};
-
-export default AlignedTooltip;
-
-
-
 import React, { useState } from "react";
 import Graph from "react-graph-vis";
 import Tooltip from "@mui/material/Tooltip";
@@ -55,7 +10,7 @@ const GraphWithMUITooltip = () => {
     content: "",
   });
 
-  // Configuration des nœuds et des arrêtes du graphe
+  // Configuration des nœuds et des arrêtes
   const graph = {
     nodes: [
       { id: 1, label: "Node 1" },
@@ -63,12 +18,12 @@ const GraphWithMUITooltip = () => {
       { id: 3, label: "Node 3" },
     ],
     edges: [
-      { from: 1, to: 2, label: "Edge 1" },
-      { from: 2, to: 3, label: "Edge 2" },
+      { id: 1, from: 1, to: 2, label: "Edge 1" },
+      { id: 2, from: 2, to: 3, label: "Edge 2" },
     ],
   };
 
-  // Options du graphe
+  // Options du graph
   const options = {
     layout: {
       hierarchical: false,
@@ -78,7 +33,7 @@ const GraphWithMUITooltip = () => {
       smooth: true,
     },
     interaction: {
-      hover: true, // Active le survol
+      hover: true,
     },
     physics: {
       enabled: true,
@@ -88,12 +43,23 @@ const GraphWithMUITooltip = () => {
   // Gestion des événements
   const events = {
     hoverEdge: (event) => {
-      const { pointer, edge } = event;
+      const { pointer, edge, edges } = event;
+
+      // Calculer la position au-dessus de l'arrête
+      const edgeId = edges[0]; // Obtenir l'ID de l'arrête survolée
+      const edgeObject = graph.edges.find((e) => e.id === edgeId);
+      const fromNode = graph.nodes.find((n) => n.id === edgeObject.from);
+      const toNode = graph.nodes.find((n) => n.id === edgeObject.to);
+
+      // Calcul du point central de l'arrête
+      const centerX = (fromNode.x + toNode.x) / 2;
+      const centerY = (fromNode.y + toNode.y) / 2;
+
       setTooltip({
         visible: true,
         x: pointer.DOM.x,
-        y: pointer.DOM.y,
-        content: `Émetteur: 10% - Récepteur: 20% (Edge: ${edge})`,
+        y: pointer.DOM.y - 30, // Décaler le tooltip légèrement au-dessus
+        content: `Émetteur: 10% - Récepteur: 20%`,
       });
     },
     blurEdge: () => {
