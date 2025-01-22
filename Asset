@@ -1,35 +1,35 @@
-import React from 'react';
-import { Info } from 'lucide-react';
+import React from "react";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
-const InfoTooltip = () => {
+const CustomTooltip = () => {
   return (
-    <div className="relative inline-block group">
-      <div className="p-2 rounded-full hover:bg-gray-100 cursor-pointer transition-colors">
-        <Info className="w-5 h-5 text-gray-600" />
-      </div>
-      
-      {/* Tooltip */}
-      <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 bottom-full left-1/2 transform -translate-x-1/2 mb-2">
-        <div className="bg-gray-900 text-white p-3 rounded-lg shadow-lg min-w-[200px]">
-          <div className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span>Émetteur:</span>
-              <span className="font-semibold">10%</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Récepteur:</span>
-              <span className="font-semibold">20%</span>
-            </div>
-          </div>
-          
-          {/* Flèche du tooltip */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-            <div className="border-8 border-transparent border-t-gray-900 w-0 h-0" />
-          </div>
-        </div>
-      </div>
-    </div>
+    <Tooltip
+      title={
+        <Box sx={{ padding: 1 }}>
+          <Typography variant="body1" color="primary" fontWeight="bold">
+            Émetteur: <span style={{ color: "#4caf50" }}>10%</span>
+          </Typography>
+          <Typography variant="body1" color="secondary" fontWeight="bold">
+            Récepteur: <span style={{ color: "#f44336" }}>20%</span>
+          </Typography>
+        </Box>
+      }
+      arrow
+    >
+      <Typography
+        sx={{
+          backgroundColor: "#e0e0e0",
+          padding: "10px 20px",
+          borderRadius: "8px",
+          cursor: "pointer",
+        }}
+      >
+        Survolez-moi
+      </Typography>
+    </Tooltip>
   );
 };
 
-export default InfoTooltip;asset
+export default CustomTooltip;
