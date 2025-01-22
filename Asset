@@ -3,11 +3,18 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-const CustomTooltip = () => {
+const AlignedTooltip = () => {
   return (
     <Tooltip
       title={
-        <Box sx={{ padding: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "20px",
+            padding: 1,
+          }}
+        >
           <Typography variant="body1" color="primary" fontWeight="bold">
             Émetteur: <span style={{ color: "#4caf50" }}>10%</span>
           </Typography>
@@ -32,4 +39,4 @@ const CustomTooltip = () => {
   );
 };
 
-export default CustomTooltip;
+export default AlignedTooltip;
