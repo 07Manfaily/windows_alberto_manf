@@ -1,4 +1,19 @@
-import React, { useState } from 'react';
+Objet : Demande de permission pour rendez-vous médicaux
+
+Bonjour [nom du supérieur],
+
+Je vous écris pour vous informer que j'ai deux rendez-vous médicaux prévus prochainement :
+- Une consultation à l'hôpital HMP
+- Un rendez-vous chez mon dentiste
+
+Je souhaiterais donc obtenir votre autorisation pour m'absenter du bureau lors de ces rendez-vous. Je veillerai bien sûr à organiser mon travail en conséquence et à rattraper les heures si nécessaire.
+
+Pourriez-vous me confirmer que ces absences sont autorisées ? Je vous communiquerai les dates et heures exactes dès que possible.
+
+Je vous remercie de votre compréhension.
+
+Cordialement,
+[Votre nom]import React, { useState } from 'react';
 import {
   Select,
   MenuItem,
