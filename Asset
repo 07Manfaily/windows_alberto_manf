@@ -1,3 +1,91 @@
+import React, { useState } from 'react';
+import {
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+  FormControl,
+  InputLabel,
+  Box,
+  FormGroup,
+  FormControlLabel,
+  Typography
+} from '@mui/material';
+
+const SelectWithCheckboxes = () => {
+  // Données d'exemple
+  const options = [
+    { id: 1, name: 'Option 1', group: 'Groupe A' },
+    { id: 2, name: 'Option 2', group: 'Groupe A' },
+    { id: 3, name: 'Option 3', group: 'Groupe B' },
+    { id: 4, name: 'Option 4', group: 'Groupe B' },
+  ];
+
+  // État pour stocker les options sélectionnées
+  const [selected, setSelected] = useState([]);
+
+  // Obtenir les groupes uniques
+  const groups = [...new Set(options.map(option => option.group))];
+
+  // Gestionnaire de changement pour les sélections
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setSelected(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  return (
+    <Box sx={{ minWidth: 250 }}>
+      <FormControl fullWidth>
+        <InputLabel id="grouped-checkbox-select-label">
+          Sélectionnez des options
+        </InputLabel>
+        <Select
+          labelId="grouped-checkbox-select-label"
+          id="grouped-checkbox-select"
+          multiple
+          value={selected}
+          onChange={handleChange}
+          renderValue={(selected) => 
+            selected.map(id => options.find(opt => opt.id === parseInt(id)).name).join(', ')
+          }
+        >
+          {groups.map(group => (
+            <div key={group}>
+              <Typography
+                sx={{
+                  px: 2,
+                  py: 1,
+                  fontWeight: 'bold',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                }}
+              >
+                {group}
+              </Typography>
+              <FormGroup>
+                {options
+                  .filter(option => option.group === group)
+                  .map(option => (
+                    <MenuItem key={option.id} value={option.id}>
+                      <Checkbox 
+                        checked={selected.indexOf(option.id.toString()) > -1}
+                      />
+                      <ListItemText primary={option.name} />
+                    </MenuItem>
+                  ))
+                }
+              </FormGroup>
+            </div>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
+};
+
+export default SelectWithCheckboxes;
+
+
+
 import React, { useState } from "react";
 import Graph from "react-graph-vis";
 import Tooltip from "@mui/material/Tooltip";
