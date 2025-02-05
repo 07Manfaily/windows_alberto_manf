@@ -82,112 +82,92 @@ const SelectWithCheckboxes = () => {
   );
 };
 
-export default SelectWithCheckboxes;
 
 
+import React, { useState } from 'react';
+import {
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+  FormControl,
+  InputLabel,
+  Box,
+  FormGroup,
+  Typography
+} from '@mui/material';
 
-import React, { useState } from "react";
-import Graph from "react-graph-vis";
-import Tooltip from "@mui/material/Tooltip";
+const SelectWithCheckboxes = () => {
+  // Données d'exemple
+  const options = [
+    { id: 1, name: 'Option 1', group: 'Groupe A' },
+    { id: 2, name: 'Option 2', group: 'Groupe A' },
+    { id: 3, name: 'Option 3', group: 'Groupe B' },
+    { id: 4, name: 'Option 4', group: 'Groupe B' },
+  ];
 
-const GraphWithMUITooltip = () => {
-  const [tooltip, setTooltip] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    content: "",
-  });
+  // État pour stocker les options sélectionnées
+  const [selected, setSelected] = useState([]);
 
-  // Configuration des nœuds et des arrêtes
-  const graph = {
-    nodes: [
-      { id: 1, label: "Node 1" },
-      { id: 2, label: "Node 2" },
-      { id: 3, label: "Node 3" },
-    ],
-    edges: [
-      { id: 1, from: 1, to: 2, label: "Edge 1" },
-      { id: 2, from: 2, to: 3, label: "Edge 2" },
-    ],
-  };
+  // Obtenir les groupes uniques
+  const groups = [...new Set(options.map(option => option.group))];
 
-  // Options du graph
-  const options = {
-    layout: {
-      hierarchical: false,
-    },
-    edges: {
-      color: "#000000",
-      smooth: true,
-    },
-    interaction: {
-      hover: true,
-    },
-    physics: {
-      enabled: true,
-    },
-  };
-
-  // Gestion des événements
-  const events = {
-    hoverEdge: (event) => {
-      const { pointer, edge, edges } = event;
-
-      // Calculer la position au-dessus de l'arrête
-      const edgeId = edges[0]; // Obtenir l'ID de l'arrête survolée
-      const edgeObject = graph.edges.find((e) => e.id === edgeId);
-      const fromNode = graph.nodes.find((n) => n.id === edgeObject.from);
-      const toNode = graph.nodes.find((n) => n.id === edgeObject.to);
-
-      // Calcul du point central de l'arrête
-      const centerX = (fromNode.x + toNode.x) / 2;
-      const centerY = (fromNode.y + toNode.y) / 2;
-
-      setTooltip({
-        visible: true,
-        x: pointer.DOM.x,
-        y: pointer.DOM.y - 30, // Décaler le tooltip légèrement au-dessus
-        content: `Émetteur: 10% - Récepteur: 20%`,
-      });
-    },
-    blurEdge: () => {
-      setTooltip({ visible: false, x: 0, y: 0, content: "" });
-    },
+  // Gestionnaire de changement pour les sélections
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setSelected(value);
   };
 
   return (
-    <div style={{ position: "relative" }}>
-      <Graph
-        graph={graph}
-        options={options}
-        events={events}
-        style={{ height: "500px" }}
-      />
-
-      {tooltip.visible && (
-        <Tooltip
-          open={tooltip.visible}
-          title={
-            <div>
-              <strong style={{ color: "#4caf50" }}>Émetteur:</strong> 10%<br />
-              <strong style={{ color: "#f44336" }}>Récepteur:</strong> 20%
-            </div>
-          }
-          placement="top"
+    <Box sx={{ minWidth: 250 }}>
+      <FormControl fullWidth>
+        <InputLabel id="grouped-checkbox-select-label">
+          Sélectionnez des options
+        </InputLabel>
+        <Select
+          labelId="grouped-checkbox-select-label"
+          id="grouped-checkbox-select"
+          multiple
+          value={selected}
+          onChange={handleChange}
+          renderValue={(selectedIds) => {
+            return options
+              .filter(option => selectedIds.includes(option.id))
+              .map(option => option.name)
+              .join(', ');
+          }}
         >
-          <div
-            style={{
-              position: "absolute",
-              top: tooltip.y,
-              left: tooltip.x,
-              width: "1px",
-              height: "1px",
-            }}
-          />
-        </Tooltip>
-      )}
-    </div>
+          {groups.map(group => (
+            <div key={group}>
+              <Typography
+                sx={{
+                  px: 2,
+                  py: 1,
+                  fontWeight: 'bold',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                }}
+              >
+                {group}
+              </Typography>
+              <FormGroup>
+                {options
+                  .filter(option => option.group === group)
+                  .map(option => (
+                    <MenuItem key={option.id} value={option.id}>
+                      <Checkbox 
+                        checked={selected.includes(option.id)}
+                      />
+                      <ListItemText primary={option.name} />
+                    </MenuItem>
+                  ))
+                }
+              </FormGroup>
+            </div>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
   );
 };
 
-export default GraphWithMUITooltip;
+export default SelectWithCheckboxes;
