@@ -1,3 +1,11 @@
+const getMonthName = (monthNumber) => {
+  return new Date(new Date().getFullYear(), monthNumber - 1).toLocaleString("fr-FR", { month: "long" });
+};
+
+console.log(getMonthName(1)); // "janvier"
+console.log(getMonthName(12)); // "décembre"
+
+
 <!DOCTYPE html>
 <html>
 <head>
