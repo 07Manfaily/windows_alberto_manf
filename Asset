@@ -1,18 +1,10 @@
-Objet : Demande de permission pour rendez-vous médicaux
+Voici un message que tu pourrais lui envoyer :
 
-Bonjour [nom du supérieur],
+"Bravo et merci pour ton excellent travail sur l’interface ! Elle répond parfaitement aux besoins avancés de Swagger API et rend l’expérience bien plus fluide, notamment avec la possibilité de copier facilement les URL. Un vrai gain de temps et d’efficacité. Top boulot !"
 
-Je vous écris pour vous informer que j'ai deux rendez-vous médicaux prévus prochainement :
-- Une consultation à l'hôpital HMP
-- Un rendez-vous chez mon dentiste
+Tu peux aussi le personnaliser en fonction de ton style et de votre relation de travail.
 
-Je souhaiterais donc obtenir votre autorisation pour m'absenter du bureau lors de ces rendez-vous. Je veillerai bien sûr à organiser mon travail en conséquence et à rattraper les heures si nécessaire.
 
-Pourriez-vous me confirmer que ces absences sont autorisées ? Je vous communiquerai les dates et heures exactes dès que possible.
-
-Je vous remercie de votre compréhension.
-
-Cordialement,
 [Votre nom]import React, { useState } from 'react';
 import {
   Select,
