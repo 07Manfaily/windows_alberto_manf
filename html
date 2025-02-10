@@ -14,18 +14,17 @@ import Group from './pages/group';
 import Filter from './pages/filter';
 import Apex from './pages/apex';
 
-// Fonction de vérification d'authentification
 const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null; // Vérifie si un token existe dans le localStorage
+  return !!localStorage.getItem("token"); // Vérifie si un token est présent
 };
 
-// Composant de protection
 const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />; // ✅ Correction ici !
   }
   return children;
 };
+
 
 export default function Router() {
   const routes = useRoutes([
