@@ -1,12 +1,8 @@
-// components/ProtectedRoute.js
-
-
-
-
-// routes/index.js
 import { Navigate, useRoutes } from 'react-router-dom';
+// layouts
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
+// pages
 import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
@@ -16,12 +12,16 @@ import Chaine from './pages/chaine-de-valeur';
 import Risque from './pages/Risque';
 import Group from './pages/group';
 import Filter from './pages/filter';
-import Apex from './pages/apex'; // Assurez-vous que ce fichier existe et est correctement nommé
+import Apex from './pages/apex';
 
+// Fonction de vérification d'authentification
+const isAuthenticated = () => {
+  return !!localStorage.getItem('token'); // Vérifie si un token existe dans le localStorage
+};
 
+// Composant de protection
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('token') !== null;
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
 };
 
 export default function Router() {
@@ -34,41 +34,37 @@ export default function Router() {
         </ProtectedRoute>
       ),
       children: [
-        { path: '', element: <Navigate to="app" />, index: true, key: 'dashboard-index' },
-        { path: 'app', element: <DashboardAppPage />, key: 'dashboard-app' },
-        { path: 'risque', element: <Risque />, key: 'risque' },
-        { path: 'products', element: <ProductsPage />, key: 'products' },
-        { path: 'blog', element: <BlogPage />, key: 'blog' },
-        { path: 'chaine-de-valeur', element: <Chaine />, key: 'chaine-de-valeur' },
-        { path: 'groupe', element: <Group />, key: 'group' },
-        { path: 'filter', element: <Filter />, key: 'filter' },
-        { path: 'products/chart', element: <Apex />, key: 'products-chart' }
+        { element: <Navigate to="/dashboard/app" />, index: true },
+        { path: 'app', element: <DashboardAppPage /> },
+        { path: 'risque', element: <Risque /> },
+        { path: 'products', element: <ProductsPage /> },
+        { path: 'blog', element: <BlogPage /> },
+        { path: 'chaine-de-valeur', element: <Chaine /> },
+        { path: 'groupe', element: <Group /> },
+        { path: 'filter', element: <Filter /> },
+        { path: 'chart', element: <Apex /> }
       ],
     },
     {
       path: '/',
-      element: <Navigate to="/login" replace />, // Redirection unique vers /login
+      element: <LoginPage />,
     },
     {
       path: '/login',
       element: <LoginPage />,
     },
     {
-      path: '*',
-      element: (
-        <SimpleLayout>
-          <Navigate to="/404" replace />
-        </SimpleLayout>
-      ),
+      element: <SimpleLayout />,
+      children: [
+        { element: <Navigate to="/login" />, index: true },
+        { path: '404', element: <Page404 /> },
+        { path: '*', element: <Navigate to="/404" /> },
+      ],
     },
     {
-      path: '/404',
-      element: (
-        <SimpleLayout>
-          <Page404 />
-        </SimpleLayout>
-      ),
-    }
+      path: '*',
+      element: <Navigate to="/404" replace />,
+    },
   ]);
 
   return routes;
