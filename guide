@@ -1,172 +1,33 @@
-const getMonthName = (monthNumber) => {
-  return new Date(new Date().getFullYear(), monthNumber - 1).toLocaleString("fr-FR", { month: "long" });
+import React, { useState } from "react";
+import { MenuItem, Select, FormControl, InputLabel, Radio, ListItemIcon, ListItemText } from "@mui/material";
+
+const RadioSelect = () => {
+  const [selectedValue, setSelectedValue] = useState("");
+
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
+
+  return (
+    <FormControl fullWidth>
+      <InputLabel id="radio-select-label">Choisir une option</InputLabel>
+      <Select
+        labelId="radio-select-label"
+        value={selectedValue}
+        onChange={handleChange}
+        displayEmpty
+      >
+        {["Option 1", "Option 2", "Option 3"].map((option, index) => (
+          <MenuItem key={index} value={option}>
+            <ListItemIcon>
+              <Radio checked={selectedValue === option} />
+            </ListItemIcon>
+            <ListItemText primary={option} />
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 };
 
-console.log(getMonthName(1)); // "janvier"
-console.log(getMonthName(12)); // "décembre"
-
-
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body {
-     
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #000000;
-      font-family: Arial, sans-serif;
-    }
-
-    .robot-container {
-      position: fixed;
-      bottom: 10px;
-      right: 20px;
-      z-index: 1000;
-      
-    }
-
-    .robot-image {
-      width: 400px;
-      height: 400px;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-50px); }
-    }
-
-    .speech-bubble {
-      position: absolute;
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      min-width: 250px;
-      bottom: 430px;
-      right: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s ease;
-    }
-
-    .speech-bubble::after {
-      content: '';
-      position: absolute;
-      right: 30px;
-      bottom: -20px;
-      border: 10px solid transparent;
-      border-top-color: white;
-    }
-
-    .speech-bubble.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .highlighted-section {
-      background: rgba(74, 144, 226, 0.1);
-      border: 2px solid #4a90e2;
-      transition: all 0.3s ease;
-    }
-  </style>
-</head>
-<body>
-  <div class="robot-container">
-    <div class="speech-bubble">
-      Bienvenue sur notre site !
-    </div>
-    <img src="./assets/img/guide.png" alt="Robot IA Assistant" class="robot-image">
-  </div>
-
-  <script>
-    const presentations = [
-      {
-        message: "Bonjour ! Je suis votre assistant IA. Je vais vous guider à travers notre site !",
-        duration: 4000
-      },
-      {
-        message: "En haut, vous trouverez notre menu principal avec toutes les rubriques importantes.",
-        duration: 4000,
-        section: "header"
-      },
-      {
-        message: "Ici, vous découvrirez nos dernières actualités et projet realisé.",
-        duration: 4000,
-        section: "news"
-      },
-      {
-        message: "Dans cette section, vous trouverez tous nos services disponibles.",
-        duration: 4000,
-        section: "services"
-      },
-      {
-        message: "Voici nos réalisations et projets les plus récents.",
-        duration: 4000,
-        section: "portfolio"
-      },
-      {
-        message: "En bas de page, vous trouverez nos coordonnées et nos réseaux sociaux.",
-        duration: 4000,
-        section: "footer"
-      },
-      {
-        message: "Je reste disponible si vous avez des questions ! Cliquez sur moi pour me parler.",
-        duration: 4000
-      }
-    ];
-
-    const speechBubble = document.querySelector('.speech-bubble');
-    const robotImage = document.querySelector('.robot-image');
-    let currentIndex = 0;
-
-    function showNextMessage() {
-      if (currentIndex < presentations.length) {
-        const presentation = presentations[currentIndex];
-        
-        // Retirer la surbrillance précédente
-        const highlighted = document.querySelector('.highlighted-section');
-        if (highlighted) {
-          highlighted.classList.remove('highlighted-section');
-        }
-
-        // Afficher le nouveau message
-        speechBubble.textContent = presentation.message;
-        speechBubble.classList.add('visible');
-
-        // Mettre en surbrillance la nouvelle section si spécifiée
-        if (presentation.section) {
-          const section = document.getElementById(presentation.section);
-          if (section) {
-            section.classList.add('highlighted-section');
-            // Faire défiler jusqu'à la section
-            section.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-
-        // Programmer le prochain message
-        setTimeout(() => {
-          currentIndex++;
-          showNextMessage();
-        }, presentation.duration);
-      }
-    }
-
-    // Ajouter l'interaction au clic sur le robot
-    robotImage.addEventListener('click', () => {
-      // Redémarrer la présentation
-      currentIndex = 0;
-      showNextMessage();
-    });
-
-    // Démarrer la présentation au chargement de la page
-    window.onload = () => {
-      setTimeout(showNextMessage, 1000);
-    };
-  </script>
-</body>
-</html>
+export default RadioSelect;
