@@ -1,180 +1,51 @@
-Voici un message que tu pourrais lui envoyer :
+import React from 'react';
+import ReactApexChart from 'react-apexcharts';
 
-"Bravo et merci pour ton excellent travail sur l’interface ! Elle répond parfaitement aux besoins avancés de Swagger API et rend l’expérience bien plus fluide, notamment avec la possibilité de copier facilement les URL. Un vrai gain de temps et d’efficacité. Top boulot !"
-
-Tu peux aussi le personnaliser en fonction de ton style et de votre relation de travail.
-
-
-[Votre nom]import React, { useState } from 'react';
-import {
-  Select,
-  MenuItem,
-  Checkbox,
-  ListItemText,
-  FormControl,
-  InputLabel,
-  Box,
-  FormGroup,
-  FormControlLabel,
-  Typography
-} from '@mui/material';
-
-const SelectWithCheckboxes = () => {
-  // Données d'exemple
-  const options = [
-    { id: 1, name: 'Option 1', group: 'Groupe A' },
-    { id: 2, name: 'Option 2', group: 'Groupe A' },
-    { id: 3, name: 'Option 3', group: 'Groupe B' },
-    { id: 4, name: 'Option 4', group: 'Groupe B' },
-  ];
-
-  // État pour stocker les options sélectionnées
-  const [selected, setSelected] = useState([]);
-
-  // Obtenir les groupes uniques
-  const groups = [...new Set(options.map(option => option.group))];
-
-  // Gestionnaire de changement pour les sélections
-  const handleChange = (event) => {
-    const value = event.target.value;
-    setSelected(typeof value === 'string' ? value.split(',') : value);
+const EmptyChart = () => {
+  const options = {
+    chart: {
+      id: 'empty-chart',
+      animations: {
+        enabled: true
+      }
+    },
+    noData: {
+      text: 'Aucune donnée disponible',
+      align: 'center',
+      verticalAlign: 'middle',
+      offsetX: 0,
+      offsetY: 0,
+      style: {
+        color: '#666',
+        fontSize: '16px',
+        fontFamily: 'sans-serif'
+      }
+    },
+    // Vous pouvez personnaliser d'autres aspects du graphique ici
+    xaxis: {
+      type: 'datetime'
+    },
+    yaxis: {
+      labels: {
+        formatter: (value) => `${value}`
+      }
+    }
   };
 
+  // Série vide
+  const series = [];
+
   return (
-    <Box sx={{ minWidth: 250 }}>
-      <FormControl fullWidth>
-        <InputLabel id="grouped-checkbox-select-label">
-          Sélectionnez des options
-        </InputLabel>
-        <Select
-          labelId="grouped-checkbox-select-label"
-          id="grouped-checkbox-select"
-          multiple
-          value={selected}
-          onChange={handleChange}
-          renderValue={(selected) => 
-            selected.map(id => options.find(opt => opt.id === parseInt(id)).name).join(', ')
-          }
-        >
-          {groups.map(group => (
-            <div key={group}>
-              <Typography
-                sx={{
-                  px: 2,
-                  py: 1,
-                  fontWeight: 'bold',
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                }}
-              >
-                {group}
-              </Typography>
-              <FormGroup>
-                {options
-                  .filter(option => option.group === group)
-                  .map(option => (
-                    <MenuItem key={option.id} value={option.id}>
-                      <Checkbox 
-                        checked={selected.indexOf(option.id.toString()) > -1}
-                      />
-                      <ListItemText primary={option.name} />
-                    </MenuItem>
-                  ))
-                }
-              </FormGroup>
-            </div>
-          ))}
-        </Select>
-      </FormControl>
-    </Box>
+    <div className="w-full h-96 p-4 bg-white rounded-lg shadow-sm">
+      <ReactApexChart
+        options={options}
+        series={series}
+        type="line"
+        height="100%"
+        width="100%"
+      />
+    </div>
   );
 };
 
-
-
-import React, { useState } from 'react';
-import {
-  Select,
-  MenuItem,
-  Checkbox,
-  ListItemText,
-  FormControl,
-  InputLabel,
-  Box,
-  FormGroup,
-  Typography
-} from '@mui/material';
-
-const SelectWithCheckboxes = () => {
-  // Données d'exemple
-  const options = [
-    { id: 1, name: 'Option 1', group: 'Groupe A' },
-    { id: 2, name: 'Option 2', group: 'Groupe A' },
-    { id: 3, name: 'Option 3', group: 'Groupe B' },
-    { id: 4, name: 'Option 4', group: 'Groupe B' },
-  ];
-
-  // État pour stocker les options sélectionnées
-  const [selected, setSelected] = useState([]);
-
-  // Obtenir les groupes uniques
-  const groups = [...new Set(options.map(option => option.group))];
-
-  // Gestionnaire de changement pour les sélections
-  const handleChange = (event) => {
-    const value = event.target.value;
-    setSelected(value);
-  };
-
-  return (
-    <Box sx={{ minWidth: 250 }}>
-      <FormControl fullWidth>
-        <InputLabel id="grouped-checkbox-select-label">
-          Sélectionnez des options
-        </InputLabel>
-        <Select
-          labelId="grouped-checkbox-select-label"
-          id="grouped-checkbox-select"
-          multiple
-          value={selected}
-          onChange={handleChange}
-          renderValue={(selectedIds) => {
-            return options
-              .filter(option => selectedIds.includes(option.id))
-              .map(option => option.name)
-              .join(', ');
-          }}
-        >
-          {groups.map(group => (
-            <div key={group}>
-              <Typography
-                sx={{
-                  px: 2,
-                  py: 1,
-                  fontWeight: 'bold',
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                }}
-              >
-                {group}
-              </Typography>
-              <FormGroup>
-                {options
-                  .filter(option => option.group === group)
-                  .map(option => (
-                    <MenuItem key={option.id} value={option.id}>
-                      <Checkbox 
-                        checked={selected.includes(option.id)}
-                      />
-                      <ListItemText primary={option.name} />
-                    </MenuItem>
-                  ))
-                }
-              </FormGroup>
-            </div>
-          ))}
-        </Select>
-      </FormControl>
-    </Box>
-  );
-};
-
-export default SelectWithCheckboxes;
+export default EmptyChart;
