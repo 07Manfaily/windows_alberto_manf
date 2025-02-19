@@ -1,3 +1,34 @@
+
+<Box sx={{ height: 400 }}>
+  <ReactApexChart
+    options={options(
+      dataMontant.categories.length > 0 ? dataMontant.categories : [""], // Catégorie vide
+      dataMontant.series.length > 0 ? dataMontant.series[0] : { data: [0] }, // Donnée vide
+      dataMontant.categories.length > 0 ? dataMontant.categories : [""],
+      ["#d81159"]
+    )}
+    series={
+      dataMontant.series.length > 0
+        ? dataMontant.series
+        : [{ name: "Aucune donnée", data: [0] }] // Structure correcte pour ApexCharts
+    }
+    type="bar"
+    width="100%"
+    height={350}
+  />
+</Box>
+
+Pourquoi cette correction ?
+
+✅ Dans ApexCharts, series doit être un tableau d'objets avec { name, data }.
+✅ Si dataMontant.series est vide, on fournit [{ name: "Aucune donnée", data: [0] }], ce qui est valide.
+✅ Cela évite une erreur lorsque les données ne sont pas encore disponibles.
+
+💡 Avec ce correctif, ton graphe s'affichera vide mais sans erreur en attendant les vraies données.
+
+
+
+
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
