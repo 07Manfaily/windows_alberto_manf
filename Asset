@@ -1,4 +1,18 @@
+const lastAgence = useRef(null);
+const lastOperationType = useRef(null);
 
+useEffect(() => {
+  if (operationType && (lastAgence.current !== agence || lastOperationType.current !== operationType)) {
+    if (agence === "Toute les agences") {
+      GetCaisseCompareGlobale();
+    } else {
+      GetCaisseCompare();
+    }
+
+    lastAgence.current = agence;
+    lastOperationType.current = operationType;
+  }
+}, [agence, operationType]);
 <Box sx={{ height: 400 }}>
   <ReactApexChart
     options={options(
