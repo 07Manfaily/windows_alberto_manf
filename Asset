@@ -1,3 +1,43 @@
+<button class="nav-link" id="Data3-tab" data-bs-toggle="tab"
+    data-bs-target="#Data3-tab-pane" type="button"
+    role="tab" aria-controls="Data3-tab-pane"
+    aria-selected="true"
+    onclick="window.location.href='projet-details.html?project=moana'">MOANA</button>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Récupérer le paramètre dans l'URL
+        const params = new URLSearchParams(window.location.search);
+        const project = params.get("project");
+
+        if (project) {
+            // Désactiver tous les onglets actifs
+            document.querySelectorAll(".nav-link").forEach(tab => {
+                tab.classList.remove("active");
+                tab.setAttribute("aria-selected", "false");
+            });
+
+            document.querySelectorAll(".tab-pane").forEach(pane => {
+                pane.classList.remove("show", "active");
+            });
+
+            // Activer le bon onglet
+            const tab = document.querySelector(`#Data-tab-${project}`);
+            const pane = document.querySelector(`#Data${project}-tab-pane`);
+
+            if (tab && pane) {
+                tab.classList.add("active");
+                tab.setAttribute("aria-selected", "true");
+
+                pane.classList.add("show", "active");
+            }
+        }
+    });
+</script>
+
+
+
 const lastAgence = useRef(null);
 const lastOperationType = useRef(null);
 
