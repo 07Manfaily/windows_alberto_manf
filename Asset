@@ -1,3 +1,47 @@
+<ul class="nav nav-tab" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if project == 'sentinelle-cheque' %}active{% endif %}" 
+                id="Data1-tab" data-bs-toggle="tab"
+                data-bs-target="#Data1-tab-pane" type="button" role="tab"
+                aria-controls="Data1-tab-pane" aria-selected="{{ 'true' if project == 'sentinelle-cheque' else 'false' }}">
+            SENTINELLE CHEQUE
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if project == 'hatari' %}active{% endif %}" 
+                id="Data2-tab" data-bs-toggle="tab"
+                data-bs-target="#Data2-tab-pane" type="button" role="tab"
+                aria-controls="Data2-tab-pane" aria-selected="{{ 'true' if project == 'hatari' else 'false' }}">
+            HATARI
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if project == 'moana' %}active{% endif %}" 
+                id="Data3-tab" data-bs-toggle="tab"
+                data-bs-target="#Data3-tab-pane" type="button" role="tab"
+                aria-controls="Data3-tab-pane" aria-selected="{{ 'true' if project == 'moana' else 'false' }}">
+            MOANA
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade {% if project == 'sentinelle-cheque' %}show active{% endif %}" 
+         id="Data1-tab-pane" role="tabpanel" aria-labelledby="Data1-tab">
+        Contenu de Sentinelle Cheque
+    </div>
+    <div class="tab-pane fade {% if project == 'hatari' %}show active{% endif %}" 
+         id="Data2-tab-pane" role="tabpanel" aria-labelledby="Data2-tab">
+        Contenu de Hatari
+    </div>
+    <div class="tab-pane fade {% if project == 'moana' %}show active{% endif %}" 
+         id="Data3-tab-pane" role="tabpanel" aria-labelledby="Data3-tab">
+        Contenu de Moana
+    </div>
+</div>
+
+
+
 <a href="{{ url_for('projet_details', project='moana') }}">MOANA</a>
 @app.route('/projet-details')
 def projet_details():
