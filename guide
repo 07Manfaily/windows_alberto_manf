@@ -1,3 +1,68 @@
+Je vais vous expliquer la différence entre min-width et max-width, puis vous proposer un code responsive adapté :
+
+`min-width` : S'applique QUAND la largeur de l'écran est SUPÉRIEURE à la valeur spécifiée
+`max-width` : S'applique QUAND la largeur de l'écran est INFÉRIEURE à la valeur spécifiée
+
+Voici le code responsive adapté pour votre robot-container :
+
+```css
+/* Écrans très larges (>1400px) */
+@media (min-width: 1400px) {
+    .robot-container {
+        right: 10%;
+        height: 300px;
+    }
+}
+
+/* Grands écrans (1200px-1400px) */
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .robot-container {
+        right: 60%;
+        height: 250px;
+    }
+}
+
+/* Écrans moyens (992px-1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .robot-container {
+        right: 75%;
+        height: 200px;
+    }
+}
+
+/* Tablettes (768px-991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .robot-container {
+        right: 60%;
+        height: 150px;
+    }
+}
+
+/* Mobiles (<768px) */
+@media (max-width: 767px) {
+    .robot-container {
+        display: none;  /* Le robot disparaît sur mobile */
+    }
+}
+```
+
+Cette approche est plus progressive que votre code actuel car :
+
+1. Elle utilise des paliers progressifs pour adapter la taille et la position
+2. Les changements sont plus graduels
+3. La disparition sur mobile arrive en dernier
+
+Les breakpoints standards utilisés sont :
+- Mobile : < 768px
+- Tablette : 768px - 991px
+- Desktop : 992px - 1199px
+- Large Desktop : 1200px - 1399px
+- Extra Large : > 1400px
+
+Cette approche permet une meilleure expérience utilisateur car le robot s'adapte progressivement à la taille de l'écran avant de disparaître complètement sur mobile.
+
+Vous pouvez ajuster les valeurs de `right` et `height` selon vos besoins spécifiques.
+
 import React, { useState } from "react";
 import { MenuItem, Select, FormControl, InputLabel, Radio, ListItemIcon, ListItemText } from "@mui/material";
 
