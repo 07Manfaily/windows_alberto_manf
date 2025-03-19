@@ -118,3 +118,76 @@ const options = (fileName, intitule, categoryValue, exportSerie, exportCategorie
     }
 };
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+useEffect caisse
+useEffect(() => {
+    if (start) {
+        GetParam();
+    }
+}, [start]); // Dépendance correcte pour exécuter GetParam() lorsque start change
+
+const lastAgence = useRef(null);
+const lastOperationType = useRef(null);
+const isFirstRender = useRef(true);
+
+useEffect(() => {
+    if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return; // Empêche l'exécution au premier rendu
+    }
+
+    if (start && agence && operationType) { // Vérification pour éviter les erreurs
+        if (lastAgence.current !== agence || lastOperationType.current !== operationType) {
+            if (agence === "Toute les agences" || (operation && operation.includes(operationType))) {
+                GetCaisseGlobale();
+            } else {
+                GetCaisseDetails();
+            }
+
+            // Mise à jour des références après l'exécution
+            lastAgence.current = agence;
+            lastOperationType.current = operationType;
+        }
+    }
+}, [start, agence, operationType]); // Ajout des dépendances nécessaires
+------------------------------------
+
+carte
+
+Je comprends que vous voulez télécharger les données de dataRem s'il contient des valeurs, sinon télécharger les données de dataRemAg. Voici comment vous pourriez modifier votre code :
+javascriptCopierclick: () => {
+  // Vérifier si dataRem.series[0].data contient des valeurs
+  const hasDataRem = dataRem.series[0].data && dataRem.series[0].data.length > 0;
+  
+  // Choisir la source de données en fonction de la condition
+  const dataToExport = hasDataRem 
+    ? dataRem.series[0].data.map((value, index) => ({
+        Date: dataRem.categories[index],
+        Jour: value
+      }))
+    : dataRemAg.series[0].data.map((value, index) => ({
+        Date: dataRemAg.categories[index],
+        Jour: value
+      }));
+
+  // Créer une feuille de calcul
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "carte remise");
+  
+  // Exporter le fichier
+  XLSX.writeFile(workbook, "cartes_remises.xlsx");
+}
+Cette solution:
+
+Vérifie d'abord si dataRem.series[0].data existe et contient des données
+Si c'est le cas, utilise les données de dataRem pour l'export
+Sinon, utilise les données de dataRemAg
+
+Si vous souhaitez une vérification plus précise pour déterminer si dataRem "contient des valeurs", vous pourriez ajuster la condition. Par exemple, si vous voulez vérifier que le tableau contient au moins une valeur non nulle ou non vide :
+javascriptCopierconst hasDataRem = dataRem.series[0].data && 
+                  dataRem.series[0].data.length > 0 && 
+                  dataRem.series[0].data.some(value => value !== null && value !== undefined && value !== 0);
+Cette condition vérifiera non seulement que le tableau existe et a une longueur, mais aussi qu'il contient au moins une valeur significative.
+
