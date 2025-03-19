@@ -1,184 +1,64 @@
-const isFirstRender = useRef(true);
-
-useEffect(() => {
-    if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return; // Empêche l'exécution au premier rendu
+Je comprends mieux maintenant ! Si exportSeries est un paramètre de votre fonction, voici comment vous pourriez adapter votre code pour traiter tous les objets de ce paramètre lors du téléchargement :
+javascriptCopier// Dans votre fonction d'export
+export default function Caisse({ filename, intitule, categoryValues, exportSeries, exportCategorie, ... }) {
+  // ... votre code existant ...
+  
+  // Dans la partie customIcons pour "Export to Excel"
+  click: () => {
+    // Préparer les données pour l'export
+    const dataToExport = [];
+    
+    // Si exportSeries est un tableau avec plusieurs séries
+    if (Array.isArray(exportSeries) && exportSeries.length > 0) {
+      // Parcourir les catégories
+      exportCategorie.forEach((categorie, index) => {
+        const row = { Periode: categorie };
+        
+        // Ajouter les valeurs de chaque série pour cette période
+        exportSeries.forEach(serie => {
+          // Utiliser le nom de la série comme clé ou un nom par défaut
+          const serieName = serie.name || 'Série';
+          row[serieName] = serie.data[index];
+        });
+        
+        dataToExport.push(row);
+      });
     }
 
-    if (operationType && (lastAgence.current !== agence || lastOperationType.current !== operationType)) {
-        if (agence === "Toute les agences" || operationType === operation[1]) {
-            GetCaisseGlobale();
-        } else {
-            GetCaisseDetails();
-        }
-
-        lastAgence.current = agence;
-        lastOperationType.current = operationType;
-    }
-}, [agence, operationType]);
-
-
-
-<ul class="nav nav-tab" id="myTab" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link {% if project == 'sentinelle-cheque' %}active{% endif %}" 
-                id="Data1-tab" data-bs-toggle="tab"
-                data-bs-target="#Data1-tab-pane" type="button" role="tab"
-                aria-controls="Data1-tab-pane" aria-selected="{{ 'true' if project == 'sentinelle-cheque' else 'false' }}">
-            SENTINELLE CHEQUE
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link {% if project == 'hatari' %}active{% endif %}" 
-                id="Data2-tab" data-bs-toggle="tab"
-                data-bs-target="#Data2-tab-pane" type="button" role="tab"
-                aria-controls="Data2-tab-pane" aria-selected="{{ 'true' if project == 'hatari' else 'false' }}">
-            HATARI
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link {% if project == 'moana' %}active{% endif %}" 
-                id="Data3-tab" data-bs-toggle="tab"
-                data-bs-target="#Data3-tab-pane" type="button" role="tab"
-                aria-controls="Data3-tab-pane" aria-selected="{{ 'true' if project == 'moana' else 'false' }}">
-            MOANA
-        </button>
-    </li>
-</ul>
-
-<div class="tab-content" id="myTabContent">
-    <div class="tab-pane fade {% if project == 'sentinelle-cheque' %}show active{% endif %}" 
-         id="Data1-tab-pane" role="tabpanel" aria-labelledby="Data1-tab">
-        Contenu de Sentinelle Cheque
-    </div>
-    <div class="tab-pane fade {% if project == 'hatari' %}show active{% endif %}" 
-         id="Data2-tab-pane" role="tabpanel" aria-labelledby="Data2-tab">
-        Contenu de Hatari
-    </div>
-    <div class="tab-pane fade {% if project == 'moana' %}show active{% endif %}" 
-         id="Data3-tab-pane" role="tabpanel" aria-labelledby="Data3-tab">
-        Contenu de Moana
-    </div>
-</div>
-
-
-
-<a href="{{ url_for('projet_details', project='moana') }}">MOANA</a>
-@app.route('/projet-details')
-def projet_details():
-    project = request.args.get('project')  # Récupérer le paramètre
-    return render_template('projet-details.html', project=project)
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const project = "{{ project }}";  // Récupérer la valeur envoyée par Flask
-
-        if (project) {
-            const tab = document.querySelector(`#Data-tab-${project}`);
-            const pane = document.querySelector(`#Data${project}-tab-pane`);
-
-            if (tab && pane) {
-                tab.classList.add("active");
-                tab.setAttribute("aria-selected", "true");
-                pane.classList.add("show", "active");
-            }
-        }
-    });
-</script>
-const lastAgence = useRef(null);
-const lastOperationType = useRef(null);
-
-useEffect(() => {
-  if (operationType && (lastAgence.current !== agence || lastOperationType.current !== operationType)) {
-    if (agence === "Toute les agences") {
-      GetCaisseCompareGlobale();
-    } else {
-      GetCaisseCompare();
-    }
-
-    lastAgence.current = agence;
-    lastOperationType.current = operationType;
+    // Créer une feuille de calcul
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, intitule || 'Données');
+    
+    // Exporter le fichier
+    XLSX.writeFile(workbook, filename || 'export.xlsx');
   }
-}, [agence, operationType]);
-<Box sx={{ height: 400 }}>
-  <ReactApexChart
-    options={options(
-      dataMontant.categories.length > 0 ? dataMontant.categories : [""], // Catégorie vide
-      dataMontant.series.length > 0 ? dataMontant.series[0] : { data: [0] }, // Donnée vide
-      dataMontant.categories.length > 0 ? dataMontant.categories : [""],
-      ["#d81159"]
-    )}
-    series={
-      dataMontant.series.length > 0
-        ? dataMontant.series
-        : [{ name: "Aucune donnée", data: [0] }] // Structure correcte pour ApexCharts
-    }
-    type="bar"
-    width="100%"
-    height={350}
-  />
-</Box>
-
-Pourquoi cette correction ?
-
-✅ Dans ApexCharts, series doit être un tableau d'objets avec { name, data }.
-✅ Si dataMontant.series est vide, on fournit [{ name: "Aucune donnée", data: [0] }], ce qui est valide.
-✅ Cela évite une erreur lorsque les données ne sont pas encore disponibles.
-
-💡 Avec ce correctif, ton graphe s'affichera vide mais sans erreur en attendant les vraies données.
-
-
-
-
-import React from 'react';
-import ReactApexChart from 'react-apexcharts';
-
-const EmptyChart = () => {
-  const options = {
-    chart: {
-      id: 'empty-chart',
-      animations: {
-        enabled: true
-      }
-    },
-    noData: {
-      text: 'Aucune donnée disponible',
-      align: 'center',
-      verticalAlign: 'middle',
-      offsetX: 0,
-      offsetY: 0,
-      style: {
-        color: '#666',
-        fontSize: '16px',
-        fontFamily: 'sans-serif'
-      }
-    },
-    // Vous pouvez personnaliser d'autres aspects du graphique ici
-    xaxis: {
-      type: 'datetime'
-    },
-    yaxis: {
-      labels: {
-        formatter: (value) => `${value}`
-      }
-    }
-  };
-
-  // Série vide
-  const series = [];
-
-  return (
-    <div className="w-full h-96 p-4 bg-white rounded-lg shadow-sm">
-      <ReactApexChart
-        options={options}
-        series={series}
-        type="line"
-        height="100%"
-        width="100%"
-      />
-    </div>
-  );
-};
-
-export default EmptyChart;
+}
+Cette solution va créer un fichier Excel unique avec une seule feuille contenant toutes les séries côte à côte. Chaque ligne représentera une période, et vous aurez une colonne pour chaque série.
+Si vous préférez avoir une feuille séparée pour chaque série dans le même fichier Excel :
+javascriptCopierclick: () => {
+  // Créer un workbook
+  const workbook = XLSX.utils.book_new();
+  
+  // Traiter chaque série séparément
+  exportSeries.forEach((serie, serieIndex) => {
+    // Préparer les données pour cette série
+    const serieData = exportCategorie.map((categorie, index) => ({
+      Periode: categorie,
+      Montant: serie.data[index]
+    }));
+    
+    // Créer une feuille pour cette série
+    const worksheet = XLSX.utils.json_to_sheet(serieData);
+    
+    // Nom de la feuille basé sur le nom de la série ou un index
+    const sheetName = serie.name || `Série ${serieIndex+1}`;
+    
+    // Ajouter la feuille au workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  });
+  
+  // Exporter le fichier
+  XLSX.writeFile(workbook, filename || 'export.xlsx');
+}
+Les deux approches vous permettront de télécharger toutes les données contenues dans le paramètre exportSeries.
