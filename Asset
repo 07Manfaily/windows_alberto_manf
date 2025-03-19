@@ -62,3 +62,59 @@ javascriptCopierclick: () => {
   XLSX.writeFile(workbook, filename || 'export.xlsx');
 }
 Les deux approches vous permettront de télécharger toutes les données contenues dans le paramètre exportSeries.
+
+
+
+---------------------------------------------------------------------------
+Dans ton code actuel, exportSerie.datasemble être un tableau qui contient des valeurs. Si exportSerieest un tableau contenant deux objets, et que tu veux télécharger ces deux objets dans un même fichier Excel, il faut s'assurer que :
+
+Tu fusionnes les deux objets en une seule structure exploitable.
+Chaque objet soit transformé en feuille de calcul ( worksheet).
+Les deux feuilles soient ajoutées au fichier Excel avant le téléchargement.
+Solution : Ajouter plusieurs feuilles dans le fichier Excel
+Voici comment modifier votre code pour exporter chaque objet de exportSeriesous une feuille distincte dans le fichier Excel :
+
+
+const options = (fileName, intitule, categoryValue, exportSerie, exportCategorie, color) => {
+    chart: {
+        toolbar: {
+            tools: {
+                download: true,
+                selection: true,
+                zoom: true,
+                zoomin: true,
+                zoomout: true,
+                pan: true,
+                reset: true,
+            },
+            customIcons: [
+                {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 24">
+                            <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.34v6h5.66V9h3.34L12 2z"/>
+                          </svg>`,
+                    index: -1,
+                    title: "Export to Excel",
+                    class: "custom-excel-export",
+                    click: () => {
+                        const workbook = XLSX.utils.book_new();
+
+                        // Parcourir les objets dans exportSerie et les ajouter en tant que feuilles distinctes
+                        exportSerie.forEach((serie, idx) => {
+                            const dataToExport = serie.data.map((value, index) => ({
+                                Periode: exportCategorie[index],
+                                Montant: value
+                            }));
+
+                            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                            XLSX.utils.book_append_sheet(workbook, worksheet, `Feuille_${idx + 1}`);
+                        });
+
+                        // Télécharger le fichier Excel
+                        XLSX.writeFile(workbook, fileName);
+                    }
+                }
+            ]
+        }
+    }
+};
+
