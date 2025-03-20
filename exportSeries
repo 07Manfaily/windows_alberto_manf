@@ -171,6 +171,37 @@ javascriptCopierclick: () => {
         Jour: value
       }));
 
+
+
+
+click: () => {
+  // Vérifier que dataRem.series existe et contient au moins un élément
+  const hasValidDataRem = dataRem.series && dataRem.series.length > 0 && dataRem.series[0].data;
+  const hasValidDataRemAg = dataRemAg.series && dataRemAg.series.length > 0 && dataRemAg.series[0].data;
+
+  if (!hasValidDataRem && !hasValidDataRemAg) {
+    console.error("Aucune donnée disponible pour l'exportation.");
+    return;
+  }
+
+  // Déterminer la source de données à utiliser
+  const dataToExport = hasValidDataRem
+    ? dataRem.series[0].data.map((value, index) => ({
+        Date: dataRem.categories?.[index] || "Inconnu",
+        Jour: value
+      }))
+    : dataRemAg.series[0].data.map((value, index) => ({
+        Date: dataRemAg.categories?.[index] || "Inconnu",
+        Jour: value
+      }));
+
+  // Créer et exporter le fichier Excel
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "carte remise");
+  XLSX.writeFile(workbook, "cartes_remises.xlsx");
+}
+
   // Créer une feuille de calcul
   const worksheet = XLSX.utils.json_to_sheet(dataToExport);
   const workbook = XLSX.utils.book_new();
