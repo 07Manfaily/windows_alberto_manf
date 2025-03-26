@@ -1,70 +1,182 @@
 import React, { useState } from 'react';
-import ApiResultComponent from './learn2';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { People, DirectionsCar, Work } from '@mui/icons-material';
+import { 
+  Box, 
+  Container, 
+  Paper, 
+  Typography, 
+  TextField, 
+  Grid,
+  styled 
+} from '@mui/material';
 
-function Formulaire() {
-   const [username, setUsername] = useState('');
-   const [country, setCountry] = useState('');
-   const [searchData, setSearchData] = useState(null);
+const EmployeeDashboard = () => {
+  const [formData, setFormData] = useState({
+    titre: '',
+    agent1: '',
+    agent2: '',
+    agent3: ''
+  });
 
-   const handleSubmit = (e) => {
-     e.preventDefault();
-     // Préparer les données à envoyer à l'autre composant
-     setSearchData({ 
-       username, 
-       country 
-     });
-   };
+  const sampleLineData = [
+    { name: 'Jan', agents: 400, directeurs: 240, chauffeurs: 180 },
+    { name: 'Fev', agents: 300, directeurs: 139, chauffeurs: 220 },
+    { name: 'Mar', agents: 200, directeurs: 980, chauffeurs: 190 },
+    { name: 'Avr', agents: 278, directeurs: 390, chauffeurs: 210 },
+    { name: 'Mai', agents: 189, directeurs: 480, chauffeurs: 230 },
+  ];
 
-   return (
-     <div style={{ 
-       maxWidth: '400px', 
-       margin: 'auto', 
-       padding: '20px', 
-       textAlign: 'center' 
-     }}>
-       <h2>Recherche d'utilisateur et de pays</h2>
-       <form onSubmit={handleSubmit}>
-         <input
-           type="text"
-           value={username}
-           onChange={(e) => setUsername(e.target.value)}
-           placeholder="Nom d'utilisateur GitHub"
-           style={{ 
-             width: '100%', 
-             padding: '10px', 
-             margin: '10px 0' 
-           }}
-         />
-         <input
-           type="text"
-           value={country}
-           onChange={(e) => setCountry(e.target.value)}
-           placeholder="Code pays (ex: FR, US, JP)"
-           style={{ 
-             width: '100%', 
-             padding: '10px', 
-             margin: '10px 0' 
-           }}
-         />
-         
-         <button 
-           type="submit"
-           style={{ 
-             padding: '10px 20px', 
-             backgroundColor: '#4CAF50', 
-             color: 'white', 
-             border: 'none', 
-             cursor: 'pointer' 
-           }}
-         >
-           Rechercher
-         </button>
-       </form>
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-       {/* Afficher le composant de résultat si des données sont présentes */}
-       {searchData && <ApiResultComponent searchData={searchData} />}
-     </div>
-   );
-}
+  const calculateTotals = () => {
+    return {
+      totalAgents: sampleLineData.reduce((sum, item) => sum + item.agents, 0),
+      totalDirecteurs: sampleLineData.reduce((sum, item) => sum + item.directeurs, 0),
+      totalChauffeurs: sampleLineData.reduce((sum, item) => sum + item.chauffeurs, 0)
+    };
+  };
 
-export default Formulaire;
+  const { totalAgents, totalDirecteurs, totalChauffeurs } = calculateTotals();
+
+  const StatCard = styled(Paper)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(3),
+    borderRadius: theme.shape.borderRadius,
+    '& .MuiSvgIcon-root': {
+      marginRight: theme.spacing(2),
+      fontSize: '2rem'
+    }
+  }));
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.100', p: 3 }}>
+      <Container maxWidth="xl">
+        <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+          {/* Section des inputs en haut */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                name="titre"
+                value={formData.titre}
+                onChange={handleInputChange}
+                placeholder="Titre de la Page"
+                variant="standard"
+                InputProps={{
+                  sx: { fontSize: '1.5rem', fontWeight: 'bold' },
+                  disableUnderline: false
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                name="agent1"
+                value={formData.agent1}
+                onChange={handleInputChange}
+                placeholder="Agent 1"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                name="agent2"
+                value={formData.agent2}
+                onChange={handleInputChange}
+                placeholder="Agent 2"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                name="agent3"
+                value={formData.agent3}
+                onChange={handleInputChange}
+                placeholder="Agent 3"
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+
+          {/* Section des totaux sur une ligne */}
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12} md={4}>
+              <StatCard sx={{ bgcolor: 'primary.light' }}>
+                <People color="primary" fontSize="large" />
+                <Box>
+                  <Typography variant="body2" color="text.secondary">Total Agents</Typography>
+                  <Typography variant="h4" color="primary.dark">{totalAgents}</Typography>
+                </Box>
+              </StatCard>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <StatCard sx={{ bgcolor: 'success.light' }}>
+                <Work color="success" fontSize="large" />
+                <Box>
+                  <Typography variant="body2" color="text.secondary">Total Directeurs</Typography>
+                  <Typography variant="h4" color="success.dark">{totalDirecteurs}</Typography>
+                </Box>
+              </StatCard>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <StatCard sx={{ bgcolor: 'error.light' }}>
+                <DirectionsCar color="error" fontSize="large" />
+                <Box>
+                  <Typography variant="body2" color="text.secondary">Total Chauffeurs</Typography>
+                  <Typography variant="h4" color="error.dark">{totalChauffeurs}</Typography>
+                </Box>
+              </StatCard>
+            </Grid>
+          </Grid>
+
+          {/* Graphiques en bas */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Typography variant="h6" align="center" gutterBottom>Graphique Linéaire</Typography>
+                <LineChart width={500} height={300} data={sampleLineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="agents" stroke="#8884d8" />
+                  <Line type="monotone" dataKey="directeurs" stroke="#82ca9d" />
+                  <Line type="monotone" dataKey="chauffeurs" stroke="#ffc658" />
+                </LineChart>
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Typography variant="h6" align="center" gutterBottom>Graphique en Colonnes</Typography>
+                <BarChart width={500} height={300} data={sampleLineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="agents" fill="#8884d8" />
+                  <Bar dataKey="directeurs" fill="#82ca9d" />
+                  <Bar dataKey="chauffeurs" fill="#ffc658" />
+                </BarChart>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Container>
+    </Box>
+  );
+};
+
+export default EmployeeDashboard;
