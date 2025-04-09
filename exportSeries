@@ -1,3 +1,53 @@
+import { useEffect, useRef } from "react";
+
+export default function Index() {
+  const timestampRef = useRef(null);
+  const robotRef = useRef(null);
+
+  useEffect(() => {
+    const t = new Date();
+    const hours = t.getHours();
+    const min = t.getMinutes();
+    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+    const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+
+    if (timestampRef.current) {
+      timestampRef.current.innerHTML =
+        days[t.getDay()] + " " + t.getDate() + " " + months[t.getMonth()] + " - " + hours + "h" + (min < 10 ? "0" + min : min);
+    }
+
+    if (robotRef.current) {
+      robotRef.current.addEventListener("click", () => {
+        console.log("Robot clicked!");
+        // ici tu peux appeler showNextMessage()
+      });
+    }
+
+    // Démarrer automatiquement
+    const timer = setTimeout(() => {
+      showNextMessage();
+    }, 1000);
+
+    return () => {
+      // Clean up si besoin
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const showNextMessage = () => {
+    console.log("Next message shown");
+  };
+
+  return (
+    <div>
+      <div ref={timestampRef} className="timestamp"></div>
+      <div ref={robotRef} className="robot-image">Robot ici</div>
+    </div>
+  );
+}
+
+
+
 Je comprends mieux maintenant ! Si exportSeries est un paramètre de votre fonction, voici comment vous pourriez adapter votre code pour traiter tous les objets de ce paramètre lors du téléchargement :
 javascriptCopier// Dans votre fonction d'export
 export default function Caisse({ filename, intitule, categoryValues, exportSeries, exportCategorie, ... }) {
