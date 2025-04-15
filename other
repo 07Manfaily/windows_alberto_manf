@@ -1,272 +1,40 @@
-import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { NavLink as RouterLink } from 'react-router-dom';
-// @mui
-import { Box, List, ListItemText, Collapse } from '@mui/material';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-//
-import { StyledNavItem, StyledNavItemIcon } from './styles';
 
-// ----------------------------------------------------------------------
+import { useEffect } from 'react';
 
-NavSection.propTypes = {
-  data: PropTypes.array,
-};
+function App() {
+  useEffect(() => {
+    const scripts = [
+      'jquery.min.js',
+      'bootstrap.bundle.min.js',
+      'pluginX.js',
+      'main.js',
+      'chatBox.js'
+    ];
 
-export default function NavSection({ data = [], ...other }) {
+    const scriptElements = scripts.map(name => {
+      const script = document.createElement('script');
+      script.src = `/assets/js/${name}`;
+      script.async = false; // Important si l’ordre d’exécution est important (ex: jQuery avant un plugin jQuery)
+      document.body.appendChild(script);
+      return script;
+    });
+
+    return () => {
+      scriptElements.forEach(script => {
+        document.body.removeChild(script);
+      });
+    };
+  }, []);
+
   return (
-    <Box {...other}>
-      <List disablePadding sx={{ p: 1 }}>
-        {data.map((item) => (
-          <NavItem key={item.title} item={item} />
-        ))}
-      </List>
-    </Box>
+    <div>
+      {/* ton router ou structure principale */}
+    </div>
   );
 }
 
-// ----------------------------------------------------------------------
-
-NavItem.propTypes = {
-  item: PropTypes.object,
-};
-
-function NavItem({ item }) {
-  const { title, path, icon, info, children } = item;
-  const [open, setOpen] = useState(false);
-
-  const handleClick = () => {
-    if (children) {
-      setOpen(!open);
-    }
-  };
-
-  return (
-    <>
-      <StyledNavItem
-        component={children ? 'div' : RouterLink}
-        to={children ? undefined : path}
-        onClick={handleClick}
-        sx={{
-          '&.active': {
-            color: 'text.primary',
-            bgcolor: 'action.selected',
-            fontWeight: 'fontWeightBold',
-          },
-        }}
-      >
-        <StyledNavItemIcon>{icon && icon}</StyledNavItemIcon>
-        <ListItemText disableTypography primary={title} />
-        {children && (open ? <ExpandLess /> : <ExpandMore />)}
-        {info && info}
-      </StyledNavItem>
-
-      {children && (
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {children.map((child) => (
-              <StyledNavItem
-                key={child.title}
-                component={RouterLink}
-                to={child.path}
-                sx={{
-                  pl: 4,
-                  '&.active': {
-                    color: 'text.primary',
-                    bgcolor: 'action.selected',
-                    fontWeight: 'fontWeightBold',
-                  },
-                }}
-              >
-                <ListItemText disableTypography primary={child.title} />
-              </StyledNavItem>
-            ))}
-          </List>
-        </Collapse>
-      )}
-    </>
-  );
-}
+export default App;
 
 
 
 
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Select, 
-  MenuItem, 
-  FormControl,
-  InputLabel,
-  Paper,
-  Box,
-  Stack
-} from '@mui/material';
-
-
-const Apex = () => {
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState('01');
-  const [selectedAgency, setSelectedAgency] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-
-  // Sample data
-  const [data] = useState([
-    { name: 'Jan', sales: 4000, customers: 2400, amt: 2400 },
-    { name: 'Feb', sales: 3000, customers: 1398, amt: 2210 },
-    { name: 'Mar', sales: 2000, customers: 9800, amt: 2290 },
-    { name: 'Apr', sales: 2780, customers: 3908, amt: 2000 },
-    { name: 'May', sales: 1890, customers: 4800, amt: 2181 },
-    { name: 'Jun', sales: 2390, customers: 3800, amt: 2500 }
-  ]);
-
-  const agencies = [
-    { value: "paris", label: "Paris" },
-    { value: "lyon", label: "Lyon" },
-    { value: "marseille", label: "Marseille" }
-  ];
-
-  const categories = [
-    { value: "sales", label: "Ventes" },
-    { value: "customers", label: "Clients" },
-    { value: "revenue", label: "Chiffre d'affaires" }
-  ];
-
-  const months = [
-    { value: "01", label: "Janvier" },
-    { value: "02", label: "Février" },
-    { value: "03", label: "Mars" },
-    { value: "04", label: "Avril" },
-    { value: "05", label: "Mai" },
-    { value: "06", label: "Juin" },
-    { value: "07", label: "Juillet" },
-    { value: "08", label: "Août" },
-    { value: "09", label: "Septembre" },
-    { value: "10", label: "Octobre" },
-    { value: "11", label: "Novembre" },
-    { value: "12", label: "Décembre" }
-  ];
-
-  const years = Array.from(
-    { length: 5 },
-    (_, i) => currentYear - 2 + i
-  );
-
-  return (
-    <Container maxWidth="xl">
-      {/* Header */}
-      <Stack 
-        direction="row" 
-        justifyContent="space-between" 
-        alignItems="center" 
-        sx={{ mb: 5, mt: 3 }}
-      >
-        <Typography variant="h4">
-          Tableau de Bord Analytique
-        </Typography>
-        <Typography variant="subtitle1" color="textSecondary">
-          Période sélectionnée : {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
-        </Typography>
-      </Stack>
-
-      {/* Filters */}
-      <Grid container spacing={3} sx={{ mb: 5 }}>
-        <Grid item xs={12} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Mois</InputLabel>
-            <Select
-              value={selectedMonth}
-              label="Mois"
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              {months.map((month) => (
-                <MenuItem key={month.value} value={month.value}>
-                  {month.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Année</InputLabel>
-            <Select
-              value={selectedYear}
-              label="Année"
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              {years.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Agence</InputLabel>
-            <Select
-              value={selectedAgency}
-              label="Agence"
-              onChange={(e) => setSelectedAgency(e.target.value)}
-            >
-              {agencies.map((agency) => (
-                <MenuItem key={agency.value} value={agency.value}>
-                  {agency.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Catégorie</InputLabel>
-            <Select
-              value={selectedCategory}
-              label="Catégorie"
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              {categories.map((category) => (
-                <MenuItem key={category.value} value={category.value}>
-                  {category.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-      </Grid>
-
-      {/* Charts */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Évolution des Ventes
-            </Typography>
-            <Box sx={{ height: 400 }}>
-              <h2>deuxieme</h2>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Nombre de Clients
-            </Typography>
-            <Box sx={{ height: 400 }}>
-            <h2>deuxieme</h2>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
-  );
-};
-
-export default Apex;
