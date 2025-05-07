@@ -1,79 +1,70 @@
-import React from 'react';
-import { 
-  Container,
-  Box,
-  Typography,
-  Checkbox,
-  FormControlLabel,
-  TextField,
-  Button,
-  Divider,
-  Stack
-} from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
+import React from "react";
+import { Card, CardContent, Typography, Box, Divider } from "@mui/material";
+import QRCode from "react-qr-code";
 
-const LoginPage = () => {
+export default function BusinessCard() {
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box textAlign="center" mb={4}>
-        <Typography variant="h5" gutterBottom>
-          SOCIÉTÉ GENERALE
-        </Typography>
-        <Typography variant="subtitle1">
-          CÔTÉ D’IVOIRE
-        </Typography>
-      </Box>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+      bgcolor="#f0f0f0"
+    >
+      <Card
+        sx={{
+          width: 400,
+          borderRadius: 2,
+          boxShadow: 3,
+          border: "1px solid #ddd",
+          p: 2,
+        }}
+      >
+        <CardContent>
+          <Box display="flex" justifyContent="space-between" alignItems="start">
+            <Box>
+              <Typography variant="h6" color="error" fontWeight="bold">
+                Julienne GNIMI
+              </Typography>
+              <Typography variant="subtitle1" fontWeight="medium">
+                Data Scientist
+              </Typography>
+              <Box
+                height="3px"
+                width="120px"
+                bgcolor="error.main"
+                mt={0.5}
+                mb={1.5}
+              />
+            </Box>
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Logo_Soci%C3%A9t%C3%A9_G%C3%A9n%C3%A9rale.svg"
+              alt="SGCI"
+              width={60}
+            />
+          </Box>
 
-      {/* Navigation Links */}
-      <Stack direction="row" justifyContent="center" spacing={3} mb={4}>
-        <Button variant="text" sx={{ textDecoration: 'underline' }}>Créer</Button>
-        <Button variant="text" sx={{ textDecoration: 'underline' }}>Mes Contacts</Button>
-        <Button variant="text" sx={{ textDecoration: 'underline' }}>A propos de nous</Button>
-      </Stack>
+          <Box mt={2}>
+            <Divider />
+            <Box mt={2}>
+              <Typography variant="body2">
+                <strong>Description :</strong> Analyse des données pour
+                l’aide à la décision.
+              </Typography>
+              <Typography variant="body2">
+                <strong>Téléphone :</strong> +225 07 07 07 07 07
+              </Typography>
+              <Typography variant="body2">
+                <strong>Service :</strong> Direction Data & Innovation
+              </Typography>
+            </Box>
+          </Box>
 
-      <Divider sx={{ my: 4 }} />
-
-      {/* Login Section */}
-      <Typography variant="h6" gutterBottom>
-        Se connecter
-      </Typography>
-
-      {/* Checkbox Steps */}
-      {[
-        "Je reinsigne mes informations",
-        "Je choisis mon template",
-        "Je renseigne mes informations",
-        "Je renseigne mes informations"
-      ].map((label, index) => (
-        <Box key={index} sx={{ ml: 2, mb: 2 }}>
-          <FormControlLabel
-            control={<Checkbox />}
-            label={label}
-            sx={{ alignItems: 'flex-start' }}
-          />
-          <TextField
-            variant="outlined"
-            fullWidth
-            sx={{ ml: 4, mt: 1 }}
-            placeholder=" "
-            InputProps={{ endAdornment: '>' }}
-          />
-        </Box>
-      ))}
-
-      {/* Download Button */}
-      <Box textAlign="center" mt={4}>
-        <Button
-          variant="contained"
-          startIcon={<DownloadIcon />}
-          sx={{ textTransform: 'none' }}
-        >
-          Télécharger PNG
-        </Button>
-      </Box>
-    </Container>
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <QRCode value="https://societegenerale.ci" size={64} />
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
-};
-
-export default LoginPage;
+}
