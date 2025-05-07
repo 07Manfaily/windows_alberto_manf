@@ -1,102 +1,79 @@
-Voici un compte rendu clair et structuré des deux options envisagées pour le team building :
+import React from 'react';
+import { 
+  Container,
+  Box,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  Button,
+  Divider,
+  Stack
+} from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 
+const LoginPage = () => {
+  return (
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box textAlign="center" mb={4}>
+        <Typography variant="h5" gutterBottom>
+          SOCIÉTÉ GENERALE
+        </Typography>
+        <Typography variant="subtitle1">
+          CÔTÉ D’IVOIRE
+        </Typography>
+      </Box>
 
----
+      {/* Navigation Links */}
+      <Stack direction="row" justifyContent="center" spacing={3} mb={4}>
+        <Button variant="text" sx={{ textDecoration: 'underline' }}>Créer</Button>
+        <Button variant="text" sx={{ textDecoration: 'underline' }}>Mes Contacts</Button>
+        <Button variant="text" sx={{ textDecoration: 'underline' }}>A propos de nous</Button>
+      </Stack>
 
-Compte Rendu : Organisation du Team Building
+      <Divider sx={{ my: 4 }} />
 
-Participants :
+      {/* Login Section */}
+      <Typography variant="h6" gutterBottom>
+        Se connecter
+      </Typography>
 
-L’équipe (membres à préciser selon besoin)
+      {/* Checkbox Steps */}
+      {[
+        "Je reinsigne mes informations",
+        "Je choisis mon template",
+        "Je renseigne mes informations",
+        "Je renseigne mes informations"
+      ].map((label, index) => (
+        <Box key={index} sx={{ ml: 2, mb: 2 }}>
+          <FormControlLabel
+            control={<Checkbox />}
+            label={label}
+            sx={{ alignItems: 'flex-start' }}
+          />
+          <TextField
+            variant="outlined"
+            fullWidth
+            sx={{ ml: 4, mt: 1 }}
+            placeholder=" "
+            InputProps={{ endAdornment: '>' }}
+          />
+        </Box>
+      ))}
 
-Objectif :
+      {/* Download Button */}
+      <Box textAlign="center" mt={4}>
+        <Button
+          variant="contained"
+          startIcon={<DownloadIcon />}
+          sx={{ textTransform: 'none' }}
+        >
+          Télécharger PNG
+        </Button>
+      </Box>
+    </Container>
+  );
+};
 
-Organiser une activité de team building pour renforcer la cohésion de l’équipe et sortir du cadre habituel de travail.
-
-
----
-
-Option 1 : Séjour à San Pedro
-
-Lieu : Hôtel à San Pedro
-
-Durée : 2 jours / 1 nuit
-
-Détail de l’offre :
-
-L’entreprise prend en charge 1 nuitée dans un hôtel de standing.
-
-Le deuxième jour est à la charge des membres de l’équipe.
-
-Pour réduire les coûts, la deuxième nuit serait passée dans un hôtel plus modeste.
-
-
-
-Avantages :
-
-Changement total de cadre (mer, détente, déconnexion complète).
-
-Ambiance dépaysante, propice à la détente et au renforcement des liens.
-
-
-Inconvénients :
-
-Long trajet (logistique à prévoir).
-
-Organisation complexe (changement d’hôtel, gestion des coûts personnels).
-
-Temps de déplacement réduit le temps effectif sur place.
-
-
-
-
----
-
-Option 2 : Activité à Abidjan
-
-Lieu : À définir (hôtel, resort ou espace de loisir à Abidjan)
-
-Durée : 1 journée ou 2 journées selon le programme
-
-Détail de l’organisation :
-
-Activités sur place (jeux, ateliers, piscine, détente…)
-
-Possibilité de finir la journée dans un restaurant ou un bar sympa.
-
-Budget maîtrisé, pas de frais de déplacement importants.
-
-
-Avantages :
-
-Organisation plus simple.
-
-Moins de frais personnels.
-
-Plus de flexibilité dans le choix des activités.
-
-
-Inconvénients :
-
-Moins de dépaysement.
-
-Risque que certains restent dans une ambiance trop "travail" (pas assez de coupure).
-
-
-
-
----
-
-Conclusion :
-
-San Pedro : meilleure expérience immersive, mais nécessite un budget et une organisation plus lourds.
-
-Abidjan : plus pratique et économique, mais moins marquant.
-
-
-
----
-
-Souhaitez-vous que je vous aide à faire un sondage ou un modèle de vote pour que l'équipe tranche ?
-
-
+export default LoginPage;
