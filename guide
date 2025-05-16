@@ -1,98 +1,11 @@
-Je vais vous expliquer la différence entre min-width et max-width, puis vous proposer un code responsive adapté :
+Le Service DATA joue un rôle important dans la transformation digitale de la banque, en exploitant le potentiel des données pour renforcer la prise de décision, améliorer l'expérience client, et optimiser les opérations.
+Notre mission est de traduire les informations issues des données en leviers de croissance et d'innovation, en rendant chaque décision plus éclairée et chaque action plus pertinente. Pour atteindre cet objectif, nous travaillons en étroite collaboration avec les équipes métiers et technologiques afin de Centraliser et structurer les données, en assurant sa qualité et sa sécurité Développer des solutions d'analyse avancée Utiliser des techniques de data science, de machine learning et d'intelligence artificielle pour anticiper les tendances, identifier des opportunités d'amélioration et optimiser les processus Favoriser une culture de la donnée.
 
-`min-width` : S'applique QUAND la largeur de l'écran est SUPÉRIEURE à la valeur spécifiée
-`max-width` : S'applique QUAND la largeur de l'écran est INFÉRIEURE à la valeur spécifiée
 
-Voici le code responsive adapté pour votre robot-container :
 
-```css
-/* Écrans très larges (>1400px) */
-@media (min-width: 1400px) {
-    .robot-container {
-        right: 10%;
-        height: 300px;
-    }
-}
+La Cellule Data Scientists regroupe des experts chargés de transformer les données brutes en informations utiles pour les directions de la banque. Ses missions : comprendre les besoins métier, créer des modèles prédictifs, et développer des applications pour automatiser les processus.
 
-/* Grands écrans (1200px-1400px) */
-@media (min-width: 1200px) and (max-width: 1399px) {
-    .robot-container {
-        right: 60%;
-        height: 250px;
-    }
-}
+La Cellule Data Engineering collecte, prépare et organise les données pour les rendre fiables, sécurisées et exploitables. Elle conçoit des pipelines robustes afin de fournir des données de qualité répondant aux besoins métiers, tout en assurant fiabilité et scalabilité.
 
-/* Écrans moyens (992px-1199px) */
-@media (min-width: 992px) and (max-width: 1199px) {
-    .robot-container {
-        right: 75%;
-        height: 200px;
-    }
-}
+La Cellule Frontend Data conçoit des interfaces intuitives et esthétiques pour visualiser et interagir avec les données. Elle crée des tableaux de bord, des outils de visualisation clairs et des expériences utilisateur optimisées pour faciliter la prise de décision.
 
-/* Tablettes (768px-991px) */
-@media (min-width: 768px) and (max-width: 991px) {
-    .robot-container {
-        right: 60%;
-        height: 150px;
-    }
-}
-
-/* Mobiles (<768px) */
-@media (max-width: 767px) {
-    .robot-container {
-        display: none;  /* Le robot disparaît sur mobile */
-    }
-}
-```
-
-Cette approche est plus progressive que votre code actuel car :
-
-1. Elle utilise des paliers progressifs pour adapter la taille et la position
-2. Les changements sont plus graduels
-3. La disparition sur mobile arrive en dernier
-
-Les breakpoints standards utilisés sont :
-- Mobile : < 768px
-- Tablette : 768px - 991px
-- Desktop : 992px - 1199px
-- Large Desktop : 1200px - 1399px
-- Extra Large : > 1400px
-
-Cette approche permet une meilleure expérience utilisateur car le robot s'adapte progressivement à la taille de l'écran avant de disparaître complètement sur mobile.
-
-Vous pouvez ajuster les valeurs de `right` et `height` selon vos besoins spécifiques.
-
-import React, { useState } from "react";
-import { MenuItem, Select, FormControl, InputLabel, Radio, ListItemIcon, ListItemText } from "@mui/material";
-
-const RadioSelect = () => {
-  const [selectedValue, setSelectedValue] = useState("");
-
-  const handleChange = (event) => {
-    setSelectedValue(event.target.value);
-  };
-
-  return (
-    <FormControl fullWidth>
-      <InputLabel id="radio-select-label">Choisir une option</InputLabel>
-      <Select
-        labelId="radio-select-label"
-        value={selectedValue}
-        onChange={handleChange}
-        displayEmpty
-      >
-        {["Option 1", "Option 2", "Option 3"].map((option, index) => (
-          <MenuItem key={index} value={option}>
-            <ListItemIcon>
-              <Radio checked={selectedValue === option} />
-            </ListItemIcon>
-            <ListItemText primary={option} />
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
-export default RadioSelect;
