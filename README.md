@@ -1,103 +1,120 @@
-import React from "react";
-import {
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  Divider,
-  Stack,
-} from "@mui/material";
-import PhoneIcon from "@mui/icons-material/Phone";
-import LanguageIcon from "@mui/icons-material/Language";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import React from 'react';
+import { Box, Typography, Stack } from '@mui/material';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailIcon from '@mui/icons-material/Email';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import QrCodeIcon from '@mui/icons-material/QrCode';
 
-export default function BusinessCard() {
+const BusinessCardOrange = () => {
   return (
-    <Paper
-      elevation={3}
+    <Box
       sx={{
-        maxWidth: 600,
-        borderRadius: 3,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "row",
+        width: 400,
+        height: 220,
+        borderRadius: 4,
+        boxShadow: 4,
+        overflow: 'hidden',
+        bgcolor: '#fff',
+        position: 'relative',
+        fontFamily: 'sans-serif',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
-      {/* LEFT WHITE SECTION */}
-      <Box
-        sx={{
-          backgroundColor: "#fff",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          p: 3,
-        }}
-      >
-        <Box
-          sx={{
-            width: 60,
-            height: 60,
-            borderRadius: "50%",
-            backgroundColor: "#F44336",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mb: 1,
-          }}
-        >
-          <Typography variant="h5" color="#fff">
-            ●
-          </Typography>
+      {/* Bandes latérales */}
+      <Box sx={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: 20,
+        height: '100%',
+        bgcolor: '#e53935',
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
+        zIndex: 1,
+      }} />
+      <Box sx={{
+        position: 'absolute',
+        left: 10,
+        top: 0,
+        width: 10,
+        height: '100%',
+        bgcolor: '#181d23',
+        zIndex: 2,
+      }} />
+      <Box sx={{
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 20,
+        height: '100%',
+        bgcolor: '#e53935',
+        borderTopRightRadius: 16,
+        borderBottomRightRadius: 16,
+        zIndex: 1,
+      }} />
+      <Box sx={{
+        position: 'absolute',
+        right: 10,
+        top: 0,
+        width: 10,
+        height: '100%',
+        bgcolor: '#181d23',
+        zIndex: 2,
+      }} />
+      {/* Contenu principal */}
+      <Box sx={{ position: 'relative', zIndex: 3, height: '100%', px: 4, py: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          {/* Logo et titre */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Box sx={{ mb: 1 }}>
+              {/* Logo stylisé */}
+              <Box sx={{ width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box sx={{ width: 44, height: 44, bgcolor: '#fff', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #e53935' }}>
+                  {/* Remplace ce logo par une image si besoin */}
+                  <Typography variant="h4" sx={{ color: '#e53935', fontWeight: 900, fontFamily: 'monospace' }}>W</Typography>
+                </Box>
+              </Box>
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#232323', mt: 1, letterSpacing: 1 }}>ASSOCIATION</Typography>
+            <Typography variant="body2" sx={{ color: '#888', fontSize: 12 }}>YOUR COMPANY TAGLINE HERE</Typography>
+          </Box>
+          {/* Nom et fonction */}
+          <Box sx={{ textAlign: 'right', mt: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#232323', letterSpacing: 1 }}>JENSON ROY</Typography>
+            <Typography variant="body2" sx={{ color: '#232323', borderBottom: '2px solid #bdbdbd', display: 'inline-block', fontWeight: 500, fontSize: 13, mt: 0.5 }}>
+              MANAGING MEMBER
+            </Typography>
+          </Box>
         </Box>
-        <Typography variant="h6" fontWeight="bold" color="#F44336">
-          COMPANY NAME
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          YOUR TAGLINE HERE
-        </Typography>
+        {/* Infos et QR code */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 2 }}>
+          {/* QR Code */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 1 }}>
+            <Box sx={{ width: 64, height: 64, border: '2px solid #232323', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+              <QrCodeIcon sx={{ fontSize: 40, color: '#232323' }} />
+            </Box>
+          </Box>
+          {/* Infos */}
+          <Stack spacing={1} sx={{ mb: 1 }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <PhoneIcon fontSize="small" sx={{ color: '#232323' }} />
+              <Typography variant="body2" sx={{ color: '#232323' }}>(000) 12345 6789</Typography>
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <EmailIcon fontSize="small" sx={{ color: '#232323' }} />
+              <Typography variant="body2" sx={{ color: '#232323' }}>jenson@mail.com</Typography>
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <LocationOnIcon fontSize="small" sx={{ color: '#232323' }} />
+              <Typography variant="body2" sx={{ color: '#232323' }}>Your Address here</Typography>
+            </Stack>
+          </Stack>
+        </Box>
       </Box>
-
-      {/* RIGHT BLACK SECTION */}
-      <Box
-        sx={{
-          flex: 2,
-          backgroundColor: "#1a1a1a",
-          color: "#fff",
-          p: 3,
-        }}
-      >
-        <Typography variant="h6" fontWeight="bold">
-          JHION <span style={{ color: "#F44336" }}>SMITH</span>
-        </Typography>
-        <Typography variant="body2" mb={2}>
-          Graphic Designer
-        </Typography>
-
-        <Divider sx={{ borderColor: "#444", mb: 2 }} />
-
-        <Stack spacing={1}>
-          <Box display="flex" alignItems="center">
-            <PhoneIcon sx={{ color: "#F44336", mr: 1 }} />
-            <Typography variant="body2">000.1234.5678 / 000.9876.5432</Typography>
-          </Box>
-          <Box display="flex" alignItems="center">
-            <LanguageIcon sx={{ color: "#F44336", mr: 1 }} />
-            <Typography variant="body2">
-              jhion@yourweb.com <br />
-              www.yourwebsite.com
-            </Typography>
-          </Box>
-          <Box display="flex" alignItems="center">
-            <LocationOnIcon sx={{ color: "#F44336", mr: 1 }} />
-            <Typography variant="body2">
-              123 Seventh Avenue <br />
-              New York, NY 4567
-            </Typography>
-          </Box>
-        </Stack>
-      </Box>
-    </Paper>
+    </Box>
   );
-}
+};
+
+export default BusinessCardOrange; 
