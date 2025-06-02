@@ -1,18 +1,67 @@
-import { useMemo } from "react";
+const options = (fileName, intitule, categoryValue, exportSerie, exportCategorie, color) => ({
+    chart: {
+        height: 350,
+        type: 'bar',
+        toolbar: {
+            show: true,
+            tools: {
+                download: true,
+                selection: true,
+                zoom: true,
+                zoomin: true,
+                zoomout: true,
+                pan: true,
+                reset: true,
+                customIcons: [
+                    {
+                        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+                        index: -1,
+                        title: 'Export to Excel',
+                        class: 'custom-excel-export',
+                        click: () => {
+                            // Calculer le nom de fichier dynamiquement au moment du clic
+                            const currentFileName = operationType === 'A' ? 'nombre_caisse.xlsx' : 'nombre_montant.xlsx';
+                            
+                            // Préparer les données selon le type d'opération
+                            let dataToExport;
+                            
+                            if (operationType === 'A') {
+                                // Pour le type A - nombre de caisses
+                                dataToExport = exportSerie.data.map((value, index) => ({
+                                    Période: exportCategorie[index],
+                                    "Nombre de caisses": value
+                                }));
+                            } else {
+                                // Pour le type B - montant
+                                if (intitule === "Montant en milliard de francs CFA") {
+                                    dataToExport = exportSerie.data.map((value, index) => ({
+                                        Période: exportCategorie[index],
+                                        "Montant en milliard de francs CFA": value
+                                    }));
+                                } else if (intitule === "Montant en millions de francs CFA") {
+                                    dataToExport = exportSerie.data.map((value, index) => ({
+                                        Période: exportCategorie[index],
+                                        "Montant en millions de francs CFA": value
+                                    }));
+                                } else {
+                                    dataToExport = exportSerie.data.map((value, index) => ({
+                                        Période: exportCategorie[index],
+                                        "Montant": value
+                                    }));
+                                }
+                            }
 
-// Définir le fileName dynamiquement
-const fileName = useMemo(() => {
-  return operationType === operation[0] ? "A.xlsx" : "B.xlsx";
-}, [operationType]);
-
-// Définir dynamiquement les options
-const chartOptions = useMemo(() => {
-  return options(
-    fileName,
-    "intitulé",
-    dataNombre.categories,
-    dataNombre.series[0],
-    dataNombre.categories,
-    "#247ba0"
-  );
-}, [fileName, dataNombre]);
+                            // Créer une feuille de calcul
+                            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                            const workbook = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+                            
+                            // Exporter le fichier avec le nom dynamique
+                            XLSX.writeFile(workbook, currentFileName);
+                        }
+                    }
+                ]
+            }
+        }
+    }
+});
