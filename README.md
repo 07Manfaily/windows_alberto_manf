@@ -1,120 +1,133 @@
-import React from 'react';
-import { Box, Typography, Stack } from '@mui/material';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import QrCodeIcon from '@mui/icons-material/QrCode';
+// Étape 3: Planning et participants
+const Step3 = ({ formData, setFormData, errors }) => {
+  let time = formData.step3.duree_jours * 8
+  let day = formData.step3.duree_heures / 8
+  formData.step3.duree_heures = time
+  formData.step3.duree_jours = day
 
-const BusinessCardOrange = () => {
+  const handleChange = (field) => (event) => {
+    const value = event.target.value;
+    
+    if (field === 'duree_heures') {
+      // Calculer automatiquement les jours quand les heures changent
+      const calculatedDays = value ? (parseFloat(value) / 8) : '';
+      setFormData(prev => ({
+        ...prev,
+        step3: { 
+          ...prev.step3, 
+          duree_heures: value,
+          duree_jours: calculatedDays
+        }
+      }));
+    } else if (field === 'duree_jours') {
+      // Calculer automatiquement les heures quand les jours changent
+      const calculatedHours = value ? (parseFloat(value) * 8) : '';
+      setFormData(prev => ({
+        ...prev,
+        step3: { 
+          ...prev.step3, 
+          duree_jours: value,
+          duree_heures: calculatedHours
+        }
+      }));
+    } else {
+      // Pour les autres champs, comportement normal
+      setFormData(prev => ({
+        ...prev,
+        step3: { ...prev.step3, [field]: event.target.value }
+      }));
+    }
+  };
+
   return (
-    <Box
-      sx={{
-        width: 400,
-        height: 220,
-        borderRadius: 4,
-        boxShadow: 4,
-        overflow: 'hidden',
-        bgcolor: '#fff',
-        position: 'relative',
-        fontFamily: 'sans-serif',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-      }}
+    <StepComponent
+      title="Planning et Participants"
+      description="Datés, durée et profil des participants"
+      icon={<Schedule sx={{ color: 'white', fontSize: 20 }} />}
     >
-      {/* Bandes latérales */}
-      <Box sx={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: 20,
-        height: '100%',
-        bgcolor: '#e53935',
-        borderTopLeftRadius: 16,
-        borderBottomLeftRadius: 16,
-        zIndex: 1,
-      }} />
-      <Box sx={{
-        position: 'absolute',
-        left: 10,
-        top: 0,
-        width: 10,
-        height: '100%',
-        bgcolor: '#181d23',
-        zIndex: 2,
-      }} />
-      <Box sx={{
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        width: 20,
-        height: '100%',
-        bgcolor: '#e53935',
-        borderTopRightRadius: 16,
-        borderBottomRightRadius: 16,
-        zIndex: 1,
-      }} />
-      <Box sx={{
-        position: 'absolute',
-        right: 10,
-        top: 0,
-        width: 10,
-        height: '100%',
-        bgcolor: '#181d23',
-        zIndex: 2,
-      }} />
-      {/* Contenu principal */}
-      <Box sx={{ position: 'relative', zIndex: 3, height: '100%', px: 4, py: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          {/* Logo et titre */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <Box sx={{ mb: 1 }}>
-              {/* Logo stylisé */}
-              <Box sx={{ width: 54, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Box sx={{ width: 44, height: 44, bgcolor: '#fff', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #e53935' }}>
-                  {/* Remplace ce logo par une image si besoin */}
-                  <Typography variant="h4" sx={{ color: '#e53935', fontWeight: 900, fontFamily: 'monospace' }}>W</Typography>
-                </Box>
-              </Box>
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#232323', mt: 1, letterSpacing: 1 }}>ASSOCIATION</Typography>
-            <Typography variant="body2" sx={{ color: '#888', fontSize: 12 }}>YOUR COMPANY TAGLINE HERE</Typography>
-          </Box>
-          {/* Nom et fonction */}
-          <Box sx={{ textAlign: 'right', mt: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#232323', letterSpacing: 1 }}>JENSON ROY</Typography>
-            <Typography variant="body2" sx={{ color: '#232323', borderBottom: '2px solid #bdbdbd', display: 'inline-block', fontWeight: 500, fontSize: 13, mt: 0.5 }}>
-              MANAGING MEMBER
-            </Typography>
-          </Box>
-        </Box>
-        {/* Infos et QR code */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 2 }}>
-          {/* QR Code */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ width: 64, height: 64, border: '2px solid #232323', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-              <QrCodeIcon sx={{ fontSize: 40, color: '#232323' }} />
-            </Box>
-          </Box>
-          {/* Infos */}
-          <Stack spacing={1} sx={{ mb: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <PhoneIcon fontSize="small" sx={{ color: '#232323' }} />
-              <Typography variant="body2" sx={{ color: '#232323' }}>(000) 12345 6789</Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <EmailIcon fontSize="small" sx={{ color: '#232323' }} />
-              <Typography variant="body2" sx={{ color: '#232323' }}>jenson@mail.com</Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <LocationOnIcon fontSize="small" sx={{ color: '#232323' }} />
-              <Typography variant="body2" sx={{ color: '#232323' }}>Your Address here</Typography>
-            </Stack>
-          </Stack>
-        </Box>
-      </Box>
-    </Box>
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6}>
+          {/* Vous, last week • first commit(sprint) ... */}
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          {/* ... */}
+        </Grid>
+        
+        {/* Champ Durée (Jours) */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Durée (jours)"
+            type="number"
+            variant="outlined"
+            value={formData.step3.duree_jours}
+            onChange={handleChange('duree_jours')}
+            error={!!errors.duree_jours}
+            helperText={errors.duree_jours}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#2196f3'
+                }
+              }
+            }}
+            inputProps={{
+              step: 0.1,
+              min: 0
+            }}
+          />
+        </Grid>
+
+        {/* Champ Durée (Heures) */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Durée (heures)"
+            type="number"
+            variant="outlined"
+            value={formData.step3.duree_heures}
+            onChange={handleChange('duree_heures')}
+            error={!!errors.duree_heures}
+            helperText={errors.duree_heures}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#2196f3'
+                }
+              }
+            }}
+            inputProps={{
+              step: 0.1,
+              min: 0
+            }}
+          />
+        </Grid>
+        
+        {/* Affichage de la conversion pour information */}
+        {(formData.step3.duree_heures || formData.step3.duree_jours) && (
+          <Grid item xs={12}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: '#e3f2fd',
+              borderRadius: '8px',
+              border: '1px solid #2196f3'
+            }}>
+              <p style={{ 
+                margin: 0, 
+                color: '#1976d2', 
+                fontSize: '14px',
+                fontWeight: 500 
+              }}>
+                💡 Conversion : {formData.step3.duree_heures || 0} heures = {formData.step3.duree_jours || 0} jours (1 jour = 8h)
+              </p>
+            </div>
+          </Grid>
+        )}
+
+        {/* Vos autres champs existants... */}
+      </Grid>
+    </StepComponent>
   );
 };
-
-export default BusinessCardOrange; 
