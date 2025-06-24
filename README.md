@@ -1,3 +1,10 @@
+<TextField
+  fullWidth
+  label="Champ B"
+  value={formData.step5?.b || ''}
+  InputProps={{ readOnly: true }}
+/>
+
 useEffect(() => {
   const a = Number(formData.step5?.a);
   const count = selectedUsers.length;
