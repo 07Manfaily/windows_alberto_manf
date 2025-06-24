@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -23,23 +23,35 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
-const DirectionEffectifManager = () => {
+const Step6 = ({ formData, setFormData, errors }) => {
+  const [loading, setLoading] = useState(false);
   const [selectedDirection, setSelectedDirection] = useState('');
   const [effectif, setEffectif] = useState('');
-  const [tableData, setTableData] = useState([]);
   const [error, setError] = useState('');
 
   // Liste des directions disponibles
   const directions = [
+    'Direction Innovation',
     'Direction Générale',
     'Direction des Ressources Humaines',
     'Direction Financière',
     'Direction Commerciale',
-    'Direction Technique',
+    'Direction DALI',
     'Direction Marketing',
-    'Direction Juridique',
-    'Direction de la Production'
+    'Direction Juridique'
   ];
+
+  // Initialiser tableData depuis formData au chargement du composant
+  useEffect(() => {
+    if (!formData.effectifs) {
+      setFormData(prev => ({
+        ...prev,
+        effectifs: []
+      }));
+    }
+  }, [formData, setFormData]);
+
+  const tableData = formData.effectifs || [];
 
   const handleSubmit = () => {
     setError('');
@@ -57,11 +69,12 @@ const DirectionEffectifManager = () => {
     // Vérifier si la direction existe déjà
     const existingIndex = tableData.findIndex(item => item.direction === selectedDirection);
     
+    let updatedTableData;
+    
     if (existingIndex !== -1) {
       // Mettre à jour l'effectif existant
-      const updatedData = [...tableData];
-      updatedData[existingIndex].effectif = parseInt(effectif);
-      setTableData(updatedData);
+      updatedTableData = [...tableData];
+      updatedTableData[existingIndex].effectif = parseInt(effectif);
     } else {
       // Ajouter une nouvelle entrée
       const newEntry = {
@@ -69,20 +82,35 @@ const DirectionEffectifManager = () => {
         direction: selectedDirection,
         effectif: parseInt(effectif)
       };
-      setTableData([...tableData, newEntry]);
+      updatedTableData = [...tableData, newEntry];
     }
 
-    // Reset du formulaire
+    // Mettre à jour formData
+    setFormData(prev => ({
+      ...prev,
+      effectifs: updatedTableData
+    }));
+
+    // Reset du formulaire local
     setSelectedDirection('');
     setEffectif('');
   };
 
   const handleDelete = (id) => {
-    setTableData(tableData.filter(item => item.id !== id));
+    const updatedTableData = tableData.filter(item => item.id !== id);
+    setFormData(prev => ({
+      ...prev,
+      effectifs: updatedTableData
+    }));
   };
 
   const getTotalEffectif = () => {
     return tableData.reduce((total, item) => total + item.effectif, 0);
+  };
+
+  // Fonction pour préparer les données sans l'id (pour envoi final)
+  const getDataWithoutId = () => {
+    return tableData.map(({ id, ...rest }) => rest);
   };
 
   const handleKeyPress = (event) => {
@@ -91,10 +119,18 @@ const DirectionEffectifManager = () => {
     }
   };
 
+  // Mettre à jour formData avec les données finales (sans id) pour l'envoi
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      effectifsForSubmit: getDataWithoutId()
+    }));
+  }, [tableData, setFormData]);
+
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-        Gestion des Effectifs par Direction
+        Étape 6 - Gestion des Effectifs par Direction
       </Typography>
       
       {/* Formulaire */}
@@ -107,6 +143,13 @@ const DirectionEffectifManager = () => {
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {/* Afficher les erreurs du formulaire principal si elles existent */}
+          {errors?.effectifs && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.effectifs}
             </Alert>
           )}
 
@@ -153,11 +196,27 @@ const DirectionEffectifManager = () => {
                 onClick={handleSubmit}
                 fullWidth
                 sx={{ height: 56 }}
+                disabled={loading}
               >
                 Ajouter
               </Button>
             </Grid>
           </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Résumé des données dans formData */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Données actuelles dans formData
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Total des directions: {tableData.length}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Total des effectifs: {getTotalEffectif()} employés
+          </Typography>
         </CardContent>
       </Card>
 
@@ -240,36 +299,23 @@ const DirectionEffectifManager = () => {
           </Typography>
         </Paper>
       )}
+
+      {/* Debug info - à supprimer en production */}
+      <Card sx={{ mt: 3, bgcolor: 'grey.50' }}>
+        <CardContent>
+          <Typography variant="subtitle2" gutterBottom>
+            Debug - Structure formData (à supprimer en production)
+          </Typography>
+          <pre style={{ fontSize: '12px', overflow: 'auto' }}>
+            {JSON.stringify({ 
+              effectifs: formData.effectifs, 
+              effectifsForSubmit: formData.effectifsForSubmit 
+            }, null, 2)}
+          </pre>
+        </CardContent>
+      </Card>
     </Box>
   );
 };
 
-export default DirectionEffectifManager;
-
-
-
-import React, { useState } from "react";
-import { TextField } from "@mui/material";
-
-function EntierPositifTextField() {
-  const [value, setValue] = useState("");
-
-  const handleChange = (e) => {
-    // On supprime tout ce qui n'est pas chiffre
-    const newValue = e.target.value.replace(/[^0-9]/g, "");
-    setValue(newValue);
-  };
-
-  return (
-    <TextField
-      label="Entier positif"
-      variant="outlined"
-      value={value}
-      onChange={handleChange}
-      fullWidth
-      placeholder="Ex: 123"
-    />
-  );
-}
-
-export default EntierPositifTextField;
+export default Step6;
