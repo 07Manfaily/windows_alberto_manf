@@ -3,14 +3,17 @@ const Step6 = ({ formData, setFormData, errors }) => {
   const [effectif, setEffectif] = useState('');
   const [error, setError] = useState('');
 
-  // Utiliser formData.tableData au lieu de l'état local
-  const tableData = formData.tableData || [];
+  // Utiliser formData.step6.tableData au lieu de l'état local
+  const tableData = formData.step6?.tableData || [];
 
   // Fonction pour mettre à jour tableData dans formData
   const updateTableData = (newTableData) => {
     setFormData(prevFormData => ({
       ...prevFormData,
-      tableData: newTableData
+      step6: {
+        ...prevFormData.step6,
+        tableData: newTableData
+      }
     }));
   };
 
@@ -100,9 +103,9 @@ const Step6 = ({ formData, setFormData, errors }) => {
           )}
           
           {/* Afficher les erreurs des props si elles existent */}
-          {errors?.tableData && (
+          {errors?.step6?.tableData && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {errors.tableData}
+              {errors.step6.tableData}
             </Alert>
           )}
 
