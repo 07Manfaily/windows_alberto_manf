@@ -1,3 +1,11 @@
+
+  // Fonction pour préparer les données sans l'id
+  const getDataWithoutId = () => {
+    return tableData.map(({ id, ...rest }) => rest);
+  };
+
+
+
 const Step6 = ({ formData, setFormData, errors }) => {
   const [selectedDirection, setSelectedDirection] = useState('');
   const [effectif, setEffectif] = useState('');
