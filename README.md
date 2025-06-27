@@ -1,32 +1,17 @@
-<TextField
-  fullWidth
-  label="Champ B"
-  value={formData.step5?.b || ''}
-  InputProps={{ readOnly: true }}
-/>
+const parseDate = (dateStr) => {
+  if (!dateStr || typeof dateStr !== "string") return null;
 
-useEffect(() => {
-  const a = Number(formData.step5?.a);
-  const count = selectedUsers.length;
+  // Nettoyer la chaîne
+  const cleanStr = dateStr.trim();
+  const separator = cleanStr.includes("/") ? "/" : cleanStr.includes("-") ? "-" : null;
+  if (!separator) return null;
 
-  if (!isNaN(a) && a > 0) {
-    const b = count / a;
+  const parts = cleanStr.split(separator).map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return null;
 
-    setFormData((prev) => ({
-      ...prev,
-      step5: {
-        ...prev.step5,
-        b: b.toFixed(2), // ou Math.floor(b) si tu veux un entier
-      },
-    }));
-  } else {
-    // Si A est vide ou invalide, on vide B
-    setFormData((prev) => ({
-      ...prev,
-      step5: {
-        ...prev.step5,
-        b: '',
-      },
-    }));
-  }
-}, [formData.step5?.a, selectedUsers]);
+  const [day, month, year] = parts;
+  const date = new Date(year, month - 1, day);
+
+  // Vérifie que la date est valide
+  return isNaN(date.getTime()) ? null : date.getTime();
+};
