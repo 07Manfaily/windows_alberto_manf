@@ -1,525 +1,196 @@
-import React, { useState, useEffect } from 'react';
-
-const Task = () => {
-  const [apiData, setApiData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedFormation, setSelectedFormation] = useState('all');
-
-  // Simulation de l'appel API avec vos données
-  useEffect(() => {
-    // Simule votre réponse API
-    const mockApiResponse = {
-      data: [
-        {
-          id: 141,
-          code_formation: "P25039",
-          code_session: "P2503951",
-          formateur: "K",
-          participants: [
-            {
-              email: "mianpaulette@live.fr",
-              matricule: "5063",
-              nom: "MIAN",
-              prenom: "PAUL ELIE"
-            }
-          ],
-        },
-        {
-          id: 144,
-          code_formation: "P25040",
-          code_session: "P2504002",
-          formateur: "N",
-          participants: [
-            {
-              email: "lucas.moreau@example.fr",
-              matricule: "5067",
-              nom: "MOREAU",
-              prenom: "LUCAS"
-            },
-            {
-              email: "claire.petit@example.fr",
-              matricule: "5068",
-              nom: "PETIT",
-              prenom: "CLAIRE"
-            }
-          ]
-        },
-        {
-          id: 145,
-          code_formation: "P25041",
-          code_session: "P2504101",
-          formateur: "O",
-          participants: [
-            {
-              email: "thomas.robert@example.fr",
-              matricule: "5069",
-              nom: "ROBERT",
-              prenom: "THOMAS"
-            }
-          ]
-        },
-        {
-          id: 142,
-          code_formation: "P25039",
-          code_session: "P2503952",
-          formateur: "L",
-          participants: [
-            {
-              email: "marie.dupont@example.fr",
-              matricule: "5064",
-              nom: "DUPONT",
-              prenom: "MARIE"
-            },
-            {
-              email: "jean.martin@example.fr",
-              matricule: "5065",
-              nom: "MARTIN",
-              prenom: "JEAN"
-            }
-          ]
-        },
-        {
-          id: 143,
-          code_formation: "P25040",
-          code_session: "P2504001",
-          formateur: "M",
-          participants: [
-            {
-              email: "sophie.bernard@example.fr",
-              matricule: "5066",
-              nom: "BERNARD",
-              prenom: "SOPHIE"
-            }
-          ]
-        }
-      ]
-    };
-
-    // Simule un délai d'API
-    setTimeout(() => {
-      setApiData(mockApiResponse.data);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  // Obtenir les codes de formation uniques
-  const getUniqueFormations = (data) => {
-    const formations = [...new Set(data.map(item => item.code_formation))];
-    return formations.sort();
-  };
-
-  // Filtrer les données selon la formation sélectionnée
-  const getFilteredData = () => {
-    if (selectedFormation === 'all') {
-      return apiData;
-    }
-    return apiData.filter(item => item.code_formation === selectedFormation);
-  };
-
-  const transformApiDataToTasks = (apiData) => {
-    return apiData.map((item, index) => {
-      const priorities = ['High', 'Medium', 'Urgent', 'Low'];
-      
-      // Génération des assignés basée sur les participants
-      const assignees = item.participants.map((participant, pIndex) => ({
-        initials: `${participant.prenom.charAt(0)}${participant.nom.charAt(0)}`,
-        priority: priorities[pIndex % priorities.length],
-        color: getRandomColor(pIndex),
-        email: participant.email,
-        matricule: participant.matricule,
-        fullName: `${participant.prenom} ${participant.nom}`
-      }));
-
-      // Ajouter le formateur comme assigné principal
-      assignees.unshift({
-        initials: item.formateur,
-        priority: 'High',
-        color: '#ff5722',
-        role: 'Formateur'
-      });
-
-      return {
-        id: item.id,
-        title: `Session ${item.code_session}`,
-        description: `Formation ${item.code_formation} avec ${item.participants.length} participant(s)`,
-        category: item.code_formation, // Utilise le code formation comme catégorie
-        progress: Math.floor(Math.random() * 8) + 2,
-        total: 10,
-        comments: Math.floor(Math.random() * 20) + 5,
-        attachments: Math.floor(Math.random() * 15) + 3,
-        date: 'Nov',
-        assignees: assignees,
-        formateur: item.formateur,
-        codeFormation: item.code_formation,
-        codeSession: item.code_session,
-        participantCount: item.participants.length
-      };
-    });
-  };
-
-  const getRandomColor = (index) => {
-    const colors = ['#ff5722', '#2196f3', '#4caf50', '#9c27b0', '#ff9800', '#607d8b', '#795548', '#e91e63'];
-    return colors[index % colors.length];
-  };
-
-  const filteredData = getFilteredData();
-  const uniqueFormations = getUniqueFormations(apiData);
-  const tasks = transformApiDataToTasks(filteredData);
-
-  const getCategoryColor = (codeFormation) => {
-    const colors = {
-      'P25039': '#00bcd4',
-      'P25040': '#ff9800',
-      'P25041': '#2196f3'
-    };
-    return colors[codeFormation] || '#9c27b0';
-  };
-
-  const getPriorityColor = (priority) => {
-    const colors = {
-      'High': '#f44336',
-      'Medium': '#ff9800',
-      'Urgent': '#ff5722',
-      'Low': '#4caf50'
-    };
-    return colors[priority] || '#666';
-  };
-
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f5f5f5',
-        fontFamily: 'Roboto, sans-serif'
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '40px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #e0e0e0',
-            borderTop: '4px solid #4285f4',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <p style={{ color: '#666', fontSize: '16px', margin: 0 }}>
-            Chargement des formations...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ 
-      backgroundColor: '#f5f5f5', 
-      marginTop:'60px',
-      fontFamily: 'Roboto, sans-serif',
-      padding: '20px'
-    }}>
-      {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '32px'
-      }}>
-        <div>
-          <h1 style={{ 
-            fontSize: '32px', 
-            fontWeight: '600', 
-            color: '#333',
-            margin: 0
-          }}>
-            Formations
-          </h1>
-          <p style={{
-            fontSize: '14px',
-            color: '#666',
-            margin: '8px 0 0 0'
-          }}>
-            {selectedFormation === 'all' ? 
-              `${tasks.length} session(s) • ${tasks.reduce((sum, task) => sum + task.participantCount, 0)} participant(s) total` :
-              `Formation ${selectedFormation} • ${tasks.length} session(s) • ${tasks.reduce((sum, task) => sum + task.participantCount, 0)} participant(s)`
-            }
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Select pour filtrer par formation */}
-          <select 
-            value={selectedFormation}
-            onChange={(e) => setSelectedFormation(e.target.value)}
-            style={{
-              backgroundColor: 'white',
-              border: '1px solid #e0e0e0',
-              borderRadius: '8px',
-              padding: '10px 16px',
-              fontSize: '14px',
-              color: '#333',
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: '200px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}
-          >
-            <option value="all">Toutes les formations</option>
-            {uniqueFormations.map(formation => (
-              <option key={formation} value={formation}>
-                Formation {formation}
-              </option>
-            ))}
-          </select>
-          
-          <div style={{
-            width: '40px',
-            height: '40px',
-            backgroundColor: 'white',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <span style={{ fontSize: '18px', color: '#666' }}>🔍</span>
-          </div>
-          <button style={{
-            backgroundColor: '#4285f4',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <span>+</span>
-            Nouvelle Formation
-          </button>
-        </div>
-      </div>
-
-      {/* Liste des Sessions */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-        gap: '24px'
-      }}>
-        {tasks.map(task => (
-          <div key={task.id} style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, boxShadow 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-          }}>
-            {/* Code Formation Badge */}
-            <div style={{
-              backgroundColor: getCategoryColor(task.category),
-              color: 'white',
-              fontSize: '12px',
-              fontWeight: '500',
-              padding: '4px 12px',
-              borderRadius: '16px',
-              display: 'inline-block',
-              marginBottom: '12px'
-            }}>
-              {task.category}
-            </div>
-
-            {/* Title */}
-            <h4 style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#333',
-              margin: '0 0 8px 0',
-              lineHeight: '1.4'
-            }}>
-              {task.title}
-            </h4>
-
-            {/* Description */}
-            <p style={{
-              fontSize: '14px',
-              color: '#666',
-              margin: '0 0 12px 0',
-              lineHeight: '1.4'
-            }}>
-              {task.description}
-            </p>
-
-            {/* Informations spécifiques API */}
-            <div style={{
-              backgroundColor: '#f8f9fa',
-              padding: '12px',
-              borderRadius: '8px',
-              marginBottom: '16px'
-            }}>
-              {selectedFormation === 'all' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '12px', color: '#666' }}>Code Formation:</span>
-                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#333' }}>{task.codeFormation}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Code Session:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#333' }}>{task.codeSession}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Formateur:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#333' }}>{task.formateur}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>Participants:</span>
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#333' }}>{task.participantCount}</span>
-              </div>
-            </div>
-
-            {/* Progress */}
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '8px'
-              }}>
-                <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                  Progress
-                </span>
-                <span style={{ fontSize: '14px', color: '#666' }}>
-                  {task.progress}/{task.total}
-                </span>
-              </div>
-              <div style={{
-                width: '100%',
-                height: '4px',
-                backgroundColor: '#e0e0e0',
-                borderRadius: '2px',
-                overflow: 'hidden'
-              }}>
+{/* Session Details Grid */}
                 <div style={{
-                  width: `${(task.progress / task.total) * 100}%`,
-                  height: '100%',
-                  backgroundColor: '#ff5722',
-                  borderRadius: '2px'
-                }} />
-              </div>
-            </div>
-
-            {/* Bottom Info */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              {/* Stats */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '16px' }}>💬</span>
-                  <span style={{ fontSize: '14px', color: '#666' }}>{task.comments}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '16px' }}>📎</span>
-                  <span style={{ fontSize: '14px', color: '#666' }}>{task.attachments}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '16px' }}>📅</span>
-                  <span style={{ fontSize: '14px', color: '#666' }}>{task.date}</span>
-                </div>
-              </div>
-
-              {/* Assignees */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'flex', marginRight: '8px' }}>
-                  {task.assignees.slice(0, 3).map((assignee, index) => (
-                    <div key={index} style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: assignee.color,
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '16px',
+                  marginBottom: '24px'
+                }}>
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <p style={{
                       fontSize: '12px',
-                      fontWeight: '600',
-                      marginLeft: index > 0 ? '-8px' : '0',
-                      border: '2px solid white',
-                      zIndex: task.assignees.length - index,
-                      cursor: 'pointer'
-                    }}
-                    title={assignee.fullName || `${assignee.initials} - ${assignee.priority}${assignee.role ? ` (${assignee.role})` : ''}`}>
-                      {assignee.initials}
-                    </div>
-                  ))}
-                  {task.assignees.length > 3 && (
+                      color: '#6b7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '500'
+                    }}>
+                      Date de début
+                    </p>
+                    <input
+                      type="datetime-local"
+                      value={modalStartDate}
+                      onChange={(e) => setModalStartDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        fontSize: '14px',
+                        color: '#111827',
+                        fontWeight: '500',
+                        border: '1px solid #d1d5db',
+                        backgroundColor: 'white',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '500'
+                    }}>
+                      Date de fin
+                    </p>
+                    <input
+                      type="datetime-local"
+                      value={modalEndDate}
+                      onChange={(e) => setModalEndDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        fontSize: '14px',
+                        color: '#111827',
+                        fontWeight: '500',
+                        border: '1px solid #d1d5db',
+                        backgroundColor: 'white',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '500'
+                    }}>
+                      Code Formation
+                    </p>
+                    <p style={{
+                      fontSize: '14px',
+                      color: '#111827',
+                      margin: 0,
+                      fontWeight: '600'
+                    }}>
+                      {selectedSession.code_formation}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6b7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '500'
+                    }}>
+                      Progression
+                    </p>
+                    <p style={{
+                      fontSize: '14px',
+                      color: '#111827',
+                      margin: 0,
+                      fontWeight: '600'
+                    }}>
+                      {selectedSession.progress}%
+                    </p>
+                  </div>
+
+                  {/* Status Field - Only visible when conditions are met */}
+                  {(modalStartDate && modalEndDate && selectedSession.participants.length > 0) && (
                     <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: '#666',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      marginLeft: '-8px',
-                      border: '2px solid white',
-                      cursor: 'pointer',
-                      zIndex: 1
-                    }}
-                    title={`+${task.assignees.length - 3} autres personnes`}>
-                      +{task.assignees.length - 3}
+                      padding: '16px',
+                      backgroundColor: '#f0fdf4',
+                      borderRadius: '8px',
+                      border: '1px solid #86efac'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#166534',
+                        margin: '0 0 4px 0',
+                        textTransform: 'uppercase',
+                        fontWeight: '600'
+                      }}>
+                        Status
+                      </p>
+                      <select
+                        value={modalStatus}
+                        onChange={(e) => setModalStatus(e.target.value)}
+                        style={{
+                          width: '100%',
+                          fontSize: '14px',
+                          color: getStatusColor(modalStatus),
+                          fontWeight: '600',
+                          border: '1px solid #86efac',
+                          backgroundColor: 'white',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Sélectionner un status</option>
+                        <option value="session validé">Session validé</option>
+                        <option value="en cours">En cours</option>
+                        <option value="terminé">Terminé</option>
+                        <option value="non démarré">Non démarré</option>
+                      </select>
                     </div>
                   )}
                 </div>
-                <span style={{
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  color: getPriorityColor(task.assignees[0]?.priority),
-                  backgroundColor: `${getPriorityColor(task.assignees[0]?.priority)}15`,
-                  padding: '4px 8px',
-                  borderRadius: '12px'
-                }}>
-                  {task.assignees[0]?.priority}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default Task;
+                {/* Validation Alert */}
+                {!(selectedSession.start_datetime && selectedSession.end_datetime && selectedSession.participants.length > 0) && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#fef3c7',
+                    borderRadius: '8px',
+                    border: '1px solid #f59e0b',
+                    marginBottom: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <AlertCircle size={20} color="#d97706" />
+                    <div>
+                      <p style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#92400e',
+                        margin: '0 0 4px 0'
+                      }}>
+                        Session incomplète
+                      </p>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#78350f',
+                        margin: 0
+                      }}>
+                        Pour activer cette session, vous devez renseigner:
+                        {!selectedSession.start_datetime && ' • Date de début'}
+                        {!selectedSession.end_datetime && ' • Date de fin'}
+                        {selectedSession.participants.length === 0 && ' • Au moins un participant'}
+                      </p>
+                    </div>
+                  </div>
+                )}
