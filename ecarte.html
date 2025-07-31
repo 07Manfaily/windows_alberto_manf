@@ -1,59 +1,417 @@
-// Fonction pour sauvegarder la session (adaptation pour l'API)
-  const saveSession = async () => {
-    setSaving(true);
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, X, Save, Trash2, Tag } from 'lucide-react';
 
+// Simulation d'une API
+const mockAPI = {
+  // Récupérer tous les quiz
+  getQuizzes: async () => {
+    // Simulation d'un délai réseau
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return [
+      { 
+        id: 1, 
+        quiz: 'Mathématiques niveau 1', 
+        type: 'qcm', 
+        obligatoire: 'oui',
+        modalites: ['En ligne', 'Temps limité', 'Questions aléatoires']
+      },
+      { 
+        id: 2, 
+        quiz: 'Histoire de France', 
+        type: 'qcu', 
+        obligatoire: 'non',
+        modalites: ['Présentiel', 'Livre ouvert']
+      },
+      { 
+        id: 3, 
+        quiz: 'Sciences physiques', 
+        type: 'qcm', 
+        obligatoire: 'oui',
+        modalites: ['Laboratoire', 'Expérimentation pratique', 'Rapport écrit']
+      }
+    ];
+  },
+  
+  // Créer un nouveau quiz
+  createQuiz: async (quizData) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { id: Date.now(), ...quizData };
+  },
+  
+  // Mettre à jour un quiz
+  updateQuiz: async (id, quizData) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { id, ...quizData };
+  },
+  
+  // Supprimer un quiz
+  deleteQuiz: async (id) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { success: true };
+  }
+};
+
+const QuizManager = () => {
+  const [quizzes, setQuizzes] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    quiz: '',
+    type: 'qcm',
+    obligatoire: 'non',
+    modalites: []
+  });
+  const [currentModalite, setCurrentModalite] = useState('');
+
+  // Charger les quiz au montage du composant
+  useEffect(() => {
+    loadQuizzes();
+  }, []);
+
+  const loadQuizzes = async () => {
+    setLoading(true);
     try {
-      // Préparation des données pour l'API update
-      const updateData = {
-        session_id: selectedSession.id,
-        start_datetime: sessionData.startDate,
-        end_datetime: sessionData.endDate,
-        place: sessionData.lieu,
-        city: sessionData.ville,
-        status: sessionData.status
-      };
-
-      // Simulation de l'appel API update
-      console.log('Données envoyées à l\'API update:', updateData);
-      
-      // Ici vous remplacerez par votre vraie API call :
-      // const response = await fetch('/api/sessions/update', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(updateData)
-      // });
-      
-      // Simulation d'un délai d'API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mettre à jour la session dans la liste locale (pour l'UI)
-      setSessions(prev => prev.map(session => {
-        if (session.id === selectedSession.id) {
-          const updatedSession = {
-            ...session,
-            start_datetime: sessionData.startDate,
-            end_datetime: sessionData.endDate,
-            place: sessionData.lieu,
-            city: sessionData.ville,
-            status: sessionData.status,
-            color: getSessionColor({ ...session, status: sessionData.status })
-          };
-
-          // Mettre à jour aussi la session sélectionnée
-          setSelectedSession(updatedSession);
-          return updatedSession;
-        }
-        return session;
-      }));
-
-      setSaving(false);
-      alert('Session enregistrée avec succès !');
-      
+      const data = await mockAPI.getQuizzes();
+      setQuizzes(data);
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      setSaving(false);
-      alert('Erreur lors de l\'enregistrement. Veuillez réessayer.');
+      console.error('Erreur lors du chargement des quiz:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const openModal = (quiz = null) => {
+    if (quiz) {
+      setEditingQuiz(quiz);
+      setFormData({
+        quiz: quiz.quiz,
+        type: quiz.type,
+        obligatoire: quiz.obligatoire,
+        modalites: quiz.modalites || []
+      });
+    } else {
+      setEditingQuiz(null);
+      setFormData({
+        quiz: '',
+        type: 'qcm',
+        obligatoire: 'non',
+        modalites: []
+      });
+    }
+    setCurrentModalite('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingQuiz(null);
+    setCurrentModalite('');
+    setFormData({
+      quiz: '',
+      type: 'qcm',
+      obligatoire: 'non',
+      modalites: []
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleModaliteKeyPress = (e) => {
+    if (e.key === 'Enter' && currentModalite.trim()) {
+      e.preventDefault();
+      if (!formData.modalites.includes(currentModalite.trim())) {
+        setFormData(prev => ({
+          ...prev,
+          modalites: [...prev.modalites, currentModalite.trim()]
+        }));
+      }
+      setCurrentModalite('');
+    }
+  };
+
+  const removeModalite = (indexToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      modalites: prev.modalites.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.quiz.trim()) return;
+
+    try {
+      if (editingQuiz) {
+        // Mise à jour
+        const updatedQuiz = await mockAPI.updateQuiz(editingQuiz.id, formData);
+        setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? updatedQuiz : q));
+      } else {
+        // Création
+        const newQuiz = await mockAPI.createQuiz(formData);
+        setQuizzes(prev => [...prev, newQuiz]);
+      }
+      closeModal();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce quiz ?')) {
+      try {
+        await mockAPI.deleteQuiz(id);
+        setQuizzes(prev => prev.filter(q => q.id !== id));
+        if (editingQuiz && editingQuiz.id === id) {
+          closeModal();
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* En-tête */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Gestionnaire de Quiz</h1>
+            <button
+              onClick={() => openModal()}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nouveau Quiz
+            </button>
+          </div>
+        </div>
+
+        {/* Contenu principal */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Chargement des quiz...</p>
+            </div>
+          ) : (
+            <>
+              {/* Affichage en cartes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {quizzes.map((quiz) => (
+                  <div
+                    key={quiz.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => openModal(quiz)}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                        {quiz.quiz}
+                      </h3>
+                      <Edit className="w-4 h-4 text-gray-400" />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Type:</span>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          quiz.type === 'qcm' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {quiz.type.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Obligatoire:</span>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          quiz.obligatoire === 'oui' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {quiz.obligatoire === 'oui' ? 'Oui' : 'Non'}
+                        </span>
+                      </div>
+                      
+                      {quiz.modalites && quiz.modalites.length > 0 && (
+                        <div>
+                          <span className="text-sm text-gray-600 block mb-2">Modalités:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {quiz.modalites.map((modalite, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full"
+                              >
+                                <Tag className="w-3 h-3 mr-1" />
+                                {modalite}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {quizzes.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  Aucun quiz trouvé. Créez votre premier quiz !
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {editingQuiz ? 'Modifier le Quiz' : 'Nouveau Quiz'}
+              </h2>
+              <div className="flex items-center space-x-2">
+                {editingQuiz && (
+                  <button
+                    onClick={() => handleDelete(editingQuiz.id)}
+                    className="text-red-600 hover:text-red-800 p-1"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-4">
+                {/* Nom du quiz */}
+                <div>
+                  <label htmlFor="quiz" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom du Quiz *
+                  </label>
+                  <input
+                    type="text"
+                    id="quiz"
+                    name="quiz"
+                    value={formData.quiz}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Entrez le nom du quiz"
+                  />
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                    Type de Quiz
+                  </label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="qcm">QCM (Choix Multiple)</option>
+                    <option value="qcu">QCU (Choix Unique)</option>
+                  </select>
+                </div>
+
+                {/* Obligatoire */}
+                <div>
+                  <label htmlFor="obligatoire" className="block text-sm font-medium text-gray-700 mb-2">
+                    Obligatoire
+                  </label>
+                  <select
+                    id="obligatoire"
+                    name="obligatoire"
+                    value={formData.obligatoire}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="non">Non</option>
+                    <option value="oui">Oui</option>
+                  </select>
+                </div>
+
+                {/* Modalités */}
+                <div>
+                  <label htmlFor="modalites" className="block text-sm font-medium text-gray-700 mb-2">
+                    Modalités
+                  </label>
+                  <input
+                    type="text"
+                    id="modalites"
+                    value={currentModalite}
+                    onChange={(e) => setCurrentModalite(e.target.value)}
+                    onKeyDown={handleModaliteKeyPress}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Tapez une modalité et appuyez sur Entrée"
+                  />
+                  
+                  {/* Affichage des modalités ajoutées */}
+                  {formData.modalites.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {formData.modalites.map((modalite, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-full"
+                        >
+                          <Tag className="w-3 h-3 mr-1" />
+                          {modalite}
+                          <button
+                            type="button"
+                            onClick={() => removeModalite(index)}
+                            className="ml-2 text-purple-600 hover:text-purple-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {editingQuiz ? 'Modifier' : 'Créer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default QuizManager;
