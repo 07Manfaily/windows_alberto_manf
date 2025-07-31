@@ -1,274 +1,124 @@
-import { useEffect, useRef } from "react";
+// Version Material UI du composant QuizManager
 
-export default function Index() {
-  const timestampRef = useRef(null);
-  const robotRef = useRef(null);
+import React, { useState, useEffect } from 'react'; import { Box, Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, InputAdornment, MenuItem, Select, TextField, Typography, Chip } from '@mui/material'; import { Plus, Edit, X, Save, Trash2, Tag } from 'lucide-react';
 
-  useEffect(() => {
-    const t = new Date();
-    const hours = t.getHours();
-    const min = t.getMinutes();
-    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-    const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const mockAPI = { getQuizzes: async () => { await new Promise(resolve => setTimeout(resolve, 500)); return [ { id: 1, quiz: 'Mathématiques niveau 1', type: 'qcm', obligatoire: 'oui', modalites: ['En ligne', 'Temps limité', 'Questions aléatoires'] }, { id: 2, quiz: 'Histoire de France', type: 'qcu', obligatoire: 'non', modalites: ['Présentiel', 'Livre ouvert'] }, { id: 3, quiz: 'Sciences physiques', type: 'qcm', obligatoire: 'oui', modalites: ['Laboratoire', 'Expérimentation pratique', 'Rapport écrit'] } ]; }, createQuiz: async (quizData) => { await new Promise(resolve => setTimeout(resolve, 300)); return { id: Date.now(), ...quizData }; }, updateQuiz: async (id, quizData) => { await new Promise(resolve => setTimeout(resolve, 300)); return { id, ...quizData }; }, deleteQuiz: async (id) => { await new Promise(resolve => setTimeout(resolve, 300)); return { success: true }; } };
 
-    if (timestampRef.current) {
-      timestampRef.current.innerHTML =
-        days[t.getDay()] + " " + t.getDate() + " " + months[t.getMonth()] + " - " + hours + "h" + (min < 10 ? "0" + min : min);
-    }
+const QuizManager = () => { const [quizzes, setQuizzes] = useState([]); const [isModalOpen, setIsModalOpen] = useState(false); const [editingQuiz, setEditingQuiz] = useState(null); const [loading, setLoading] = useState(false); const [formData, setFormData] = useState({ quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); const [currentModalite, setCurrentModalite] = useState('');
 
-    if (robotRef.current) {
-      robotRef.current.addEventListener("click", () => {
-        console.log("Robot clicked!");
-        // ici tu peux appeler showNextMessage()
-      });
-    }
+useEffect(() => { loadQuizzes(); }, []);
 
-    // Démarrer automatiquement
-    const timer = setTimeout(() => {
-      showNextMessage();
-    }, 1000);
+const loadQuizzes = async () => { setLoading(true); try { const data = await mockAPI.getQuizzes(); setQuizzes(data); } finally { setLoading(false); } };
 
-    return () => {
-      // Clean up si besoin
-      clearTimeout(timer);
-    };
-  }, []);
+const openModal = (quiz = null) => { setEditingQuiz(quiz); setFormData(quiz ? { ...quiz } : { quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); setCurrentModalite(''); setIsModalOpen(true); };
 
-  const showNextMessage = () => {
-    console.log("Next message shown");
-  };
+const closeModal = () => { setIsModalOpen(false); setEditingQuiz(null); setFormData({ quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); setCurrentModalite(''); };
 
-  return (
-    <div>
-      <div ref={timestampRef} className="timestamp"></div>
-      <div ref={robotRef} className="robot-image">Robot ici</div>
-    </div>
-  );
-}
+const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
 
+const handleModaliteKeyPress = (e) => { if (e.key === 'Enter' && currentModalite.trim()) { e.preventDefault(); if (!formData.modalites.includes(currentModalite.trim())) { setFormData(prev => ({ ...prev, modalites: [...prev.modalites, currentModalite.trim()] })); } setCurrentModalite(''); } };
 
+const removeModalite = (index) => { setFormData(prev => ({ ...prev, modalites: prev.modalites.filter((_, i) => i !== index) })); };
 
-Je comprends mieux maintenant ! Si exportSeries est un paramètre de votre fonction, voici comment vous pourriez adapter votre code pour traiter tous les objets de ce paramètre lors du téléchargement :
-javascriptCopier// Dans votre fonction d'export
-export default function Caisse({ filename, intitule, categoryValues, exportSeries, exportCategorie, ... }) {
-  // ... votre code existant ...
-  
-  // Dans la partie customIcons pour "Export to Excel"
-  click: () => {
-    // Préparer les données pour l'export
-    const dataToExport = [];
-    
-    // Si exportSeries est un tableau avec plusieurs séries
-    if (Array.isArray(exportSeries) && exportSeries.length > 0) {
-      // Parcourir les catégories
-      exportCategorie.forEach((categorie, index) => {
-        const row = { Periode: categorie };
-        
-        // Ajouter les valeurs de chaque série pour cette période
-        exportSeries.forEach(serie => {
-          // Utiliser le nom de la série comme clé ou un nom par défaut
-          const serieName = serie.name || 'Série';
-          row[serieName] = serie.data[index];
-        });
-        
-        dataToExport.push(row);
-      });
-    }
+const handleSubmit = async () => { if (!formData.quiz.trim()) return; try { if (editingQuiz) { const updatedQuiz = await mockAPI.updateQuiz(editingQuiz.id, formData); setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? updatedQuiz : q)); } else { const newQuiz = await mockAPI.createQuiz(formData); setQuizzes(prev => [...prev, newQuiz]); } closeModal(); } catch (e) { console.error(e); } };
 
-    // Créer une feuille de calcul
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, intitule || 'Données');
-    
-    // Exporter le fichier
-    XLSX.writeFile(workbook, filename || 'export.xlsx');
-  }
-}
-Cette solution va créer un fichier Excel unique avec une seule feuille contenant toutes les séries côte à côte. Chaque ligne représentera une période, et vous aurez une colonne pour chaque série.
-Si vous préférez avoir une feuille séparée pour chaque série dans le même fichier Excel :
-javascriptCopierclick: () => {
-  // Créer un workbook
-  const workbook = XLSX.utils.book_new();
-  
-  // Traiter chaque série séparément
-  exportSeries.forEach((serie, serieIndex) => {
-    // Préparer les données pour cette série
-    const serieData = exportCategorie.map((categorie, index) => ({
-      Periode: categorie,
-      Montant: serie.data[index]
-    }));
-    
-    // Créer une feuille pour cette série
-    const worksheet = XLSX.utils.json_to_sheet(serieData);
-    
-    // Nom de la feuille basé sur le nom de la série ou un index
-    const sheetName = serie.name || `Série ${serieIndex+1}`;
-    
-    // Ajouter la feuille au workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  });
-  
-  // Exporter le fichier
-  XLSX.writeFile(workbook, filename || 'export.xlsx');
-}
-Les deux approches vous permettront de télécharger toutes les données contenues dans le paramètre exportSeries.
+const handleDelete = async (id) => { if (window.confirm('Supprimer ce quiz ?')) { await mockAPI.deleteQuiz(id); setQuizzes(prev => prev.filter(q => q.id !== id)); } };
 
+return ( <Box p={4}> <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}> <Typography variant="h4">Gestionnaire de Quiz</Typography> <Button variant="contained" startIcon={<Plus />} onClick={() => openModal()}> Nouveau Quiz </Button> </Box>
 
+{loading ? (
+    <Box textAlign="center" py={4}><CircularProgress /></Box>
+  ) : (
+    <Grid container spacing={3}>
+      {quizzes.map(quiz => (
+        <Grid item xs={12} sm={6} md={4} key={quiz.id}>
+          <Card onClick={() => openModal(quiz)} sx={{ cursor: 'pointer' }}>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="h6">{quiz.quiz}</Typography>
+                <Edit size={16} />
+              </Box>
+              <Typography variant="body2">Type: {quiz.type.toUpperCase()}</Typography>
+              <Typography variant="body2">Obligatoire: {quiz.obligatoire === 'oui' ? 'Oui' : 'Non'}</Typography>
+              {quiz.modalites && quiz.modalites.map((m, idx) => (
+                <Chip key={idx} label={m} icon={<Tag size={12} />} size="small" sx={{ m: 0.5 }} />
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  )}
 
----------------------------------------------------------------------------
-Dans ton code actuel, exportSerie.datasemble être un tableau qui contient des valeurs. Si exportSerieest un tableau contenant deux objets, et que tu veux télécharger ces deux objets dans un même fichier Excel, il faut s'assurer que :
+  <Dialog open={isModalOpen} onClose={closeModal} fullWidth maxWidth="sm">
+    <DialogTitle>
+      {editingQuiz ? 'Modifier le Quiz' : 'Nouveau Quiz'}
+      {editingQuiz && (
+        <IconButton onClick={() => handleDelete(editingQuiz.id)} color="error" sx={{ ml: 2 }}>
+          <Trash2 size={20} />
+        </IconButton>
+      )}
+    </DialogTitle>
+    <DialogContent dividers>
+      <Box display="flex" flexDirection="column" gap={2}>
+        <TextField
+          label="Nom du Quiz"
+          name="quiz"
+          value={formData.quiz}
+          onChange={handleInputChange}
+          fullWidth
+          required
+        />
+        <Select
+          label="Type de Quiz"
+          name="type"
+          value={formData.type}
+          onChange={handleInputChange}
+          fullWidth
+        >
+          <MenuItem value="qcm">QCM</MenuItem>
+          <MenuItem value="qcu">QCU</MenuItem>
+        </Select>
+        <Select
+          label="Obligatoire"
+          name="obligatoire"
+          value={formData.obligatoire}
+          onChange={handleInputChange}
+          fullWidth
+        >
+          <MenuItem value="oui">Oui</MenuItem>
+          <MenuItem value="non">Non</MenuItem>
+        </Select>
+        <TextField
+          label="Ajouter une modalité"
+          value={currentModalite}
+          onChange={e => setCurrentModalite(e.target.value)}
+          onKeyDown={handleModaliteKeyPress}
+          InputProps={{ endAdornment: <InputAdornment position="end">Entrée</InputAdornment> }}
+          fullWidth
+        />
+        <Box display="flex" flexWrap="wrap" gap={1}>
+          {formData.modalites.map((m, idx) => (
+            <Chip
+              key={idx}
+              label={m}
+              onDelete={() => removeModalite(idx)}
+              icon={<Tag size={12} />}
+            />
+          ))}
+        </Box>
+      </Box>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={closeModal}>Annuler</Button>
+      <Button variant="contained" onClick={handleSubmit} startIcon={<Save />}>
+        {editingQuiz ? 'Modifier' : 'Créer'}
+      </Button>
+    </DialogActions>
+  </Dialog>
+</Box>
 
-Tu fusionnes les deux objets en une seule structure exploitable.
-Chaque objet soit transformé en feuille de calcul ( worksheet).
-Les deux feuilles soient ajoutées au fichier Excel avant le téléchargement.
-Solution : Ajouter plusieurs feuilles dans le fichier Excel
-Voici comment modifier votre code pour exporter chaque objet de exportSeriesous une feuille distincte dans le fichier Excel :
+); };
 
-
-const options = (fileName, intitule, categoryValue, exportSerie, exportCategorie, color) => {
-    chart: {
-        toolbar: {
-            tools: {
-                download: true,
-                selection: true,
-                zoom: true,
-                zoomin: true,
-                zoomout: true,
-                pan: true,
-                reset: true,
-            },
-            customIcons: [
-                {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 24">
-                            <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.34v6h5.66V9h3.34L12 2z"/>
-                          </svg>`,
-                    index: -1,
-                    title: "Export to Excel",
-                    class: "custom-excel-export",
-                    click: () => {
-                        const workbook = XLSX.utils.book_new();
-
-                        // Parcourir les objets dans exportSerie et les ajouter en tant que feuilles distinctes
-                        exportSerie.forEach((serie, idx) => {
-                            const dataToExport = serie.data.map((value, index) => ({
-                                Periode: exportCategorie[index],
-                                Montant: value
-                            }));
-
-                            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-                            XLSX.utils.book_append_sheet(workbook, worksheet, `Feuille_${idx + 1}`);
-                        });
-
-                        // Télécharger le fichier Excel
-                        XLSX.writeFile(workbook, fileName);
-                    }
-                }
-            ]
-        }
-    }
-};
-
---------------------------------------------------------------------------------------------------------------------------------------------
-
-useEffect caisse
-useEffect(() => {
-    if (start) {
-        GetParam();
-    }
-}, [start]); // Dépendance correcte pour exécuter GetParam() lorsque start change
-
-const lastAgence = useRef(null);
-const lastOperationType = useRef(null);
-const isFirstRender = useRef(true);
-
-useEffect(() => {
-    if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return; // Empêche l'exécution au premier rendu
-    }
-
-    if (start && agence && operationType) { // Vérification pour éviter les erreurs
-        if (lastAgence.current !== agence || lastOperationType.current !== operationType) {
-            if (agence === "Toute les agences" || (operation && operation.includes(operationType))) {
-                GetCaisseGlobale();
-            } else {
-                GetCaisseDetails();
-            }
-
-            // Mise à jour des références après l'exécution
-            lastAgence.current = agence;
-            lastOperationType.current = operationType;
-        }
-    }
-}, [start, agence, operationType]); // Ajout des dépendances nécessaires
-------------------------------------
-
-carte
-
-Je comprends que vous voulez télécharger les données de dataRem s'il contient des valeurs, sinon télécharger les données de dataRemAg. Voici comment vous pourriez modifier votre code :
-javascriptCopierclick: () => {
-  // Vérifier si dataRem.series[0].data contient des valeurs
-  const hasDataRem = dataRem.series[0].data && dataRem.series[0].data.length > 0;
-  
-  // Choisir la source de données en fonction de la condition
-  const dataToExport = hasDataRem 
-    ? dataRem.series[0].data.map((value, index) => ({
-        Date: dataRem.categories[index],
-        Jour: value
-      }))
-    : dataRemAg.series[0].data.map((value, index) => ({
-        Date: dataRemAg.categories[index],
-        Jour: value
-      }));
-
-
-
-
-click: () => {
-  // Vérifier que dataRem.series existe et contient au moins un élément
-  const hasValidDataRem = dataRem.series && dataRem.series.length > 0 && dataRem.series[0].data;
-  const hasValidDataRemAg = dataRemAg.series && dataRemAg.series.length > 0 && dataRemAg.series[0].data;
-
-  if (!hasValidDataRem && !hasValidDataRemAg) {
-    console.error("Aucune donnée disponible pour l'exportation.");
-    return;
-  }
-
-  // Déterminer la source de données à utiliser
-  const dataToExport = hasValidDataRem
-    ? dataRem.series[0].data.map((value, index) => ({
-        Date: dataRem.categories?.[index] || "Inconnu",
-        Jour: value
-      }))
-    : dataRemAg.series[0].data.map((value, index) => ({
-        Date: dataRemAg.categories?.[index] || "Inconnu",
-        Jour: value
-      }));
-
-  // Créer et exporter le fichier Excel
-  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "carte remise");
-  XLSX.writeFile(workbook, "cartes_remises.xlsx");
-}
-
-  // Créer une feuille de calcul
-  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "carte remise");
-  
-  // Exporter le fichier
-  XLSX.writeFile(workbook, "cartes_remises.xlsx");
-}
-Cette solution:
-
-Vérifie d'abord si dataRem.series[0].data existe et contient des données
-Si c'est le cas, utilise les données de dataRem pour l'export
-Sinon, utilise les données de dataRemAg
-
-Si vous souhaitez une vérification plus précise pour déterminer si dataRem "contient des valeurs", vous pourriez ajuster la condition. Par exemple, si vous voulez vérifier que le tableau contient au moins une valeur non nulle ou non vide :
-javascriptCopierconst hasDataRem = dataRem.series[0].data && 
-                  dataRem.series[0].data.length > 0 && 
-                  dataRem.series[0].data.some(value => value !== null && value !== undefined && value !== 0);
-Cette condition vérifiera non seulement que le tableau existe et a une longueur, mais aussi qu'il contient au moins une valeur significative.
+export default QuizManager;
 
