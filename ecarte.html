@@ -36,13 +36,15 @@ const mockAPI = {
   // Créer un nouveau quiz
   createQuiz: async (quizData) => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    return { id: Date.now(), ...quizData };
+    return { success: true, quiz: quizData };
   },
   
   // Mettre à jour un quiz
-  updateQuiz: async (id, quizData) => {
+  updateQuiz: async (code, index, quizData) => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    return { id, ...quizData };
+    // Simulation de l'appel POST /api/update/<code>/add/quiz/<index>
+    console.log(`POST /api/update/${code}/add/quiz/${index}`, quizData);
+    return { success: true, quiz: { ...quizData, id: index } };
   },
   
   // Supprimer un quiz
@@ -54,6 +56,7 @@ const mockAPI = {
 
 const QuizManager = () => {
   const [quizzes, setQuizzes] = useState([]);
+  const [apiInfo, setApiInfo] = useState({ code: '', startdate: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -74,6 +77,8 @@ const QuizManager = () => {
     setLoading(true);
     try {
       const response = await mockAPI.getQuizzes();
+      // Stocker les infos de l'API
+      setApiInfo({ code: response.code, startdate: response.startdate });
       // Extraire les quiz du metadata et ajouter un id unique
       const quizzesWithIds = response.metadata.map((quiz, index) => ({
         ...quiz,
@@ -156,13 +161,15 @@ const QuizManager = () => {
 
     try {
       if (editingQuiz) {
-        // Mise à jour
-        const updatedQuiz = await mockAPI.updateQuiz(editingQuiz.id, formData);
-        setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? updatedQuiz : q));
+        // Mise à jour - utilise l'API POST avec code et index
+        const quizIndex = editingQuiz.id - 1; // Convertir l'id en index (0-based)
+        await mockAPI.updateQuiz(apiInfo.code, quizIndex, formData);
+        setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? { ...formData, id: editingQuiz.id } : q));
       } else {
-        // Création
+        // Création - ajouter à la fin de la liste
         const newQuiz = await mockAPI.createQuiz(formData);
-        setQuizzes(prev => [...prev, newQuiz]);
+        const newId = quizzes.length + 1;
+        setQuizzes(prev => [...prev, { ...formData, id: newId }]);
       }
       closeModal();
     } catch (error) {
