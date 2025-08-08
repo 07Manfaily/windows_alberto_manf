@@ -1,104 +1,98 @@
-import React from "react";
+import React from 'react';
 
-const CollaborateurCard = () => {
+const ParticipantInfo = () => {
   return (
-    <div
-      style={{
-        fontFamily: "Arial, sans-serif",
-        backgroundColor: "#f5f5f5",
-        borderRadius: "12px",
-        padding: "20px",
-        maxWidth: "800px",
-        margin: "20px auto",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "flex-start",
-        gap: "20px"
-      }}
-    >
-      {/* Section gauche : Info collaborateur + fichiers */}
-      <div style={{ flex: 1 }}>
-        <div style={{ marginBottom: "10px" }}>
-          <h2 style={{ margin: 0 }}>Collaborateur <span style={{ color: "#555" }}>P25026</span></h2>
-          <p style={{ margin: "5px 0", color: "#777" }}>manawa</p>
-        </div>
-
-        <div
-          style={{
-            backgroundColor: "#FF5722",
-            borderRadius: "50%",
-            width: "80px",
-            height: "80px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            fontSize: "28px",
-            fontWeight: "bold",
-            marginBottom: "20px"
-          }}
-        >
-          CO
-        </div>
-
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-          <div style={pdfStyle}>PDF1</div>
-          <div style={pdfStyle}>PDF3</div>
-          <div style={pdfStyle}>PDF4</div>
-        </div>
-
+    <div style={{
+      fontFamily: 'Arial, sans-serif',
+      maxWidth: '800px',
+      margin: '0 auto',
+      padding: '20px',
+      backgroundColor: '#f5f5f5',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      {/* En-tête */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '20px',
+        paddingBottom: '10px',
+        borderBottom: '1px solid #ddd'
+      }}>
         <div>
-          <p style={{ margin: "5px 0" }}>
-            <strong>Nombre de participant provisoire :</strong> 4
-          </p>
-          <p style={{ margin: "5px 0" }}>
-            <strong>Période provisoire :</strong><br />
-            du 12/02/2025 au 07/06/2025
-          </p>
+          <span style={{ fontWeight: 'bold', fontSize: '18px' }}>Collaborateur P25026</span>
+          <div style={{ color: '#666', marginTop: '4px' }}>manawa</div>
+        </div>
+        <div style={{ color: '#666' }}>CO</div>
+      </div>
 
-          <button
-            style={{
-              marginTop: "10px",
-              padding: "10px 20px",
-              backgroundColor: "#F9A825",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              color: "#fff",
-              fontWeight: "bold"
-            }}
-          >
-            Modifier
-          </button>
+      {/* Fichiers PDF */}
+      <div style={{
+        display: 'flex',
+        gap: '15px',
+        marginBottom: '25px'
+      }}>
+        <div style={{
+          padding: '10px 15px',
+          backgroundColor: '#e9f7fe',
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          color: '#0078d4'
+        }}>PDF1</div>
+        <div style={{
+          padding: '10px 15px',
+          backgroundColor: '#e9f7fe',
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          color: '#0078d4'
+        }}>PDF3</div>
+        <div style={{
+          padding: '10px 15px',
+          backgroundColor: '#e9f7fe',
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          color: '#0078d4'
+        }}>PDF4</div>
+      </div>
+
+      {/* Informations participants */}
+      <div style={{
+        backgroundColor: 'white',
+        padding: '15px',
+        borderRadius: '6px',
+        marginBottom: '20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ marginBottom: '10px' }}>
+          <span style={{ fontWeight: 'bold' }}>Nombre de participant provisoire : </span>
+          <span>4</span>
+        </div>
+        <div>
+          <span style={{ fontWeight: 'bold' }}>Période provisoire du : </span>
+          <span>12/02/2025 - 07/06/2025</span>
         </div>
       </div>
 
-      {/* Section droite : Image */}
-      <div style={{ flex: 1 }}>
-        <img
-          src="https://cdn.pixabay.com/photo/2023/01/05/14/23/technology-7700503_1280.jpg"
-          alt="Digital Tech"
-          style={{
-            width: "100%",
-            borderRadius: "10px",
-            objectFit: "cover",
-            maxHeight: "200px"
-          }}
-        />
-      </div>
+      {/* Bouton Modifier */}
+      <button style={{
+        backgroundColor: '#0078d4',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        transition: 'background-color 0.3s',
+        ':hover': {
+          backgroundColor: '#005a9e'
+        }
+      }}>
+        Modifier
+      </button>
     </div>
   );
 };
 
-// Style PDF block
-const pdfStyle = {
-  backgroundColor: "#ccc",
-  padding: "10px 15px",
-  borderRadius: "5px",
-  fontWeight: "bold",
-  color: "#333",
-  cursor: "pointer"
-};
-
-export default CollaborateurCard;
+export default ParticipantInfo;
