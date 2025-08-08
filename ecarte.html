@@ -1,317 +1,104 @@
-import React from 'react';
+import React from "react";
 
-const BeosoundProductCard = () => {
+const CollaborateurCard = () => {
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f0f0f5',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <div style={{
-        width: '900px',
-        height: '400px',
-        backgroundColor: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-        display: 'flex',
-        overflow: 'hidden'
-      }}>
-        
-        {/* Section gauche - Image du produit */}
-        <div style={{
-          width: '45%',
-          backgroundColor: '#f8f8fa',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative'
-        }}>
-          
-          {/* Enceinte principale */}
-          <div style={{
-            width: '200px',
-            height: '200px',
-            backgroundColor: '#6b7280',
-            borderRadius: '50%',
-            position: 'relative',
-            background: 'radial-gradient(circle at 30% 30%, #8b8b8b, #5a5a5a)',
-            boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)'
-          }}>
-            
-            {/* Texture de la grille */}
-            <div style={{
-              position: 'absolute',
-              top: '20px',
-              left: '20px',
-              right: '20px',
-              bottom: '20px',
-              borderRadius: '50%',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='0.5' fill='%23404040'/%3E%3C/svg%3E")`,
-              opacity: 0.6
-            }}></div>
-            
-            {/* Sangle */}
-            <div style={{
-              position: 'absolute',
-              top: '-15px',
-              right: '30px',
-              width: '8px',
-              height: '60px',
-              backgroundColor: '#d4af7a',
-              borderRadius: '4px',
-              transform: 'rotate(15deg)'
-            }}></div>
-            
-            <div style={{
-              position: 'absolute',
-              top: '20px',
-              right: '10px',
-              width: '30px',
-              height: '8px',
-              backgroundColor: '#d4af7a',
-              borderRadius: '4px',
-              transform: 'rotate(15deg)'
-            }}></div>
-          </div>
-          
-          {/* Indicateurs de pagination */}
-          <div style={{
-            position: 'absolute',
-            bottom: '30px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '8px'
-          }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              backgroundColor: '#333333',
-              borderRadius: '50%'
-            }}></div>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              backgroundColor: '#cccccc',
-              borderRadius: '50%'
-            }}></div>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              backgroundColor: '#cccccc',
-              borderRadius: '50%'
-            }}></div>
-          </div>
+    <div
+      style={{
+        fontFamily: "Arial, sans-serif",
+        backgroundColor: "#f5f5f5",
+        borderRadius: "12px",
+        padding: "20px",
+        maxWidth: "800px",
+        margin: "20px auto",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: "20px"
+      }}
+    >
+      {/* Section gauche : Info collaborateur + fichiers */}
+      <div style={{ flex: 1 }}>
+        <div style={{ marginBottom: "10px" }}>
+          <h2 style={{ margin: 0 }}>Collaborateur <span style={{ color: "#555" }}>P25026</span></h2>
+          <p style={{ margin: "5px 0", color: "#777" }}>manawa</p>
         </div>
 
-        {/* Section droite - Informations du produit */}
-        <div style={{
-          width: '55%',
-          padding: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          
-          {/* Header avec titre et prix */}
-          <div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              marginBottom: '10px'
-            }}>
-              <h1 style={{
-                fontSize: '32px',
-                fontWeight: '600',
-                color: '#333333',
-                margin: 0,
-                lineHeight: '1.2'
-              }}>Beosound A1 2nd Gen</h1>
-              
-              <div style={{
-                fontSize: '32px',
-                fontWeight: '600',
-                color: '#333333'
-              }}>$300</div>
-            </div>
-            
-            <p style={{
-              fontSize: '18px',
-              color: '#888888',
-              margin: '0 0 40px 0'
-            }}>Even more user friendly</p>
-            
-            {/* Spécifications */}
-            <div style={{
-              display: 'flex',
-              gap: '60px',
-              marginBottom: '60px'
-            }}>
-              
-              {/* Poids */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  backgroundColor: '#e5e5e5',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    backgroundColor: '#999999',
-                    borderRadius: '4px'
-                  }}></div>
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#888888',
-                  marginBottom: '4px'
-                }}>Weight, kg</div>
-                <div style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: '#333333'
-                }}>0,558</div>
-              </div>
-              
-              {/* Taille */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  backgroundColor: '#e5e5e5',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid #999999',
-                    borderRadius: '2px'
-                  }}></div>
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#888888',
-                  marginBottom: '4px'
-                }}>Size, mm</div>
-                <div style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: '#333333'
-                }}>133x46x133</div>
-              </div>
-              
-              {/* Étanchéité */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  backgroundColor: '#e5e5e5',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{
-                    width: '12px',
-                    height: '16px',
-                    backgroundColor: '#999999',
-                    borderRadius: '6px 6px 0 0'
-                  }}></div>
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#888888',
-                  marginBottom: '4px'
-                }}>Waterproof</div>
-                <div style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: '#333333'
-                }}>Available</div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Boutons d'action */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <button style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              fontSize: '18px',
-              color: '#333333',
-              cursor: 'pointer',
-              padding: '12px 0',
-              fontFamily: 'Arial, sans-serif'
-            }}>Delete Listing</button>
-            
-            <button style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              fontSize: '18px',
-              color: '#666666',
-              cursor: 'pointer',
-              padding: '12px 24px',
-              fontFamily: 'Arial, sans-serif'
-            }}>Edit</button>
-            
-            <button style={{
-              backgroundColor: '#b8860b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '16px 32px',
-              fontSize: '18px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(184, 134, 11, 0.3)',
-              fontFamily: 'Arial, sans-serif',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#a0750a';
-              e.target.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#b8860b';
-              e.target.style.transform = 'translateY(0)';
-            }}>Publish</button>
-          </div>
+        <div
+          style={{
+            backgroundColor: "#FF5722",
+            borderRadius: "50%",
+            width: "80px",
+            height: "80px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            fontSize: "28px",
+            fontWeight: "bold",
+            marginBottom: "20px"
+          }}
+        >
+          CO
         </div>
+
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <div style={pdfStyle}>PDF1</div>
+          <div style={pdfStyle}>PDF3</div>
+          <div style={pdfStyle}>PDF4</div>
+        </div>
+
+        <div>
+          <p style={{ margin: "5px 0" }}>
+            <strong>Nombre de participant provisoire :</strong> 4
+          </p>
+          <p style={{ margin: "5px 0" }}>
+            <strong>Période provisoire :</strong><br />
+            du 12/02/2025 au 07/06/2025
+          </p>
+
+          <button
+            style={{
+              marginTop: "10px",
+              padding: "10px 20px",
+              backgroundColor: "#F9A825",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              color: "#fff",
+              fontWeight: "bold"
+            }}
+          >
+            Modifier
+          </button>
+        </div>
+      </div>
+
+      {/* Section droite : Image */}
+      <div style={{ flex: 1 }}>
+        <img
+          src="https://cdn.pixabay.com/photo/2023/01/05/14/23/technology-7700503_1280.jpg"
+          alt="Digital Tech"
+          style={{
+            width: "100%",
+            borderRadius: "10px",
+            objectFit: "cover",
+            maxHeight: "200px"
+          }}
+        />
       </div>
     </div>
   );
 };
 
-export default BeosoundProductCard;
+// Style PDF block
+const pdfStyle = {
+  backgroundColor: "#ccc",
+  padding: "10px 15px",
+  borderRadius: "5px",
+  fontWeight: "bold",
+  color: "#333",
+  cursor: "pointer"
+};
+
+export default CollaborateurCard;
