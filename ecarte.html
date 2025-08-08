@@ -1,250 +1,638 @@
-import React from 'react';
-import { Grid, Button, Box, Card, CardMedia } from '@mui/material';
-import { CloudUpload, Add, Edit, Delete } from '@mui/icons-material';
+import { useState, useRef } from "react";
+import { Search, X, Upload, UserPlus, User, Mail, IdCard } from "lucide-react";
 
-const FloatingButtonExample = () => {
-  const handleUpload = () => {
-    console.log('Upload clicked!');
-    // Logique d'upload ici
+export default function ParticipantManager() {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [participants, setParticipants] = useState([
+    {
+      id: 1,
+      nom: "Dupont",
+      prenom: "Jean",
+      matricule: "EMP001",
+      email: "jean.dupont@company.com"
+    },
+    {
+      id: 2,
+      nom: "Martin",
+      prenom: "Marie",
+      matricule: "EMP002", 
+      email: "marie.martin@company.com"
+    },
+    {
+      id: 3,
+      nom: "Bernard",
+      prenom: "Pierre",
+      matricule: "EMP003",
+      email: "pierre.bernard@company.com"
+    },
+    {
+      id: 4,
+      nom: "Leroy",
+      prenom: "Sophie",
+      matricule: "EMP004",
+      email: "sophie.leroy@company.com"
+    },
+    {
+      id: 5,
+      nom: "Moreau",
+      prenom: "Lucas",
+      matricule: "EMP005",
+      email: "lucas.moreau@company.com"
+    }
+  ]);
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [newParticipant, setNewParticipant] = useState({
+    nom: "",
+    prenom: "",
+    matricule: "",
+    email: ""
+  });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Filtrer les participants selon le terme de recherche
+  const filteredParticipants = participants.filter(participant =>
+    participant.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.matricule.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Sélectionner/désélectionner un participant
+  const toggleParticipant = (participant) => {
+    const isSelected = selectedParticipants.find(p => p.id === participant.id);
+    if (isSelected) {
+      setSelectedParticipants(selectedParticipants.filter(p => p.id !== participant.id));
+    } else {
+      setSelectedParticipants([...selectedParticipants, participant]);
+    }
+  };
+
+  // Ajouter un nouveau participant
+  const addParticipant = () => {
+    if (newParticipant.nom && newParticipant.prenom && newParticipant.matricule && newParticipant.email) {
+      const participant = {
+        ...newParticipant,
+        id: Math.max(...participants.map(p => p.id), 0) + 1
+      };
+      setParticipants([...participants, participant]);
+      setNewParticipant({ nom: "", prenom: "", matricule: "", email: "" });
+      setShowAddForm(false);
+    }
+  };
+
+  // Gérer l'importation de fichier
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target.result;
+          const lines = text.split('\n');
+          const newParticipants = [];
+          
+          // Ignorer la première ligne (en-têtes) et traiter le reste
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line) {
+              const [nom, prenom, matricule, email] = line.split(',');
+              if (nom && prenom && matricule && email) {
+                newParticipants.push({
+                  id: Math.max(...participants.map(p => p.id), 0) + i,
+                  nom: nom.trim(),
+                  prenom: prenom.trim(),
+                  matricule: matricule.trim(),
+                  email: email.trim()
+                });
+              }
+            }
+          }
+          
+          setParticipants([...participants, ...newParticipants]);
+          alert(`${newParticipants.length} participants ajoutés avec succès!`);
+        } catch (error) {
+          alert('Erreur lors de la lecture du fichier. Assurez-vous qu\'il s\'agit d\'un fichier CSV valide.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset l'input file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Confirmer la sélection
+  const confirmSelection = () => {
+    alert(`${selectedParticipants.length} participant(s) sélectionné(s):\n${selectedParticipants.map(p => `${p.prenom} ${p.nom} (${p.matricule})`).join('\n')}`);
+    setIsPopupOpen(false);
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Grid container spacing={3}>
-        
-        {/* Exemple 1: Bouton en bas à droite */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-            <img 
-              src="https://picsum.photos/400/300?random=1"
-              alt="Image 1"
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<CloudUpload />}
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                bottom: 12,
-                right: 12,
-                backgroundColor: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                },
-                boxShadow: 3,
-                textTransform: 'none'
-              }}
-            >
-              Upload
-            </Button>
-          </Box>
-        </Grid>
+    <div style={{
+      padding: "20px",
+      fontFamily: "Arial, sans-serif",
+      backgroundColor: "#f5f5f5",
+      minHeight: "100vh"
+    }}>
+      {/* Bouton Ciblage */}
+      <div style={{
+        textAlign: "center",
+        marginBottom: "20px"
+      }}>
+        <button
+          onClick={() => setIsPopupOpen(true)}
+          style={{
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            padding: "12px 24px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            transition: "all 0.3s ease"
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = "#0056b3"}
+          onMouseOut={(e) => e.target.style.backgroundColor = "#007bff"}
+        >
+          Ciblage ({selectedParticipants.length} sélectionnés)
+        </button>
+      </div>
 
-        {/* Exemple 2: Bouton en haut à droite */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-            <img 
-              src="https://picsum.photos/400/300?random=2"
-              alt="Image 2"
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Add />}
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                backgroundColor: 'success.main',
-                '&:hover': {
-                  backgroundColor: 'success.dark',
-                },
-                boxShadow: 2,
-                minWidth: 'auto',
-                textTransform: 'none'
-              }}
-            >
-              Add
-            </Button>
-          </Box>
-        </Grid>
+      {/* Pop-up Modal */}
+      {isPopupOpen && (
+        <div style={{
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: "1000"
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            width: "95%",
+            maxWidth: "900px",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+          }}>
+            {/* En-tête du pop-up */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+              borderBottom: "2px solid #f0f0f0",
+              paddingBottom: "10px"
+            }}>
+              <h2 style={{
+                margin: "0",
+                color: "#333",
+                fontSize: "24px"
+              }}>
+                Sélection des Participants
+              </h2>
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "5px"
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-        {/* Exemple 3: Bouton rond (FAB style) */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-            <img 
-              src="https://picsum.photos/400/300?random=3"
-              alt="Image 3"
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-            <Button
-              variant="contained"
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                bottom: 12,
-                right: 12,
-                minWidth: 48,
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                backgroundColor: 'secondary.main',
-                '&:hover': {
-                  backgroundColor: 'secondary.dark',
-                },
-                boxShadow: 4,
-                p: 0
-              }}
-            >
-              <Edit fontSize="small" />
-            </Button>
-          </Box>
-        </Grid>
+            {/* Barre d'outils */}
+            <div style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "20px",
+              flexWrap: "wrap",
+              alignItems: "center"
+            }}>
+              {/* Barre de recherche */}
+              <div style={{
+                position: "relative",
+                flex: "1",
+                minWidth: "250px"
+              }}>
+                <Search 
+                  size={18} 
+                  style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#666"
+                  }} 
+                />
+                <input
+                  type="text"
+                  placeholder="Rechercher un participant (nom, prénom, matricule, email)..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 12px 12px 40px",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
 
-        {/* Exemple 4: Avec Card Material-UI */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ position: 'relative' }}>
-            <CardMedia
-              component="img"
-              height="200"
-              image="https://picsum.photos/400/300?random=4"
-              alt="Image avec Card"
-            />
-            <Button
-              variant="outlined"
-              startIcon={<Delete />}
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                top: 12,
-                left: 12,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(4px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: 'error.main',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  borderColor: 'error.main',
-                },
-                textTransform: 'none'
-              }}
-            >
-              Delete
-            </Button>
-          </Card>
-        </Grid>
+              {/* Bouton Ajouter */}
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                style={{
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "14px"
+                }}
+              >
+                <UserPlus size={18} />
+                Ajouter
+              </button>
 
-        {/* Exemple 5: Multiples boutons */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-            <img 
-              src="https://picsum.photos/400/300?random=5"
-              alt="Image 5"
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-            {/* Bouton Upload en bas à droite */}
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<CloudUpload />}
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                bottom: 12,
-                right: 12,
-                backgroundColor: 'primary.main',
-                textTransform: 'none'
-              }}
-            >
-              Upload
-            </Button>
-            {/* Bouton Edit en bas à gauche */}
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                bottom: 12,
-                left: 12,
-                backgroundColor: 'warning.main',
-                minWidth: 40,
-                width: 40,
-                height: 32,
-                p: 0,
-                '&:hover': {
-                  backgroundColor: 'warning.dark',
-                }
-              }}
-            >
-              <Edit fontSize="small" />
-            </Button>
-          </Box>
-        </Grid>
+              {/* Bouton Import fichier */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  backgroundColor: "#17a2b8",
+                  color: "white",
+                  border: "none",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "14px"
+                }}
+              >
+                <Upload size={18} />
+                Charger CSV
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".csv,.txt"
+                style={{ display: "none" }}
+              />
+            </div>
 
-        {/* Exemple 6: Style glassmorphism */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-            <img 
-              src="https://picsum.photos/400/300?random=6"
-              alt="Image 6"
-              style={{ 
-                width: '100%', 
-                height: '200px', 
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<CloudUpload />}
-              onClick={handleUpload}
-              sx={{
-                position: 'absolute',
-                bottom: 12,
-                right: 12,
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                },
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                textTransform: 'none'
-              }}
-            >
-              Upload
-            </Button>
-          </Box>
-        </Grid>
+            {/* Compteur de sélection */}
+            {selectedParticipants.length > 0 && (
+              <div style={{
+                backgroundColor: "#e3f2fd",
+                padding: "10px 15px",
+                borderRadius: "8px",
+                marginBottom: "15px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <span style={{ color: "#1976d2", fontWeight: "bold" }}>
+                  {selectedParticipants.length} participant(s) sélectionné(s)
+                </span>
+                <button
+                  onClick={() => setSelectedParticipants([])}
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#1976d2",
+                    border: "1px solid #1976d2",
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px"
+                  }}
+                >
+                  Tout désélectionner
+                </button>
+              </div>
+            )}
 
-      </Grid>
-    </Box>
+            {/* Formulaire d'ajout */}
+            {showAddForm && (
+              <div style={{
+                backgroundColor: "#f8f9fa",
+                padding: "20px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                border: "1px solid #e9ecef"
+              }}>
+                <h4 style={{ margin: "0 0 15px 0", color: "#333" }}>Ajouter un nouveau participant</h4>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: "10px",
+                  marginBottom: "15px"
+                }}>
+                  <input
+                    type="text"
+                    placeholder="Nom"
+                    value={newParticipant.nom}
+                    onChange={(e) => setNewParticipant({...newParticipant, nom: e.target.value})}
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ddd",
+                      borderRadius: "6px",
+                      fontSize: "14px"
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Prénom"
+                    value={newParticipant.prenom}
+                    onChange={(e) => setNewParticipant({...newParticipant, prenom: e.target.value})}
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ddd",
+                      borderRadius: "6px",
+                      fontSize: "14px"
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Matricule"
+                    value={newParticipant.matricule}
+                    onChange={(e) => setNewParticipant({...newParticipant, matricule: e.target.value})}
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ddd",
+                      borderRadius: "6px",
+                      fontSize: "14px"
+                    }}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={newParticipant.email}
+                    onChange={(e) => setNewParticipant({...newParticipant, email: e.target.value})}
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ddd",
+                      borderRadius: "6px",
+                      fontSize: "14px"
+                    }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={addParticipant}
+                    style={{
+                      backgroundColor: "#28a745",
+                      color: "white",
+                      border: "none",
+                      padding: "10px 20px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Confirmer
+                  </button>
+                  <button
+                    onClick={() => setShowAddForm(false)}
+                    style={{
+                      backgroundColor: "#6c757d",
+                      color: "white",
+                      border: "none",
+                      padding: "10px 20px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "14px"
+                    }}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Liste des participants en cartes */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: "15px",
+              marginBottom: "20px"
+            }}>
+              {filteredParticipants.length === 0 ? (
+                <div style={{
+                  gridColumn: "1 / -1",
+                  padding: "40px",
+                  textAlign: "center",
+                  color: "#666",
+                  backgroundColor: "#f8f9fa",
+                  borderRadius: "8px"
+                }}>
+                  {searchTerm ? "Aucun participant trouvé pour cette recherche" : "Aucun participant disponible"}
+                </div>
+              ) : (
+                filteredParticipants.map((participant) => {
+                  const isSelected = selectedParticipants.find(p => p.id === participant.id);
+                  return (
+                    <div
+                      key={participant.id}
+                      onClick={() => toggleParticipant(participant)}
+                      style={{
+                        backgroundColor: isSelected ? "#e3f2fd" : "white",
+                        border: isSelected ? "2px solid #1976d2" : "1px solid #e9ecef",
+                        borderRadius: "10px",
+                        padding: "15px",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        boxShadow: isSelected ? "0 4px 12px rgba(25,118,210,0.2)" : "0 2px 4px rgba(0,0,0,0.1)",
+                        position: "relative"
+                      }}
+                      onMouseOver={(e) => {
+                        if (!isSelected) {
+                          e.target.style.transform = "translateY(-2px)";
+                          e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (!isSelected) {
+                          e.target.style.transform = "translateY(0)";
+                          e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                        }
+                      }}
+                    >
+                      {isSelected && (
+                        <div style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                          backgroundColor: "#1976d2",
+                          color: "white",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "12px",
+                          fontWeight: "bold"
+                        }}>
+                          ✓
+                        </div>
+                      )}
+                      
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "10px"
+                      }}>
+                        <div style={{
+                          backgroundColor: isSelected ? "#1976d2" : "#007bff",
+                          color: "white",
+                          borderRadius: "50%",
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: "12px"
+                        }}>
+                          <User size={20} />
+                        </div>
+                        <div>
+                          <div style={{
+                            fontWeight: "bold",
+                            fontSize: "16px",
+                            color: "#333"
+                          }}>
+                            {participant.prenom} {participant.nom}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                        fontSize: "14px",
+                        color: "#666"
+                      }}>
+                        <IdCard size={16} style={{ marginRight: "8px", color: "#007bff" }} />
+                        <strong>{participant.matricule}</strong>
+                      </div>
+
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "14px",
+                        color: "#666",
+                        wordBreak: "break-word"
+                      }}>
+                        <Mail size={16} style={{ marginRight: "8px", color: "#28a745", flexShrink: 0 }} />
+                        {participant.email}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Statistiques */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "15px",
+              backgroundColor: "#f8f9fa",
+              borderRadius: "8px",
+              marginBottom: "20px"
+            }}>
+              <span style={{ fontSize: "14px", color: "#666" }}>
+                {filteredParticipants.length} participant(s) affiché(s) sur {participants.length} total
+              </span>
+              <span style={{ fontSize: "14px", color: "#1976d2", fontWeight: "bold" }}>
+                {selectedParticipants.length} sélectionné(s)
+              </span>
+            </div>
+
+            {/* Boutons d'action */}
+            <div style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "10px",
+              paddingTop: "15px",
+              borderTop: "1px solid #e9ecef"
+            }}>
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px"
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmSelection}
+                disabled={selectedParticipants.length === 0}
+                style={{
+                  backgroundColor: selectedParticipants.length > 0 ? "#007bff" : "#ccc",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "6px",
+                  cursor: selectedParticipants.length > 0 ? "pointer" : "not-allowed",
+                  fontSize: "14px",
+                  fontWeight: "bold"
+                }}
+              >
+                Confirmer la sélection ({selectedParticipants.length})
+              </button>
+            </div>
+
+            {/* Note d'aide pour l'import CSV */}
+            <div style={{
+              marginTop: "15px",
+              padding: "12px",
+              backgroundColor: "#fff3cd",
+              borderRadius: "6px",
+              fontSize: "12px",
+              color: "#856404",
+              border: "1px solid #ffeaa7"
+            }}>
+              <strong>Format CSV attendu:</strong> nom,prénom,matricule,email (une ligne par participant, avec en-têtes)
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
-};
-
-export default FloatingButtonExample;
+}
