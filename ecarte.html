@@ -1,443 +1,317 @@
-import React, { useState, useEffect } from 'react';
-import { Save, X, Plus, Edit3, Trash2, Tag } from 'lucide-react';
+import React from 'react';
 
-// Simulation d'une API
-const mockAPI = {
-  // Récupérer tous les quiz
-  getQuizzes: async () => {
-    // Simulation d'un délai réseau
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return {
-      code: "234",
-      startdate: "20/02/2025",
-      metadata: [
-        { 
-          quiz: 'Mathématiques niveau 1', 
-          type: 'qcm', 
-          obligatoire: 'oui',
-          modalites: null
-        },
-        { 
-          quiz: 'Histoire de France', 
-          type: 'qcu', 
-          obligatoire: 'non',
-          modalites: ['Présentiel', 'Livre ouvert']
-        },
-        { 
-          quiz: 'Sciences physiques', 
-          type: 'qcm', 
-          obligatoire: 'oui',
-          modalites: ['Laboratoire', 'Expérimentation pratique', 'Rapport écrit']
-        }
-      ]
-    };
-  },
-  
-  // Créer un nouveau quiz
-  createQuiz: async (quizData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { success: true, quiz: quizData };
-  },
-  
-  // Mettre à jour un quiz
-  updateQuiz: async (code, index, quizData) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    // Simulation de l'appel POST /api/update/<code>/add/quiz/<index>
-    console.log(`POST /api/update/${code}/add/quiz/${index}`, quizData);
-    return { success: true, quiz: { ...quizData, id: index } };
-  },
-  
-  // Supprimer un quiz
-  deleteQuiz: async (id) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return { success: true };
-  }
-};
-
-const QuizManager = () => {
-  const [quizzes, setQuizzes] = useState([]);
-  const [apiInfo, setApiInfo] = useState({ code: '', startdate: '' });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingQuiz, setEditingQuiz] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    quiz: '',
-    type: 'qcm',
-    obligatoire: 'non',
-    modalites: []
-  });
-  const [currentModalite, setCurrentModalite] = useState('');
-
-  // Charger les quiz au montage du composant
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
-
-  const loadQuizzes = async () => {
-    setLoading(true);
-    try {
-      const response = await mockAPI.getQuizzes();
-      // Stocker les infos de l'API
-      setApiInfo({ code: response.code, startdate: response.startdate });
-      // Extraire les quiz du metadata et ajouter un id unique
-      const quizzesWithIds = response.metadata.map((quiz, index) => ({
-        ...quiz,
-        id: index + 1
-      }));
-      setQuizzes(quizzesWithIds);
-    } catch (error) {
-      console.error('Erreur lors du chargement des quiz:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const openModal = (quiz = null) => {
-    if (quiz) {
-      setEditingQuiz(quiz);
-      setFormData({
-        quiz: quiz.quiz,
-        type: quiz.type,
-        obligatoire: quiz.obligatoire,
-        modalites: quiz.modalites || []
-      });
-    } else {
-      setEditingQuiz(null);
-      setFormData({
-        quiz: '',
-        type: 'qcm',
-        obligatoire: 'non',
-        modalites: []
-      });
-    }
-    setCurrentModalite('');
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingQuiz(null);
-    setCurrentModalite('');
-    setFormData({
-      quiz: '',
-      type: 'qcm',
-      obligatoire: 'non',
-      modalites: []
-    });
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleModaliteKeyPress = (e) => {
-    if (e.key === 'Enter' && currentModalite.trim()) {
-      e.preventDefault();
-      const currentModalites = formData.modalites || [];
-      if (!currentModalites.includes(currentModalite.trim())) {
-        setFormData(prev => ({
-          ...prev,
-          modalites: [...currentModalites, currentModalite.trim()]
-        }));
-      }
-      setCurrentModalite('');
-    }
-  };
-
-  const removeModalite = (indexToRemove) => {
-    const currentModalites = formData.modalites || [];
-    setFormData(prev => ({
-      ...prev,
-      modalites: currentModalites.filter((_, index) => index !== indexToRemove)
-    }));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.quiz.trim()) return;
-
-    try {
-      if (editingQuiz) {
-        // Mise à jour - utilise l'API POST avec code et index
-        const quizIndex = editingQuiz.id - 1; // Convertir l'id en index (0-based)
-        await mockAPI.updateQuiz(apiInfo.code, quizIndex, formData);
-        setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? { ...formData, id: editingQuiz.id } : q));
-      } else {
-        // Création - ajouter à la fin de la liste
-        const newQuiz = await mockAPI.createQuiz(formData);
-        const newId = quizzes.length + 1;
-        setQuizzes(prev => [...prev, { ...formData, id: newId }]);
-      }
-      closeModal();
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce quiz ?')) {
-      try {
-        await mockAPI.deleteQuiz(id);
-        setQuizzes(prev => prev.filter(q => q.id !== id));
-        if (editingQuiz && editingQuiz.id === id) {
-          closeModal();
-        }
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-      }
-    }
-  };
-
+const BeosoundProductCard = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* En-tête */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Gestionnaire de Quiz
-            </h1>
-            <button
-              onClick={() => openModal()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <Plus size={20} />
-              Nouveau Quiz
-            </button>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f0f0f5',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{
+        width: '900px',
+        height: '400px',
+        backgroundColor: '#ffffff',
+        borderRadius: '20px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        overflow: 'hidden'
+      }}>
+        
+        {/* Section gauche - Image du produit */}
+        <div style={{
+          width: '45%',
+          backgroundColor: '#f8f8fa',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative'
+        }}>
+          
+          {/* Enceinte principale */}
+          <div style={{
+            width: '200px',
+            height: '200px',
+            backgroundColor: '#6b7280',
+            borderRadius: '50%',
+            position: 'relative',
+            background: 'radial-gradient(circle at 30% 30%, #8b8b8b, #5a5a5a)',
+            boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)'
+          }}>
+            
+            {/* Texture de la grille */}
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              left: '20px',
+              right: '20px',
+              bottom: '20px',
+              borderRadius: '50%',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='0.5' fill='%23404040'/%3E%3C/svg%3E")`,
+              opacity: 0.6
+            }}></div>
+            
+            {/* Sangle */}
+            <div style={{
+              position: 'absolute',
+              top: '-15px',
+              right: '30px',
+              width: '8px',
+              height: '60px',
+              backgroundColor: '#d4af7a',
+              borderRadius: '4px',
+              transform: 'rotate(15deg)'
+            }}></div>
+            
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              right: '10px',
+              width: '30px',
+              height: '8px',
+              backgroundColor: '#d4af7a',
+              borderRadius: '4px',
+              transform: 'rotate(15deg)'
+            }}></div>
+          </div>
+          
+          {/* Indicateurs de pagination */}
+          <div style={{
+            position: 'absolute',
+            bottom: '30px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#333333',
+              borderRadius: '50%'
+            }}></div>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#cccccc',
+              borderRadius: '50%'
+            }}></div>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#cccccc',
+              borderRadius: '50%'
+            }}></div>
           </div>
         </div>
 
-        {/* Contenu principal */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {loading ? (
-            <div className="py-16 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des quiz...</p>
+        {/* Section droite - Informations du produit */}
+        <div style={{
+          width: '55%',
+          padding: '40px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}>
+          
+          {/* Header avec titre et prix */}
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '10px'
+            }}>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '600',
+                color: '#333333',
+                margin: 0,
+                lineHeight: '1.2'
+              }}>Beosound A1 2nd Gen</h1>
+              
+              <div style={{
+                fontSize: '32px',
+                fontWeight: '600',
+                color: '#333333'
+              }}>$300</div>
             </div>
-          ) : (
-            <>
-              {/* Liste des quiz avec design du mockup */}
-              <div className="space-y-3">
-                {quizzes.map((quiz) => (
-                  <div
-                    key={quiz.id}
-                    className="relative"
-                  >
-                    {/* Ligne avec design du mockup */}
-                    <div className="p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all duration-200 flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">
-                          {quiz.quiz}
-                        </h3>
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
-                          <span>Type: {quiz.type.toUpperCase()}</span>
-                          <span>Obligatoire: {quiz.obligatoire}</span>
-                          {quiz.modalites && quiz.modalites !== null && quiz.modalites.length > 0 && (
-                            <span>Modalités: {quiz.modalites.length}</span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Actions toujours visibles */}
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openModal(quiz);
-                          }}
-                          className="p-2 hover:bg-green-100 rounded text-green-600 border border-green-300"
-                          title="Modifier"
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(quiz.id);
-                          }}
-                          className="p-2 hover:bg-green-100 rounded text-green-600 border border-green-300"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      
-                      {/* Icône de validation */}
-                      <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center ml-2">
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            
+            <p style={{
+              fontSize: '18px',
+              color: '#888888',
+              margin: '0 0 40px 0'
+            }}>Even more user friendly</p>
+            
+            {/* Spécifications */}
+            <div style={{
+              display: 'flex',
+              gap: '60px',
+              marginBottom: '60px'
+            }}>
+              
+              {/* Poids */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#e5e5e5',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    backgroundColor: '#999999',
+                    borderRadius: '4px'
+                  }}></div>
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#888888',
+                  marginBottom: '4px'
+                }}>Weight, kg</div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#333333'
+                }}>0,558</div>
               </div>
               
-              {quizzes.length === 0 && (
-                <div className="py-16 text-center">
-                  <p className="text-gray-500">
-                    Aucun quiz trouvé. Créez votre premier quiz !
-                  </p>
+              {/* Taille */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#e5e5e5',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #999999',
+                    borderRadius: '2px'
+                  }}></div>
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            {/* En-tête de la modal */}
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-semibold">
-                {editingQuiz ? 'Modifier le Quiz' : 'Nouveau Quiz'}
-              </h2>
-              <div className="flex gap-2">
-                {editingQuiz && (
-                  <button
-                    onClick={() => handleDelete(editingQuiz.id)}
-                    className="p-2 hover:bg-red-50 rounded-lg text-red-600"
-                    title="Supprimer"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                )}
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X size={20} />
-                </button>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#888888',
+                  marginBottom: '4px'
+                }}>Size, mm</div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#333333'
+                }}>133x46x133</div>
               </div>
-            </div>
-
-            {/* Contenu de la modal */}
-            <div className="p-6 space-y-6">
-              {/* Nom du quiz */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom du Quiz *
-                </label>
-                <input
-                  type="text"
-                  name="quiz"
-                  value={formData.quiz}
-                  onChange={handleInputChange}
-                  placeholder="Entrez le nom du quiz"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type de Quiz
-                </label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="qcm">QCM (Choix Multiple)</option>
-                  <option value="qcu">QCU (Choix Unique)</option>
-                </select>
-              </div>
-
-              {/* Obligatoire - Boutons radio */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Obligatoire
-                </label>
-                <div className="flex gap-6">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="obligatoire"
-                      value="non"
-                      checked={formData.obligatoire === 'non'}
-                      onChange={handleInputChange}
-                      className="mr-2 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">Non</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="obligatoire"
-                      value="oui"
-                      checked={formData.obligatoire === 'oui'}
-                      onChange={handleInputChange}
-                      className="mr-2 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">Oui</span>
-                  </label>
+              
+              {/* Étanchéité */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#e5e5e5',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    width: '12px',
+                    height: '16px',
+                    backgroundColor: '#999999',
+                    borderRadius: '6px 6px 0 0'
+                  }}></div>
                 </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#888888',
+                  marginBottom: '4px'
+                }}>Waterproof</div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#333333'
+                }}>Available</div>
               </div>
-
-              {/* Modalités */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Modalités
-                </label>
-                <input
-                  type="text"
-                  value={currentModalite}
-                  onChange={(e) => setCurrentModalite(e.target.value)}
-                  onKeyDown={handleModaliteKeyPress}
-                  placeholder="Tapez une modalité et appuyez sur Entrée"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                
-                {/* Affichage des modalités ajoutées */}
-                {formData.modalites && formData.modalites.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {formData.modalites.map((modalite, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
-                      >
-                        <Tag size={14} />
-                        {modalite}
-                        <button
-                          onClick={() => removeModalite(index)}
-                          className="ml-1 hover:bg-purple-200 rounded-full p-0.5"
-                        >
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-3 p-6 border-t">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Save size={16} />
-                {editingQuiz ? 'Modifier' : 'Créer'}
-              </button>
             </div>
           </div>
+          
+          {/* Boutons d'action */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <button style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              fontSize: '18px',
+              color: '#333333',
+              cursor: 'pointer',
+              padding: '12px 0',
+              fontFamily: 'Arial, sans-serif'
+            }}>Delete Listing</button>
+            
+            <button style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              fontSize: '18px',
+              color: '#666666',
+              cursor: 'pointer',
+              padding: '12px 24px',
+              fontFamily: 'Arial, sans-serif'
+            }}>Edit</button>
+            
+            <button style={{
+              backgroundColor: '#b8860b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '16px 32px',
+              fontSize: '18px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(184, 134, 11, 0.3)',
+              fontFamily: 'Arial, sans-serif',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#a0750a';
+              e.target.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#b8860b';
+              e.target.style.transform = 'translateY(0)';
+            }}>Publish</button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default QuizManager;
+export default BeosoundProductCard;
