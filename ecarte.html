@@ -1,268 +1,250 @@
-import React, { useState } from 'react';
-import { Edit3 } from 'lucide-react';
+import React from 'react';
+import { Grid, Button, Box, Card, CardMedia } from '@mui/material';
+import { CloudUpload, Add, Edit, Delete } from '@mui/icons-material';
 
-const CollaborateurDashboard = () => {
-  const [selectedPdf, setSelectedPdf] = useState(null);
-
-  const pdfFiles = [
-    { id: 'PDF1', name: 'PDF1' },
-    { id: 'PDF3', name: 'PDF3' },
-    { id: 'PDF4', name: 'PDF4' }
-  ];
+const FloatingButtonExample = () => {
+  const handleUpload = () => {
+    console.log('Upload clicked!');
+    // Logique d'upload ici
+  };
 
   return (
-    <div style={{
-      background: '#f5f5f5',
-      padding: '24px',
-      borderRadius: '12px',
-      fontFamily: 'Arial, sans-serif',
-      width: '100%',
-      maxWidth: '900px'
-    }}>
-      
-      {/* Header avec avatar et titre */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        marginBottom: '32px'
-      }}>
-        <div style={{
-          width: '80px',
-          height: '80px',
-          background: '#c0542a',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '32px',
-          fontWeight: 'bold',
-          color: 'white'
-        }}>
-          CO
-        </div>
+    <Box sx={{ p: 3 }}>
+      <Grid container spacing={3}>
         
-        <div>
-          <h1 style={{
-            fontSize: '24px',
-            margin: '0 0 4px 0',
-            fontWeight: 'normal',
-            color: '#666'
-          }}>
-            Collaborateur P25026
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            margin: 0,
-            color: '#666'
-          }}>
-            manawa
-          </p>
-        </div>
-      </div>
-
-      {/* Contenu principal */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '40px'
-      }}>
-        
-        {/* Colonne gauche - Documents PDF */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          alignItems: 'center'
-        }}>
-          {pdfFiles.map((file) => (
-            <div
-              key={file.id}
-              onClick={() => setSelectedPdf(file)}
-              style={{
-                width: '50px',
-                height: '50px',
-                border: '2px solid #ddd',
-                backgroundColor: selectedPdf?.id === file.id ? '#e3f2fd' : 'white',
-                borderColor: selectedPdf?.id === file.id ? '#2196f3' : '#ddd',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+        {/* Exemple 1: Bouton en bas à droite */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+            <img 
+              src="https://picsum.photos/400/300?random=1"
+              alt="Image 1"
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            <Button
+              variant="contained"
+              startIcon={<CloudUpload />}
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                backgroundColor: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                },
+                boxShadow: 3,
+                textTransform: 'none'
               }}
             >
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                color: '#666'
-              }}>
-                {file.name}
-              </span>
-            </div>
-          ))}
-        </div>
+              Upload
+            </Button>
+          </Box>
+        </Grid>
 
-        {/* Colonne centre - Informations */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
-          <div>
-            <div style={{
-              fontSize: '14px',
-              color: '#666',
-              marginBottom: '8px'
-            }}>
-              Nombre de participant provisoir
-            </div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#333'
-            }}>
-              :4
-            </div>
-          </div>
+        {/* Exemple 2: Bouton en haut à droite */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+            <img 
+              src="https://picsum.photos/400/300?random=2"
+              alt="Image 2"
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add />}
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                backgroundColor: 'success.main',
+                '&:hover': {
+                  backgroundColor: 'success.dark',
+                },
+                boxShadow: 2,
+                minWidth: 'auto',
+                textTransform: 'none'
+              }}
+            >
+              Add
+            </Button>
+          </Box>
+        </Grid>
 
-          <div>
-            <div style={{
-              fontSize: '14px',
-              color: '#666',
-              marginBottom: '8px'
-            }}>
-              période provisoir du :
-            </div>
-            <div style={{
-              fontSize: '14px',
-              color: '#333',
-              fontWeight: '500'
-            }}>
-              12/02/2025
-            </div>
-            <div style={{
-              fontSize: '14px',
-              color: '#333',
-              fontWeight: '500',
-              marginTop: '4px'
-            }}>
-              -
-            </div>
-            <div style={{
-              fontSize: '14px',
-              color: '#333',
-              fontWeight: '500'
-            }}>
-              07/06/2025
-            </div>
-          </div>
+        {/* Exemple 3: Bouton rond (FAB style) */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+            <img 
+              src="https://picsum.photos/400/300?random=3"
+              alt="Image 3"
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            <Button
+              variant="contained"
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                minWidth: 48,
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: 'secondary.main',
+                '&:hover': {
+                  backgroundColor: 'secondary.dark',
+                },
+                boxShadow: 4,
+                p: 0
+              }}
+            >
+              <Edit fontSize="small" />
+            </Button>
+          </Box>
+        </Grid>
 
-          <button style={{
-            padding: '12px 24px',
-            background: '#d4893a',
-            border: 'none',
-            borderRadius: '6px',
-            color: 'white',
-            fontSize: '14px',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            marginTop: '16px'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.background = '#c2783a';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.background = '#d4893a';
-          }}>
-            Modifier
-          </button>
-        </div>
+        {/* Exemple 4: Avec Card Material-UI */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ position: 'relative' }}>
+            <CardMedia
+              component="img"
+              height="200"
+              image="https://picsum.photos/400/300?random=4"
+              alt="Image avec Card"
+            />
+            <Button
+              variant="outlined"
+              startIcon={<Delete />}
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(4px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'error.main',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderColor: 'error.main',
+                },
+                textTransform: 'none'
+              }}
+            >
+              Delete
+            </Button>
+          </Card>
+        </Grid>
 
-        {/* Colonne droite - Image */}
-        <div style={{
-          width: '250px',
-          height: '180px',
-          background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Simulation de l'image avec ordinateur portable */}
-          <div style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '20px',
-            width: '100px',
-            height: '60px',
-            background: '#333',
-            borderRadius: '4px',
-            transform: 'perspective(100px) rotateX(10deg)'
-          }}>
-            <div style={{
-              width: '100%',
-              height: '75%',
-              background: '#1a1a1a',
-              borderRadius: '2px'
-            }}></div>
-            <div style={{
-              width: '110%',
-              height: '25%',
-              background: '#555',
-              marginLeft: '-5%',
-              borderRadius: '0 0 4px 4px'
-            }}></div>
-          </div>
+        {/* Exemple 5: Multiples boutons */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+            <img 
+              src="https://picsum.photos/400/300?random=5"
+              alt="Image 5"
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            {/* Bouton Upload en bas à droite */}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<CloudUpload />}
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                backgroundColor: 'primary.main',
+                textTransform: 'none'
+              }}
+            >
+              Upload
+            </Button>
+            {/* Bouton Edit en bas à gauche */}
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                left: 12,
+                backgroundColor: 'warning.main',
+                minWidth: 40,
+                width: 40,
+                height: 32,
+                p: 0,
+                '&:hover': {
+                  backgroundColor: 'warning.dark',
+                }
+              }}
+            >
+              <Edit fontSize="small" />
+            </Button>
+          </Box>
+        </Grid>
 
-          {/* Éléments flottants */}
-          <div style={{
-            position: 'absolute',
-            top: '30px',
-            right: '40px',
-            width: '40px',
-            height: '40px',
-            border: '2px solid #4fd1c7',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(79, 209, 199, 0.1)'
-          }}>
-            <div style={{
-              width: '20px',
-              height: '20px',
-              background: '#4fd1c7',
-              borderRadius: '2px'
-            }}></div>
-          </div>
+        {/* Exemple 6: Style glassmorphism */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+            <img 
+              src="https://picsum.photos/400/300?random=6"
+              alt="Image 6"
+              style={{ 
+                width: '100%', 
+                height: '200px', 
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            <Button
+              variant="contained"
+              startIcon={<CloudUpload />}
+              onClick={handleUpload}
+              sx={{
+                position: 'absolute',
+                bottom: 12,
+                right: 12,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                textTransform: 'none'
+              }}
+            >
+              Upload
+            </Button>
+          </Box>
+        </Grid>
 
-          {/* Autres éléments décoratifs */}
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            left: '50px',
-            width: '30px',
-            height: '30px',
-            border: '2px solid rgba(79, 209, 199, 0.5)',
-            borderRadius: '50%'
-          }}></div>
-
-          <div style={{
-            position: 'absolute',
-            bottom: '40px',
-            right: '20px',
-            width: '25px',
-            height: '25px',
-            border: '2px solid rgba(79, 209, 199, 0.3)',
-            borderRadius: '50%'
-          }}></div>
-        </div>
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 };
 
-export default CollaborateurDashboard;
+export default FloatingButtonExample;
