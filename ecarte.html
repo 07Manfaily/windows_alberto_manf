@@ -1,98 +1,268 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Edit3 } from 'lucide-react';
 
-const ParticipantInfo = () => {
+const CollaborateurDashboard = () => {
+  const [selectedPdf, setSelectedPdf] = useState(null);
+
+  const pdfFiles = [
+    { id: 'PDF1', name: 'PDF1' },
+    { id: 'PDF3', name: 'PDF3' },
+    { id: 'PDF4', name: 'PDF4' }
+  ];
+
   return (
     <div style={{
+      background: '#f5f5f5',
+      padding: '24px',
+      borderRadius: '12px',
       fontFamily: 'Arial, sans-serif',
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '20px',
-      backgroundColor: '#f5f5f5',
-      borderRadius: '8px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      width: '100%',
+      maxWidth: '900px'
     }}>
-      {/* En-tête */}
+      
+      {/* Header avec avatar et titre */}
       <div style={{
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '20px',
-        paddingBottom: '10px',
-        borderBottom: '1px solid #ddd'
+        gap: '16px',
+        marginBottom: '32px'
       }}>
-        <div>
-          <span style={{ fontWeight: 'bold', fontSize: '18px' }}>Collaborateur P25026</span>
-          <div style={{ color: '#666', marginTop: '4px' }}>manawa</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          background: '#c0542a',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px',
+          fontWeight: 'bold',
+          color: 'white'
+        }}>
+          CO
         </div>
-        <div style={{ color: '#666' }}>CO</div>
+        
+        <div>
+          <h1 style={{
+            fontSize: '24px',
+            margin: '0 0 4px 0',
+            fontWeight: 'normal',
+            color: '#666'
+          }}>
+            Collaborateur P25026
+          </h1>
+          <p style={{
+            fontSize: '16px',
+            margin: 0,
+            color: '#666'
+          }}>
+            manawa
+          </p>
+        </div>
       </div>
 
-      {/* Fichiers PDF */}
+      {/* Contenu principal */}
       <div style={{
         display: 'flex',
-        gap: '15px',
-        marginBottom: '25px'
+        alignItems: 'flex-start',
+        gap: '40px'
       }}>
+        
+        {/* Colonne gauche - Documents PDF */}
         <div style={{
-          padding: '10px 15px',
-          backgroundColor: '#e9f7fe',
-          borderRadius: '4px',
-          fontWeight: 'bold',
-          color: '#0078d4'
-        }}>PDF1</div>
-        <div style={{
-          padding: '10px 15px',
-          backgroundColor: '#e9f7fe',
-          borderRadius: '4px',
-          fontWeight: 'bold',
-          color: '#0078d4'
-        }}>PDF3</div>
-        <div style={{
-          padding: '10px 15px',
-          backgroundColor: '#e9f7fe',
-          borderRadius: '4px',
-          fontWeight: 'bold',
-          color: '#0078d4'
-        }}>PDF4</div>
-      </div>
-
-      {/* Informations participants */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '15px',
-        borderRadius: '6px',
-        marginBottom: '20px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ marginBottom: '10px' }}>
-          <span style={{ fontWeight: 'bold' }}>Nombre de participant provisoire : </span>
-          <span>4</span>
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          alignItems: 'center'
+        }}>
+          {pdfFiles.map((file) => (
+            <div
+              key={file.id}
+              onClick={() => setSelectedPdf(file)}
+              style={{
+                width: '50px',
+                height: '50px',
+                border: '2px solid #ddd',
+                backgroundColor: selectedPdf?.id === file.id ? '#e3f2fd' : 'white',
+                borderColor: selectedPdf?.id === file.id ? '#2196f3' : '#ddd',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                color: '#666'
+              }}>
+                {file.name}
+              </span>
+            </div>
+          ))}
         </div>
-        <div>
-          <span style={{ fontWeight: 'bold' }}>Période provisoire du : </span>
-          <span>12/02/2025 - 07/06/2025</span>
+
+        {/* Colonne centre - Informations */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
+          <div>
+            <div style={{
+              fontSize: '14px',
+              color: '#666',
+              marginBottom: '8px'
+            }}>
+              Nombre de participant provisoir
+            </div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              :4
+            </div>
+          </div>
+
+          <div>
+            <div style={{
+              fontSize: '14px',
+              color: '#666',
+              marginBottom: '8px'
+            }}>
+              période provisoir du :
+            </div>
+            <div style={{
+              fontSize: '14px',
+              color: '#333',
+              fontWeight: '500'
+            }}>
+              12/02/2025
+            </div>
+            <div style={{
+              fontSize: '14px',
+              color: '#333',
+              fontWeight: '500',
+              marginTop: '4px'
+            }}>
+              -
+            </div>
+            <div style={{
+              fontSize: '14px',
+              color: '#333',
+              fontWeight: '500'
+            }}>
+              07/06/2025
+            </div>
+          </div>
+
+          <button style={{
+            padding: '12px 24px',
+            background: '#d4893a',
+            border: 'none',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '14px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            marginTop: '16px'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.background = '#c2783a';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.background = '#d4893a';
+          }}>
+            Modifier
+          </button>
+        </div>
+
+        {/* Colonne droite - Image */}
+        <div style={{
+          width: '250px',
+          height: '180px',
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Simulation de l'image avec ordinateur portable */}
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '20px',
+            width: '100px',
+            height: '60px',
+            background: '#333',
+            borderRadius: '4px',
+            transform: 'perspective(100px) rotateX(10deg)'
+          }}>
+            <div style={{
+              width: '100%',
+              height: '75%',
+              background: '#1a1a1a',
+              borderRadius: '2px'
+            }}></div>
+            <div style={{
+              width: '110%',
+              height: '25%',
+              background: '#555',
+              marginLeft: '-5%',
+              borderRadius: '0 0 4px 4px'
+            }}></div>
+          </div>
+
+          {/* Éléments flottants */}
+          <div style={{
+            position: 'absolute',
+            top: '30px',
+            right: '40px',
+            width: '40px',
+            height: '40px',
+            border: '2px solid #4fd1c7',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(79, 209, 199, 0.1)'
+          }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              background: '#4fd1c7',
+              borderRadius: '2px'
+            }}></div>
+          </div>
+
+          {/* Autres éléments décoratifs */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            left: '50px',
+            width: '30px',
+            height: '30px',
+            border: '2px solid rgba(79, 209, 199, 0.5)',
+            borderRadius: '50%'
+          }}></div>
+
+          <div style={{
+            position: 'absolute',
+            bottom: '40px',
+            right: '20px',
+            width: '25px',
+            height: '25px',
+            border: '2px solid rgba(79, 209, 199, 0.3)',
+            borderRadius: '50%'
+          }}></div>
         </div>
       </div>
-
-      {/* Bouton Modifier */}
-      <button style={{
-        backgroundColor: '#0078d4',
-        color: 'white',
-        border: 'none',
-        padding: '10px 20px',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        transition: 'background-color 0.3s',
-        ':hover': {
-          backgroundColor: '#005a9e'
-        }
-      }}>
-        Modifier
-      </button>
     </div>
   );
 };
 
-export default ParticipantInfo;
+export default CollaborateurDashboard;
