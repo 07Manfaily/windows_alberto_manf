@@ -1,124 +1,760 @@
-// Version Material UI du composant QuizManager
+import React, { useState } from 'react';
 
-import React, { useState, useEffect } from 'react'; import { Box, Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, InputAdornment, MenuItem, Select, TextField, Typography, Chip } from '@mui/material'; import { Plus, Edit, X, Save, Trash2, Tag } from 'lucide-react';
+const FormationEvaluationDashboard = () => {
+  const [filters, setFilters] = useState({
+    formation: '',
+    username: '',
+    sessions: ''
+  });
+  const [formationSearch, setFormationSearch] = useState('');
+  const [sessionsSearch, setSessionsSearch] = useState('');
 
-const mockAPI = { getQuizzes: async () => { await new Promise(resolve => setTimeout(resolve, 500)); return [ { id: 1, quiz: 'Mathématiques niveau 1', type: 'qcm', obligatoire: 'oui', modalites: ['En ligne', 'Temps limité', 'Questions aléatoires'] }, { id: 2, quiz: 'Histoire de France', type: 'qcu', obligatoire: 'non', modalites: ['Présentiel', 'Livre ouvert'] }, { id: 3, quiz: 'Sciences physiques', type: 'qcm', obligatoire: 'oui', modalites: ['Laboratoire', 'Expérimentation pratique', 'Rapport écrit'] } ]; }, createQuiz: async (quizData) => { await new Promise(resolve => setTimeout(resolve, 300)); return { id: Date.now(), ...quizData }; }, updateQuiz: async (id, quizData) => { await new Promise(resolve => setTimeout(resolve, 300)); return { id, ...quizData }; }, deleteQuiz: async (id) => { await new Promise(resolve => setTimeout(resolve, 300)); return { success: true }; } };
+  // Composant pour les graphiques circulaires modernes
+  const ModernCircularChart = ({ percentage, title, isStriped = false, color = '#10b981' }) => {
+    const circumference = 2 * Math.PI * 50;
+    const strokeDasharray = circumference;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-const QuizManager = () => { const [quizzes, setQuizzes] = useState([]); const [isModalOpen, setIsModalOpen] = useState(false); const [editingQuiz, setEditingQuiz] = useState(null); const [loading, setLoading] = useState(false); const [formData, setFormData] = useState({ quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); const [currentModalite, setCurrentModalite] = useState('');
-
-useEffect(() => { loadQuizzes(); }, []);
-
-const loadQuizzes = async () => { setLoading(true); try { const data = await mockAPI.getQuizzes(); setQuizzes(data); } finally { setLoading(false); } };
-
-const openModal = (quiz = null) => { setEditingQuiz(quiz); setFormData(quiz ? { ...quiz } : { quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); setCurrentModalite(''); setIsModalOpen(true); };
-
-const closeModal = () => { setIsModalOpen(false); setEditingQuiz(null); setFormData({ quiz: '', type: 'qcm', obligatoire: 'non', modalites: [] }); setCurrentModalite(''); };
-
-const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
-
-const handleModaliteKeyPress = (e) => { if (e.key === 'Enter' && currentModalite.trim()) { e.preventDefault(); if (!formData.modalites.includes(currentModalite.trim())) { setFormData(prev => ({ ...prev, modalites: [...prev.modalites, currentModalite.trim()] })); } setCurrentModalite(''); } };
-
-const removeModalite = (index) => { setFormData(prev => ({ ...prev, modalites: prev.modalites.filter((_, i) => i !== index) })); };
-
-const handleSubmit = async () => { if (!formData.quiz.trim()) return; try { if (editingQuiz) { const updatedQuiz = await mockAPI.updateQuiz(editingQuiz.id, formData); setQuizzes(prev => prev.map(q => q.id === editingQuiz.id ? updatedQuiz : q)); } else { const newQuiz = await mockAPI.createQuiz(formData); setQuizzes(prev => [...prev, newQuiz]); } closeModal(); } catch (e) { console.error(e); } };
-
-const handleDelete = async (id) => { if (window.confirm('Supprimer ce quiz ?')) { await mockAPI.deleteQuiz(id); setQuizzes(prev => prev.filter(q => q.id !== id)); } };
-
-return ( <Box p={4}> <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}> <Typography variant="h4">Gestionnaire de Quiz</Typography> <Button variant="contained" startIcon={<Plus />} onClick={() => openModal()}> Nouveau Quiz </Button> </Box>
-
-{loading ? (
-    <Box textAlign="center" py={4}><CircularProgress /></Box>
-  ) : (
-    <Grid container spacing={3}>
-      {quizzes.map(quiz => (
-        <Grid item xs={12} sm={6} md={4} key={quiz.id}>
-          <Card onClick={() => openModal(quiz)} sx={{ cursor: 'pointer' }}>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between">
-                <Typography variant="h6">{quiz.quiz}</Typography>
-                <Edit size={16} />
-              </Box>
-              <Typography variant="body2">Type: {quiz.type.toUpperCase()}</Typography>
-              <Typography variant="body2">Obligatoire: {quiz.obligatoire === 'oui' ? 'Oui' : 'Non'}</Typography>
-              {quiz.modalites && quiz.modalites.map((m, idx) => (
-                <Chip key={idx} label={m} icon={<Tag size={12} />} size="small" sx={{ m: 0.5 }} />
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  )}
-
-  <Dialog open={isModalOpen} onClose={closeModal} fullWidth maxWidth="sm">
-    <DialogTitle>
-      {editingQuiz ? 'Modifier le Quiz' : 'Nouveau Quiz'}
-      {editingQuiz && (
-        <IconButton onClick={() => handleDelete(editingQuiz.id)} color="error" sx={{ ml: 2 }}>
-          <Trash2 size={20} />
-        </IconButton>
-      )}
-    </DialogTitle>
-    <DialogContent dividers>
-      <Box display="flex" flexDirection="column" gap={2}>
-        <TextField
-          label="Nom du Quiz"
-          name="quiz"
-          value={formData.quiz}
-          onChange={handleInputChange}
-          fullWidth
-          required
-        />
-        <Select
-          label="Type de Quiz"
-          name="type"
-          value={formData.type}
-          onChange={handleInputChange}
-          fullWidth
-        >
-          <MenuItem value="qcm">QCM</MenuItem>
-          <MenuItem value="qcu">QCU</MenuItem>
-        </Select>
-        <Select
-          label="Obligatoire"
-          name="obligatoire"
-          value={formData.obligatoire}
-          onChange={handleInputChange}
-          fullWidth
-        >
-          <MenuItem value="oui">Oui</MenuItem>
-          <MenuItem value="non">Non</MenuItem>
-        </Select>
-        <TextField
-          label="Ajouter une modalité"
-          value={currentModalite}
-          onChange={e => setCurrentModalite(e.target.value)}
-          onKeyDown={handleModaliteKeyPress}
-          InputProps={{ endAdornment: <InputAdornment position="end">Entrée</InputAdornment> }}
-          fullWidth
-        />
-        <Box display="flex" flexWrap="wrap" gap={1}>
-          {formData.modalites.map((m, idx) => (
-            <Chip
-              key={idx}
-              label={m}
-              onDelete={() => removeModalite(idx)}
-              icon={<Tag size={12} />}
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '24px',
+        padding: '28px',
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        overflow: 'hidden',
+        width: '220px',
+        height: '240px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+        e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.12)';
+        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0px) scale(1)';
+        e.currentTarget.style.boxShadow = '0 8px 40px rgba(0, 0, 0, 0.08)';
+        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+      }}
+      >
+        {/* Subtle gradient accent */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '4px',
+          background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`,
+          borderRadius: '24px 24px 0 0'
+        }}></div>
+        
+        <div style={{ position: 'relative', marginBottom: '20px', zIndex: 2 }}>
+          <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
+            <defs>
+              <filter id="softGlow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/> 
+                </feMerge>
+              </filter>
+            </defs>
+            <circle
+              cx="70"
+              cy="70"
+              r="50"
+              fill="none"
+              stroke="#f1f5f9"
+              strokeWidth="8"
             />
+            <circle
+              cx="70"
+              cy="70"
+              r="50"
+              fill="none"
+              stroke={color}
+              strokeWidth="8"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              filter="url(#softGlow)"
+              style={{
+                transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                ...(isStriped && {
+                  strokeDasharray: '6,3',
+                  animation: 'gentleDash 3s linear infinite'
+                })
+              }}
+            />
+          </svg>
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: '#1e293b',
+            fontFamily: '"Inter", sans-serif'
+          }}>
+            {percentage}%
+          </div>
+        </div>
+        <div style={{
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#475569',
+          fontWeight: '500',
+          lineHeight: '1.3',
+          fontFamily: '"Inter", sans-serif',
+          zIndex: 2,
+          maxWidth: '180px'
+        }}>
+          {title}
+        </div>
+      </div>
+    );
+  };
+
+  // Composant Word Cloud moderne
+  const ModernWordCloud = () => {
+    const words = [
+      { text: 'intéressante', size: 28, color: '#64748b', weight: 'bold' },
+      { text: 'ensemble', size: 20, color: '#475569', weight: 'medium' },
+      { text: 'initier', size: 36, color: '#334155', weight: 'bold' },
+      { text: 'travail', size: 32, color: '#64748b', weight: 'bold' },
+      { text: 'formation', size: 24, color: '#475569', weight: 'semibold' },
+      { text: 'résumé', size: 18, color: '#64748b', weight: 'medium' },
+      { text: 'possible', size: 22, color: '#475569', weight: 'semibold' },
+      { text: 'sphériques', size: 16, color: '#64748b', weight: 'medium' },
+      { text: 'évolué', size: 18, color: '#475569', weight: 'medium' },
+      { text: 'bonne', size: 20, color: '#64748b', weight: 'medium' },
+      { text: 'supports', size: 16, color: '#94a3b8', weight: 'normal' },
+      { text: 'aussi', size: 14, color: '#94a3b8', weight: 'normal' },
+      { text: 'poste', size: 26, color: '#475569', weight: 'semibold' },
+      { text: 'entier', size: 18, color: '#64748b', weight: 'medium' },
+      { text: 'seulement', size: 14, color: '#94a3b8', weight: 'normal' },
+      { text: 'mettre', size: 16, color: '#94a3b8', weight: 'normal' },
+      { text: 'partir', size: 14, color: '#94a3b8', weight: 'normal' },
+      { text: 'théorie', size: 18, color: '#475569', weight: 'medium' },
+      { text: 'pratiques', size: 22, color: '#64748b', weight: 'semibold' },
+      { text: 'temps', size: 16, color: '#94a3b8', weight: 'normal' },
+      { text: 'traitement', size: 16, color: '#475569', weight: 'medium' }
+    ];
+
+    return (
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '24px',
+        padding: '32px',
+        boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        minHeight: '320px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Subtle decorative elements */}
+        <div style={{
+          position: 'absolute',
+          top: '-10px',
+          right: '-10px',
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.1) 0%, rgba(203, 213, 225, 0.05) 100%)',
+          filter: 'blur(1px)'
+        }}></div>
+
+        <h3 style={{
+          margin: '0 0 28px 0',
+          fontSize: '20px',
+          fontWeight: '700',
+          color: '#1e293b',
+          textAlign: 'center',
+          fontFamily: '"Inter", sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px'
+        }}>
+          <span style={{ fontSize: '24px' }}>💬</span>
+          Commentaires et Suggestions
+        </h3>
+        
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          gap: '16px',
+          position: 'relative',
+          zIndex: 2
+        }}>
+          {words.map((word, index) => (
+            <span
+              key={index}
+              style={{
+                fontSize: `${word.size}px`,
+                color: word.color,
+                fontWeight: word.weight === 'bold' ? '700' : word.weight === 'semibold' ? '600' : word.weight === 'medium' ? '500' : '400',
+                margin: '6px',
+                lineHeight: '1.2',
+                fontFamily: '"Inter", sans-serif',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                padding: '6px 12px',
+                borderRadius: '12px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.15)';
+                e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.15)';
+                e.target.style.color = '#1e293b';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = word.color;
+              }}
+            >
+              {word.text}
+            </span>
           ))}
-        </Box>
-      </Box>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={closeModal}>Annuler</Button>
-      <Button variant="contained" onClick={handleSubmit} startIcon={<Save />}>
-        {editingQuiz ? 'Modifier' : 'Créer'}
-      </Button>
-    </DialogActions>
-  </Dialog>
-</Box>
+        </div>
+      </div>
+    );
+  };
 
-); };
+  // Composant Filtres moderne
+  const ModernFiltersPanel = () => {
+    const formations = [
+      'Programme de Management Avancé',
+      'Formation Leadership & Innovation',
+      'Gestion de Projet Agile',
+      'Communication Interpersonnelle',
+      'Développement Commercial Digital'
+    ];
 
-export default QuizManager;
+    const sessions = [
+      'Session Avril 2023',
+      'Session Mai 2023', 
+      'Session Juin 2023',
+      'Session Septembre 2023',
+      'Session Octobre 2023'
+    ];
 
+    const filteredFormations = formations.filter(formation => 
+      formation.toLowerCase().includes(formationSearch.toLowerCase())
+    );
+
+    const filteredSessions = sessions.filter(session => 
+      session.toLowerCase().includes(sessionsSearch.toLowerCase())
+    );
+
+    const FilterSection = ({ title, children, icon }) => (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(16px)',
+        borderRadius: '16px',
+        padding: '20px',
+        marginBottom: '20px',
+        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        transition: 'all 0.3s ease'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginBottom: '16px'
+        }}>
+          <span style={{ fontSize: '18px' }}>{icon}</span>
+          <label style={{
+            fontSize: '15px',
+            fontWeight: '600',
+            color: '#334155',
+            fontFamily: '"Inter", sans-serif'
+          }}>
+            {title}
+          </label>
+        </div>
+        {children}
+      </div>
+    );
+
+    return (
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.5)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '24px',
+        padding: '28px',
+        position: 'sticky',
+        top: '20px',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)'
+      }}>
+        <h3 style={{
+          margin: '0 0 28px 0',
+          fontSize: '20px',
+          fontWeight: '700',
+          color: '#1e293b',
+          textAlign: 'center',
+          fontFamily: '"Inter", sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px'
+        }}>
+          <span style={{ fontSize: '24px' }}>🔍</span>
+          Filtres Intelligents
+        </h3>
+        
+        {/* Formation Filter */}
+        <FilterSection title="Formation" icon="📚">
+          <input
+            type="text"
+            placeholder="Rechercher une formation..."
+            value={formationSearch}
+            onChange={(e) => setFormationSearch(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid rgba(148, 163, 184, 0.3)',
+              fontSize: '14px',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '8px',
+              fontFamily: '"Inter", sans-serif',
+              transition: 'all 0.3s ease',
+              outline: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#475569';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }}
+          />
+          {formationSearch && (
+            <div style={{
+              maxHeight: '120px',
+              overflowY: 'auto',
+              border: '2px solid rgba(148, 163, 184, 0.2)',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '12px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
+            }}>
+              {filteredFormations.map((formation, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    setFilters({...filters, formation});
+                    setFormationSearch('');
+                  }}
+                  style={{
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    borderBottom: index < filteredFormations.length - 1 ? '1px solid rgba(148, 163, 184, 0.2)' : 'none',
+                    fontSize: '13px',
+                    backgroundColor: filters.formation === formation ? 'rgba(148, 163, 184, 0.1)' : 'transparent',
+                    fontFamily: '"Inter", sans-serif',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.15)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = filters.formation === formation ? 'rgba(148, 163, 184, 0.1)' : 'transparent'}
+                >
+                  {formation}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{
+            background: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
+            color: '#ffffff',
+            padding: '12px',
+            borderRadius: '12px',
+            textAlign: 'center',
+            fontSize: '18px',
+            fontWeight: '700',
+            fontFamily: '"Inter", sans-serif',
+            boxShadow: '0 4px 16px rgba(71, 85, 105, 0.3)'
+          }}>
+            25 / 27
+          </div>
+        </FilterSection>
+
+        {/* Sessions Filter */}
+        <FilterSection title="Sessions" icon="📅">
+          <input
+            type="text"
+            placeholder="Rechercher une session..."
+            value={sessionsSearch}
+            onChange={(e) => setSessionsSearch(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid rgba(148, 163, 184, 0.3)',
+              fontSize: '14px',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '8px',
+              fontFamily: '"Inter", sans-serif',
+              transition: 'all 0.3s ease',
+              outline: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#64748b';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }}
+          />
+          {sessionsSearch && (
+            <div style={{
+              maxHeight: '120px',
+              overflowY: 'auto',
+              border: '2px solid rgba(148, 163, 184, 0.2)',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '12px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
+            }}>
+              {filteredSessions.map((session, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    setFilters({...filters, sessions: session});
+                    setSessionsSearch('');
+                  }}
+                  style={{
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    borderBottom: index < filteredSessions.length - 1 ? '1px solid rgba(148, 163, 184, 0.2)' : 'none',
+                    fontSize: '13px',
+                    backgroundColor: filters.sessions === session ? 'rgba(100, 116, 139, 0.1)' : 'transparent',
+                    fontFamily: '"Inter", sans-serif',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(100, 116, 139, 0.15)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = filters.sessions === session ? 'rgba(100, 116, 139, 0.1)' : 'transparent'}
+                >
+                  {session}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{
+            background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+            color: '#ffffff',
+            padding: '12px',
+            borderRadius: '12px',
+            textAlign: 'center',
+            fontSize: '18px',
+            fontWeight: '700',
+            fontFamily: '"Inter", sans-serif',
+            boxShadow: '0 4px 16px rgba(100, 116, 139, 0.3)'
+          }}>
+            25 / 27
+          </div>
+        </FilterSection>
+
+        {/* Username Filter */}
+        <FilterSection title="Utilisateur" icon="👤">
+          <input
+            type="text"
+            placeholder="Rechercher un utilisateur..."
+            value={filters.username}
+            onChange={(e) => setFilters({...filters, username: e.target.value})}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '2px solid rgba(148, 163, 184, 0.3)',
+              fontSize: '14px',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '12px',
+              fontFamily: '"Inter", sans-serif',
+              transition: 'all 0.3s ease',
+              outline: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#334155';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }}
+          />
+          <div style={{
+            background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+            minHeight: '50px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: '500',
+            fontFamily: '"Inter", sans-serif',
+            boxShadow: '0 4px 16px rgba(51, 65, 85, 0.3)',
+            padding: '12px'
+          }}>
+            {filters.username || '🔍 Aucun utilisateur sélectionné'}
+          </div>
+        </FilterSection>
+      </div>
+    );
+  };
+
+  const chartColors = ['#475569', '#64748b', '#334155', '#94a3b8', '#1e293b'];
+
+  return (
+    <div style={{
+      fontFamily: '"Inter", sans-serif',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      minHeight: '100vh',
+      position: 'relative'
+    }}>
+      {/* Subtle background pattern */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0)',
+        backgroundSize: '20px 20px',
+        pointerEvents: 'none'
+      }}></div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 340px',
+        gap: '32px',
+        padding: '32px',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        {/* Main Content */}
+        <div>
+          {/* Header */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px)',
+            color: '#1e293b',
+            padding: '32px',
+            borderRadius: '24px',
+            marginBottom: '32px',
+            boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-30px',
+              right: '-30px',
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              background: 'linear-gradient(45deg, rgba(148, 163, 184, 0.1) 0%, rgba(203, 213, 225, 0.05) 100%)',
+              filter: 'blur(2px)'
+            }}></div>
+            <h1 style={{
+              margin: '0',
+              fontSize: '28px',
+              fontWeight: '800',
+              textAlign: 'center',
+              letterSpacing: '-0.02em',
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px'
+            }}>
+              <span style={{ fontSize: '32px' }}>📊</span>
+              ANALYSE DES ÉVALUATIONS À CHAUD
+            </h1>
+            <p style={{
+              margin: '12px 0 0 0',
+              fontSize: '16px',
+              textAlign: 'center',
+              opacity: 0.7,
+              position: 'relative',
+              zIndex: 2,
+              fontWeight: '500'
+            }}>
+              Tableau de bord interactif des formations
+            </p>
+          </div>
+
+          {/* Module Info */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '20px',
+            padding: '28px',
+            marginBottom: '32px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gap: '28px',
+            alignItems: 'center'
+          }}>
+            <div style={{ color: '#1e293b' }}>
+              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
+                <span style={{ fontSize: '18px' }}>📚</span> <strong>Module:</strong> Programme de Management Avancé
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
+                <span style={{ fontSize: '18px' }}>🏢</span> <strong>Cabinet:</strong> ESSEC Executive School
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
+                <span style={{ fontSize: '18px' }}>📍</span> <strong>Lieu:</strong> Abidjan
+              </div>
+              <div style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
+                <span style={{ fontSize: '18px' }}>📅</span> <strong>Période:</strong> Avril - Octobre 2023
+              </div>
+            </div>
+            <div style={{
+              background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+              padding: '28px 36px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              color: 'white',
+              boxShadow: '0 8px 32px rgba(30, 41, 59, 0.3)',
+              minWidth: '150px'
+            }}>
+              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '6px', fontWeight: '500' }}>Moyenne générale</div>
+              <div style={{ fontSize: '40px', fontWeight: '800', lineHeight: '1' }}>4,6</div>
+              <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px', fontWeight: '500' }}>/ 5</div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '16px',
+            padding: '24px',
+            marginBottom: '32px',
+            boxShadow: '0 6px 32px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.4)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '24px',
+              flexWrap: 'wrap'
+            }}>
+              {[
+                { color: '#10b981', label: '5 - Très satisfait', icon: '😍' },
+                { color: '#3b82f6', label: '4 - Satisfait', icon: '😊' },
+                { color: '#f59e0b', label: '3 - Neutre', icon: '😐' },
+                { color: '#ef4444', label: '2 - Insatisfait', icon: '😕' },
+                { color: '#64748b', label: '1 - Très insatisfait', icon: '😞' }
+              ].map((item, index) => (
+                <div key={index} style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px',
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  padding: '10px 18px',
+                  borderRadius: '14px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                }}>
+                  <span style={{ fontSize: '16px' }}>{item.icon}</span>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    backgroundColor: item.color,
+                    borderRadius: '50%',
+                    boxShadow: `0 2px 8px ${item.color}40`
+                  }}></div>
+                  <span style={{ fontSize: '12px', color: '#334155', fontWeight: '500' }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Charts Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '24px',
+            marginBottom: '32px'
+          }}>
+            {[
+              { title: "Satisfaction générale", color: '#10b981' },
+              { title: "Atteinte des objectifs", color: '#3b82f6' },
+              { title: "Durée et rythme", color: '#8b5cf6', striped: true },
+              { title: "Cadre et environnement", color: '#f59e0b' },
+              { title: "Pause-café et restauration", color: '#ef4444' },
+              { title: "Prestation du formateur", color: '#06b6d4' },
+              { title: "Méthodes pédagogiques", color: '#10b981' },
+              { title: "Théorie vs pratique", color: '#8b5cf6', striped: true },
+              { title: "Supports de formation", color: '#f59e0b', striped: true },
+              { title: "Échanges participants", color: '#ef4444' }
+            ].map((chart, index) => (
+              <ModernCircularChart 
+                key={index}
+                percentage={100} 
+                title={chart.title}
+                isStriped={chart.striped}
+                color={chart.color}
+              />
+            ))}
+          </div>
+
+          {/* Word Cloud - Full Width */}
+          <ModernWordCloud />
+        </div>
+
+        {/* Filters Panel */}
+        <ModernFiltersPanel />
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @keyframes gentleDash {
+          to {
+            stroke-dashoffset: -9;
+          }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: rgba(148, 163, 184, 0.1);
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default FormationEvaluationDashboard;
