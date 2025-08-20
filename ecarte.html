@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import getInitial from "../utils/getInitial";
-import { UserCheck, UserX } from "lucide-react"; // Import des icônes
+import { UserCheck, UserX, Search } from "lucide-react"; // Import des icônes
 
 export default function Presence() {
   const [presenceData, setPresenceData] = useState({});
   const [fileLoad, setFileLoad] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Initialiser les données de présence au chargement
   useEffect(() => {
@@ -51,6 +52,19 @@ export default function Presence() {
     return presenceData[participant.matricule];
   };
 
+  // Fonction pour filtrer les participants selon le terme de recherche
+  const filteredParticipants = selectedSession?.participants?.filter((participant) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      participant.nom?.toLowerCase().includes(searchLower) ||
+      participant.prenom?.toLowerCase().includes(searchLower) ||
+      participant.email?.toLowerCase().includes(searchLower) ||
+      participant.matricule?.toLowerCase().includes(searchLower)
+    );
+  }) || [];
+
   return (
     <div>
       <div style={{ marginBottom: "24px" }}>
@@ -69,16 +83,65 @@ export default function Presence() {
             fontSize: "14px",
             color: "#6b7280",
             lineHeight: "1.6",
-            margin: 0,
+            margin: "0 0 16px 0",
           }}
         >
           Marquez la présence des participants à cette session de formation.
         </p>
+
+        {/* Barre de recherche */}
+        <div style={{ position: "relative", maxWidth: "400px" }}>
+          <Search
+            size={16}
+            style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#9ca3af",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Rechercher par nom, prénom, email ou matricule..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px 10px 36px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              fontSize: "14px",
+              color: "#374151",
+              backgroundColor: "#ffffff",
+              outline: "none",
+              transition: "all 0.2s",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#3b82f6";
+              e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#d1d5db";
+              e.target.style.boxShadow = "none";
+            }}
+          />
+        </div>
       </div>
 
       {selectedSession?.participants?.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {selectedSession.participants.map((participant, index) => {
+          {/* Affichage du nombre de résultats de recherche */}
+          {searchTerm && (
+            <div style={{ marginBottom: "8px" }}>
+              <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
+                {filteredParticipants.length} participant(s) trouvé(s) sur {selectedSession.participants.length}
+              </p>
+            </div>
+          )}
+
+          {filteredParticipants.length > 0 ? (
+            filteredParticipants.map((participant, index) => {
             const isPresent = getParticipantPresenceState(participant);
             const canToggle = canTogglePresence(participant);
             
@@ -207,7 +270,33 @@ export default function Presence() {
                 </div>
               </div>
             );
-          })}
+          })
+          ) : (
+            searchTerm && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "#6b7280",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                <Search
+                  size={48}
+                  color="#d1d5db"
+                  style={{ marginBottom: "16px" }}
+                />
+                <p style={{ margin: 0, fontSize: "16px" }}>
+                  Aucun participant trouvé
+                </p>
+                <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
+                  Essayez avec d'autres termes de recherche
+                </p>
+              </div>
+            )
+          )}
 
           <div
             style={{
@@ -246,6 +335,9 @@ export default function Presence() {
                 <span style={{ fontSize: "12px", color: "#6b7280" }}>
                   Non marqués:{" "}
                   {Object.values(presenceData).filter((p) => p === null).length}
+                </span>
+                <span style={{ fontSize: "12px", color: "#3b82f6" }}>
+                  Total: {selectedSession.participants.length}
                 </span>
               </div>
             </div>
