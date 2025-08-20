@@ -1,876 +1,277 @@
-import React, { useState, useEffect } from 'react';
-import ReactWordcloud from 'react-d3-cloud';
-import ReactApexChart from 'react-apexcharts';
+import React, { useState, useEffect, useRef } from "react";
+import getInitial from "../utils/getInitial";
+import { UserCheck, UserX } from "lucide-react"; // Import des icônes
 
-const FormationEvaluationDashboard = () => {
-  const [filters, setFilters] = useState({
-    formation: '',
-    username: '',
-    sessions: ''
-  });
-  const [formationSearch, setFormationSearch] = useState('');
-  const [sessionsSearch, setSessionsSearch] = useState('');
+export default function Presence() {
+  const [presenceData, setPresenceData] = useState({});
+  const [fileLoad, setFileLoad] = useState(false);
 
-  // Données pour le word cloud des commentaires
-  const wordCloudData = [
-    { text: "excellent", value: 64, color: "#10b981" },
-    { text: "formation", value: 58, color: "#3b82f6" },
-    { text: "formateur", value: 52, color: "#8b5cf6" },
-    { text: "pratique", value: 48, color: "#f59e0b" },
-    { text: "contenu", value: 45, color: "#ef4444" },
-    { text: "méthode", value: 42, color: "#06b6d4" },
-    { text: "interactif", value: 38, color: "#10b981" },
-    { text: "satisfait", value: 35, color: "#3b82f6" },
-    { text: "dynamique", value: 32, color: "#8b5cf6" },
-    { text: "professionnel", value: 30, color: "#f59e0b" },
-    { text: "clair", value: 28, color: "#ef4444" },
-    { text: "utile", value: 25, color: "#06b6d4" },
-    { text: "motivant", value: 22, color: "#10b981" },
-    { text: "structuré", value: 20, color: "#3b82f6" },
-    { text: "enrichissant", value: 18, color: "#8b5cf6" }
-  ];
-
-  // Configuration pour les graphiques ApexCharts
-  const chartOptions = {
-    chart: {
-      type: 'radialBar',
-      toolbar: {
-        show: false
-      },
-      fontFamily: '"Inter", sans-serif'
-    },
-    plotOptions: {
-      radialBar: {
-        startAngle: -135,
-        endAngle: 135,
-        hollow: {
-          margin: 15,
-          size: '70%',
-        },
-        track: {
-          background: '#f1f5f9',
-          strokeWidth: '97%',
-          margin: 5,
-          dropShadow: {
-            enabled: true,
-            top: 2,
-            left: 0,
-            blur: 4,
-            opacity: 0.15
-          }
-        },
-        dataLabels: {
-          name: {
-            offsetY: -10,
-            color: '#64748b',
-            fontSize: '13px',
-            fontWeight: 600
-          },
-          value: {
-            color: '#1e293b',
-            fontSize: '22px',
-            fontWeight: 700,
-            offsetY: 5
-          }
+  // Initialiser les données de présence au chargement
+  useEffect(() => {
+    if (selectedSession?.participants) {
+      const initialPresence = {};
+      selectedSession.participants.forEach((participant) => {
+        const effectiveParticipate = participant.effective_participate;
+        
+        // Si effective_participate est null, pas de sélection par défaut
+        if (effectiveParticipate === null) {
+          initialPresence[participant.matricule] = null;
         }
-      }
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'dark',
-        type: 'vertical',
-        shadeIntensity: 0.5,
-        gradientToColors: ['#10b981'],
-        inverseColors: false,
-        opacityFrom: 1,
-        opacityTo: 0.8,
-        stops: [0, 100]
-      }
-    },
-    stroke: {
-      lineCap: 'round'
-    },
-    labels: ['Satisfaction']
-  };
-
-  // Composant pour les graphiques circulaires modernes
-  const ModernCircularChart = ({ percentage, title, isStriped = false, color = '#10b981' }) => {
-    const circumference = 2 * Math.PI * 50;
-    const strokeDasharray = circumference;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '28px',
-        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        position: 'relative',
-        overflow: 'hidden',
-        width: '220px',
-        height: '240px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-        e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.12)';
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0px) scale(1)';
-        e.currentTarget.style.boxShadow = '0 8px 40px rgba(0, 0, 0, 0.08)';
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-      }}
-      >
-        {/* Subtle gradient accent */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`,
-          borderRadius: '24px 24px 0 0'
-        }}></div>
-        
-        <div style={{ position: 'relative', marginBottom: '20px', zIndex: 2 }}>
-          <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
-            <defs>
-              <filter id="softGlow">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                <feMerge> 
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/> 
-                </feMerge>
-              </filter>
-            </defs>
-            <circle
-              cx="70"
-              cy="70"
-              r="50"
-              fill="none"
-              stroke="#f1f5f9"
-              strokeWidth="8"
-            />
-            <circle
-              cx="70"
-              cy="70"
-              r="50"
-              fill="none"
-              stroke={color}
-              strokeWidth="8"
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              filter="url(#softGlow)"
-              style={{
-                transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                ...(isStriped && {
-                  strokeDasharray: '6,3',
-                  animation: 'gentleDash 3s linear infinite'
-                })
-              }}
-            />
-          </svg>
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            fontSize: '28px',
-            fontWeight: '700',
-            color: '#1e293b',
-            fontFamily: '"Inter", sans-serif'
-          }}>
-            {percentage}%
-          </div>
-        </div>
-        <div style={{
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#475569',
-          fontWeight: '500',
-          lineHeight: '1.3',
-          fontFamily: '"Inter", sans-serif',
-          zIndex: 2,
-          maxWidth: '180px'
-        }}>
-          {title}
-        </div>
-      </div>
-    );
-  };
-
-  // Composant Word Cloud moderne avec react-d3-cloud
-  const ModernWordCloud = () => {
-    const fontSizeMapper = word => Math.log2(word.value) * 5;
-    const rotate = () => 0; // Pas de rotation pour une meilleure lisibilité
-
-    return (
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '32px',
-        boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        minHeight: '400px',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Subtle decorative elements */}
-        <div style={{
-          position: 'absolute',
-          top: '-10px',
-          right: '-10px',
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.1) 0%, rgba(203, 213, 225, 0.05) 100%)',
-          filter: 'blur(1px)'
-        }}></div>
-
-        <h3 style={{
-          margin: '0 0 28px 0',
-          fontSize: '20px',
-          fontWeight: '700',
-          color: '#1e293b',
-          textAlign: 'center',
-          fontFamily: '"Inter", sans-serif',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-          position: 'relative',
-          zIndex: 2
-        }}>
-          <span style={{ fontSize: '24px' }}>💬</span>
-          Commentaires et Suggestions
-        </h3>
-        
-        <div style={{ 
-          position: 'relative',
-          zIndex: 2,
-          height: '300px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <ReactWordcloud
-            data={wordCloudData}
-            width={600}
-            height={300}
-            font="Inter"
-            fontWeight="bold"
-            fontSize={fontSizeMapper}
-            rotate={rotate}
-            padding={2}
-            fill={(d, i) => wordCloudData[i % wordCloudData.length].color}
-            onWordMouseOver={(word, event) => {
-              event.target.style.opacity = 0.8;
-              event.target.style.cursor = 'pointer';
-            }}
-            onWordMouseOut={(word, event) => {
-              event.target.style.opacity = 1;
-            }}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  // Composant pour les graphiques ApexCharts (remplace les graphiques circulaires)
-  const ModernApexChart = ({ title, percentage, color, index }) => {
-    const series = [percentage];
-    
-    const options = {
-      ...chartOptions,
-      colors: [color],
-      plotOptions: {
-        ...chartOptions.plotOptions,
-        radialBar: {
-          ...chartOptions.plotOptions.radialBar,
-          dataLabels: {
-            ...chartOptions.plotOptions.radialBar.dataLabels,
-            name: {
-              ...chartOptions.plotOptions.radialBar.dataLabels.name,
-              text: title
-            },
-            value: {
-              ...chartOptions.plotOptions.radialBar.dataLabels.value,
-              formatter: (val) => `${val}%`
-            }
-          }
+        // Si effective_participate est 0, automatiquement absent
+        else if (effectiveParticipate === 0) {
+          initialPresence[participant.matricule] = false;
         }
-      }
-    };
+        // Si effective_participate est 1, automatiquement présent
+        else if (effectiveParticipate === 1) {
+          initialPresence[participant.matricule] = true;
+        }
+        // Par défaut, null (non marqué)
+        else {
+          initialPresence[participant.matricule] = null;
+        }
+      });
+      setPresenceData(initialPresence);
+    }
+  }, [selectedSession]);
 
-    return (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '24px',
-        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0, 0.2, 1)',
-        position: 'relative',
-        overflow: 'hidden',
-        width: '100%',
-        height: '280px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-        e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.12)';
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0px) scale(1)';
-        e.currentTarget.style.boxShadow = '0 8px 40px rgba(0, 0, 0, 0.08)';
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-      }}
-      >
-        {/* Subtle gradient accent */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`,
-          borderRadius: '24px 24px 0 0'
-        }}></div>
-        
-        <div style={{ 
-          width: '100%', 
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="radialBar"
-            height={200}
-            width={200}
-          />
-        </div>
-      </div>
-    );
+  const togglePresence = (participantId, isPresent) => {
+    setPresenceData((prev) => ({
+      ...prev,
+      [participantId]: isPresent,
+    }));
   };
 
-  // Composant Filtres moderne
-  const ModernFiltersPanel = () => {
-    const formations = [
-      'Programme de Management Avancé',
-      'Formation Leadership & Innovation',
-      'Gestion de Projet Agile',
-      'Communication Interpersonnelle',
-      'Développement Commercial Digital'
-    ];
-
-    const sessions = [
-      'Session Avril 2023',
-      'Session Mai 2023', 
-      'Session Juin 2023',
-      'Session Septembre 2023',
-      'Session Octobre 2023'
-    ];
-
-    const filteredFormations = formations.filter(formation => 
-      formation.toLowerCase().includes(formationSearch.toLowerCase())
-    );
-
-    const filteredSessions = sessions.filter(session => 
-      session.toLowerCase().includes(sessionsSearch.toLowerCase())
-    );
-
-    const FilterSection = ({ title, children, icon }) => (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(16px)',
-        borderRadius: '16px',
-        padding: '20px',
-        marginBottom: '20px',
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        transition: 'all 0.3s ease'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '16px'
-        }}>
-          <span style={{ fontSize: '18px' }}>{icon}</span>
-          <label style={{
-            fontSize: '15px',
-            fontWeight: '600',
-            color: '#334155',
-            fontFamily: '"Inter", sans-serif'
-          }}>
-            {title}
-          </label>
-        </div>
-        {children}
-      </div>
-    );
-
-    return (
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.5)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '28px',
-        position: 'sticky',
-        top: '20px',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)'
-      }}>
-        <h3 style={{
-          margin: '0 0 28px 0',
-          fontSize: '20px',
-          fontWeight: '700',
-          color: '#1e293b',
-          textAlign: 'center',
-          fontFamily: '"Inter", sans-serif',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px'
-        }}>
-          <span style={{ fontSize: '24px' }}>🔍</span>
-          Filtres Intelligents
-        </h3>
-        
-        {/* Formation Filter */}
-        <FilterSection title="Formation" icon="📚">
-          <input
-            type="text"
-            placeholder="Rechercher une formation..."
-            value={formationSearch}
-            onChange={(e) => setFormationSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              border: '2px solid rgba(148, 163, 184, 0.3)',
-              fontSize: '14px',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              marginBottom: '8px',
-              fontFamily: '"Inter", sans-serif',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#475569';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            }}
-          />
-          {formationSearch && (
-            <div style={{
-              maxHeight: '120px',
-              overflowY: 'auto',
-              border: '2px solid rgba(148, 163, 184, 0.2)',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '12px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
-            }}>
-              {filteredFormations.map((formation, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setFilters({...filters, formation});
-                    setFormationSearch('');
-                  }}
-                  style={{
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    borderBottom: index < filteredFormations.length - 1 ? '1px solid rgba(148, 163, 184, 0.2)' : 'none',
-                    fontSize: '13px',
-                    backgroundColor: filters.formation === formation ? 'rgba(148, 163, 184, 0.1)' : 'transparent',
-                    fontFamily: '"Inter", sans-serif',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(148, 163, 184, 0.15)'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = filters.formation === formation ? 'rgba(148, 163, 184, 0.1)' : 'transparent'}
-                >
-                  {formation}
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{
-            background: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
-            color: '#ffffff',
-            padding: '12px',
-            borderRadius: '12px',
-            textAlign: 'center',
-            fontSize: '18px',
-            fontWeight: '700',
-            fontFamily: '"Inter", sans-serif',
-            boxShadow: '0 4px 16px rgba(71, 85, 105, 0.3)'
-          }}>
-            25 / 27
-          </div>
-        </FilterSection>
-
-        {/* Sessions Filter */}
-        <FilterSection title="Sessions" icon="📅">
-          <input
-            type="text"
-            placeholder="Rechercher une session..."
-            value={sessionsSearch}
-            onChange={(e) => setSessionsSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              border: '2px solid rgba(148, 163, 184, 0.3)',
-              fontSize: '14px',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              marginBottom: '8px',
-              fontFamily: '"Inter", sans-serif',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#64748b';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            }}
-          />
-          {sessionsSearch && (
-            <div style={{
-              maxHeight: '120px',
-              overflowY: 'auto',
-              border: '2px solid rgba(148, 163, 184, 0.2)',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '12px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
-            }}>
-              {filteredSessions.map((session, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setFilters({...filters, sessions: session});
-                    setSessionsSearch('');
-                  }}
-                  style={{
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    borderBottom: index < filteredSessions.length - 1 ? '1px solid rgba(148, 163, 184, 0.2)' : 'none',
-                    fontSize: '13px',
-                    backgroundColor: filters.sessions === session ? 'rgba(100, 116, 139, 0.1)' : 'transparent',
-                    fontFamily: '"Inter", sans-serif',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(100, 116, 139, 0.15)'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = filters.sessions === session ? 'rgba(100, 116, 139, 0.1)' : 'transparent'}
-                >
-                  {session}
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{
-            background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
-            color: '#ffffff',
-            padding: '12px',
-            borderRadius: '12px',
-            textAlign: 'center',
-            fontSize: '18px',
-            fontWeight: '700',
-            fontFamily: '"Inter", sans-serif',
-            boxShadow: '0 4px 16px rgba(100, 116, 139, 0.3)'
-          }}>
-            25 / 27
-          </div>
-        </FilterSection>
-
-        {/* Username Filter */}
-        <FilterSection title="Utilisateur" icon="👤">
-          <input
-            type="text"
-            placeholder="Rechercher un utilisateur..."
-            value={filters.username}
-            onChange={(e) => setFilters({...filters, username: e.target.value})}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              border: '2px solid rgba(148, 163, 184, 0.3)',
-              fontSize: '14px',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              marginBottom: '12px',
-              fontFamily: '"Inter", sans-serif',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#334155';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            }}
-          />
-          <div style={{
-            background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-            minHeight: '50px',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontSize: '13px',
-            fontWeight: '500',
-            fontFamily: '"Inter", sans-serif',
-            boxShadow: '0 4px 16px rgba(51, 65, 85, 0.3)',
-            padding: '12px'
-          }}>
-            {filters.username || '🔍 Aucun utilisateur sélectionné'}
-          </div>
-        </FilterSection>
-      </div>
-    );
+  // Fonction pour déterminer si un participant peut changer d'état
+  const canTogglePresence = (participant) => {
+    return participant.effective_participate === null;
   };
 
-  const chartColors = ['#475569', '#64748b', '#334155', '#94a3b8', '#1e293b'];
+  // Fonction pour obtenir l'état actuel d'un participant
+  const getParticipantPresenceState = (participant) => {
+    return presenceData[participant.matricule];
+  };
 
   return (
-    <div style={{
-      fontFamily: '"Inter", sans-serif',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      minHeight: '100vh',
-      position: 'relative'
-    }}>
-      {/* Subtle background pattern */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0)',
-        backgroundSize: '20px 20px',
-        pointerEvents: 'none'
-      }}></div>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 340px',
-        gap: '32px',
-        padding: '32px',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        {/* Main Content */}
-        <div>
-          {/* Header */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
-            color: '#1e293b',
-            padding: '32px',
-            borderRadius: '24px',
-            marginBottom: '32px',
-            boxShadow: '0 12px 48px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-30px',
-              right: '-30px',
-              width: '150px',
-              height: '150px',
-              borderRadius: '50%',
-              background: 'linear-gradient(45deg, rgba(148, 163, 184, 0.1) 0%, rgba(203, 213, 225, 0.05) 100%)',
-              filter: 'blur(2px)'
-            }}></div>
-            <h1 style={{
-              margin: '0',
-              fontSize: '28px',
-              fontWeight: '800',
-              textAlign: 'center',
-              letterSpacing: '-0.02em',
-              position: 'relative',
-              zIndex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '16px'
-            }}>
-              <span style={{ fontSize: '32px' }}>📊</span>
-              ANALYSE DES ÉVALUATIONS À CHAUD
-            </h1>
-            <p style={{
-              margin: '12px 0 0 0',
-              fontSize: '16px',
-              textAlign: 'center',
-              opacity: 0.7,
-              position: 'relative',
-              zIndex: 2,
-              fontWeight: '500'
-            }}>
-              Tableau de bord interactif des formations
-            </p>
-          </div>
-
-          {/* Module Info */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '20px',
-            padding: '28px',
-            marginBottom: '32px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
-            display: 'grid',
-            gridTemplateColumns: '1fr auto',
-            gap: '28px',
-            alignItems: 'center'
-          }}>
-            <div style={{ color: '#1e293b' }}>
-              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                <span style={{ fontSize: '18px' }}>📚</span> <strong>Module:</strong> Programme de Management Avancé
-              </div>
-              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                <span style={{ fontSize: '18px' }}>🏢</span> <strong>Cabinet:</strong> ESSEC Executive School
-              </div>
-              <div style={{ marginBottom: '12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                <span style={{ fontSize: '18px' }}>📍</span> <strong>Lieu:</strong> Abidjan
-              </div>
-              <div style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                <span style={{ fontSize: '18px' }}>📅</span> <strong>Période:</strong> Avril - Octobre 2023
-              </div>
-            </div>
-            <div style={{
-              background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-              padding: '28px 36px',
-              borderRadius: '20px',
-              textAlign: 'center',
-              color: 'white',
-              boxShadow: '0 8px 32px rgba(30, 41, 59, 0.3)',
-              minWidth: '150px'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '6px', fontWeight: '500' }}>Moyenne générale</div>
-              <div style={{ fontSize: '40px', fontWeight: '800', lineHeight: '1' }}>4,6</div>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px', fontWeight: '500' }}>/ 5</div>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: '16px',
-            padding: '24px',
-            marginBottom: '32px',
-            boxShadow: '0 6px 32px rgba(0, 0, 0, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.4)'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '24px',
-              flexWrap: 'wrap'
-            }}>
-              {[
-                { color: '#10b981', label: '5 - Très satisfait', icon: '😍' },
-                { color: '#3b82f6', label: '4 - Satisfait', icon: '😊' },
-                { color: '#f59e0b', label: '3 - Neutre', icon: '😐' },
-                { color: '#ef4444', label: '2 - Insatisfait', icon: '😕' },
-                { color: '#64748b', label: '1 - Très insatisfait', icon: '😞' }
-              ].map((item, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px',
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  padding: '10px 18px',
-                  borderRadius: '14px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
-                }}>
-                  <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    backgroundColor: item.color,
-                    borderRadius: '50%',
-                    boxShadow: `0 2px 8px ${item.color}40`
-                  }}></div>
-                  <span style={{ fontSize: '12px', color: '#334155', fontWeight: '500' }}>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Charts Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '24px',
-            marginBottom: '32px'
-          }}>
-            {[
-              { title: "Satisfaction générale", percentage: 92, color: '#10b981' },
-              { title: "Atteinte des objectifs", percentage: 88, color: '#3b82f6' },
-              { title: "Durée et rythme", percentage: 85, color: '#8b5cf6' },
-              { title: "Cadre et environnement", percentage: 90, color: '#f59e0b' },
-              { title: "Pause-café et restauration", percentage: 78, color: '#ef4444' },
-              { title: "Prestation du formateur", percentage: 95, color: '#06b6d4' },
-              { title: "Méthodes pédagogiques", percentage: 87, color: '#10b981' },
-              { title: "Théorie vs pratique", percentage: 82, color: '#8b5cf6' },
-              { title: "Supports de formation", percentage: 89, color: '#f59e0b' },
-              { title: "Échanges participants", percentage: 84, color: '#ef4444' }
-            ].map((chart, index) => (
-              <ModernApexChart 
-                key={index}
-                title={chart.title}
-                percentage={chart.percentage}
-                color={chart.color}
-                index={index}
-              />
-            ))}
-          </div>
-
-          {/* Word Cloud - Full Width */}
-          <ModernWordCloud />
-        </div>
-
-        {/* Filters Panel */}
-        <ModernFiltersPanel />
+    <div>
+      <div style={{ marginBottom: "24px" }}>
+        <h3
+          style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            color: "#111827",
+            margin: "0 0 12px 0",
+          }}
+        >
+          Feuille de présence
+        </h3>
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#6b7280",
+            lineHeight: "1.6",
+            margin: 0,
+          }}
+        >
+          Marquez la présence des participants à cette session de formation.
+        </p>
       </div>
 
-     
+      {selectedSession?.participants?.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {selectedSession.participants.map((participant, index) => {
+            const isPresent = getParticipantPresenceState(participant);
+            const canToggle = canTogglePresence(participant);
+            
+            return (
+              <div
+                key={participant.matricule}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "16px",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                  transition: "all 0.2s",
+                }}
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    backgroundColor:
+                      index % 4 === 0
+                        ? "#fb923c"
+                        : index % 4 === 1
+                        ? "#60a5fa"
+                        : index % 4 === 2
+                        ? "#34d399"
+                        : "#f59e0b",
+                    color: "white",
+                  }}
+                >
+                  {getInitial(participant.nom, participant.prenom)}
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#111827",
+                      margin: "0 0 4px 0",
+                    }}
+                  >
+                    {participant.nom} {participant.prenom}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#6b7280",
+                      margin: "0 0 2px 0",
+                    }}
+                  >
+                    {participant.email}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#9ca3af",
+                      margin: 0,
+                    }}
+                  >
+                    Matricule: {participant.matricule}
+                    {!canToggle && (
+                      <span style={{ marginLeft: "8px", fontStyle: "italic" }}>
+                        (Statut fixé automatiquement)
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => canToggle && togglePresence(participant.matricule, true)}
+                    disabled={!canToggle}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: isPresent === true ? "#10b981" : "#f3f4f6",
+                      color: isPresent === true ? "white" : "#6b7280",
+                      border: "1px solid",
+                      borderColor: isPresent === true ? "#10b981" : "#d1d5db",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      cursor: canToggle ? "pointer" : "not-allowed",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s",
+                      opacity: !canToggle ? 0.6 : 1,
+                    }}
+                  >
+                    <UserCheck size={14} />
+                    Présent
+                  </button>
+
+                  <button
+                    onClick={() => canToggle && togglePresence(participant.matricule, false)}
+                    disabled={!canToggle}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: isPresent === false ? "#dc2626" : "#f3f4f6",
+                      color: isPresent === false ? "white" : "#6b7280",
+                      border: "1px solid",
+                      borderColor: isPresent === false ? "#dc2626" : "#d1d5db",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      cursor: canToggle ? "pointer" : "not-allowed",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s",
+                      opacity: !canToggle ? 0.6 : 1,
+                    }}
+                  >
+                    <UserX size={14} />
+                    Absent
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          <div
+            style={{
+              marginTop: "16px",
+              padding: "16px",
+              backgroundColor: "#f0f9ff",
+              borderRadius: "8px",
+              border: "1px solid #bae6fd",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#1e40af",
+                }}
+              >
+                Statistiques de présence
+              </span>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <span style={{ fontSize: "12px", color: "#10b981" }}>
+                  Présents:{" "}
+                  {Object.values(presenceData).filter((p) => p === true).length}
+                </span>
+                <span style={{ fontSize: "12px", color: "#dc2626" }}>
+                  Absents:{" "}
+                  {Object.values(presenceData).filter((p) => p === false).length}
+                </span>
+                <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                  Non marqués:{" "}
+                  {Object.values(presenceData).filter((p) => p === null).length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px 20px",
+            color: "#6b7280",
+          }}
+        >
+          <UserCheck
+            size={48}
+            color="#d1d5db"
+            style={{ marginBottom: "16px" }}
+          />
+          <p style={{ margin: 0, fontSize: "16px" }}>
+            Aucun participant dans cette session
+          </p>
+          <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
+            Ajoutez des participants pour gérer leur présence
+          </p>
+        </div>
+      )}
     </div>
   );
-};
-
-export default FormationEvaluationDashboard;
+}
