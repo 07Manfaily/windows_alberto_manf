@@ -1,0 +1,374 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const CustomSelect = ({ 
+  id, 
+  label, 
+  placeholder, 
+  options, 
+  value, 
+  onChange, 
+  className = "",
+  icon = "" 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [inputValue, setInputValue] = useState(value || '');
+  
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    setInputValue(value || '');
+  }, [value]);
+
+  useEffect(() => {
+    setFilteredOptions(
+      options.filter(option => 
+        option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
+        option.value.toLowerCase().includes(inputValue.toLowerCase())
+      )
+    );
+    setHighlightedIndex(-1);
+  }, [inputValue, options]);
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setIsOpen(true);
+    onChange(newValue);
+  };
+
+  const handleInputFocus = () => {
+    setIsOpen(true);
+    if (containerRef.current) {
+      containerRef.current.style.transform = 'scale(1.02)';
+    }
+  };
+
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+      if (containerRef.current) {
+        containerRef.current.style.transform = 'scale(1)';
+      }
+    }, 150);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          Math.min(prev + 1, filteredOptions.length - 1)
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => Math.max(prev - 1, -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && filteredOptions[highlightedIndex]) {
+          selectOption(filteredOptions[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        inputRef.current?.blur();
+        break;
+    }
+  };
+
+  const selectOption = (option) => {
+    setInputValue(option.value);
+    onChange(option.value);
+    setIsOpen(false);
+    inputRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[highlightedIndex];
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex]);
+
+  return (
+    <div className="form-group">
+      <label htmlFor={id}>{icon} {label} :</label>
+      <div 
+        ref={containerRef}
+        className={`input-container custom-datalist ${className}`}
+        style={{ transition: 'transform 0.3s ease' }}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          id={id}
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          className={className}
+        />
+        <div 
+          ref={dropdownRef}
+          className={`custom-dropdown ${isOpen ? 'show' : ''}`}
+        >
+          {filteredOptions.map((option, index) => (
+            <div
+              key={option.value}
+              className={`custom-option ${index === highlightedIndex ? 'highlighted' : ''}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                selectOption(option);
+              }}
+              onMouseEnter={() => setHighlightedIndex(index)}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DatalistApp = () => {
+  const [selectedValue, setSelectedValue] = useState('');
+
+  const options = [
+    // Pays
+    { value: 'France', label: '🇫🇷 France' },
+    { value: 'Espagne', label: '🇪🇸 Espagne' },
+    { value: 'Italie', label: '🇮🇹 Italie' },
+    { value: 'Allemagne', label: '🇩🇪 Allemagne' },
+    { value: 'Royaume-Uni', label: '🇬🇧 Royaume-Uni' },
+    { value: 'Portugal', label: '🇵🇹 Portugal' },
+    { value: 'Belgique', label: '🇧🇪 Belgique' },
+    { value: 'Suisse', label: '🇨🇭 Suisse' },
+    { value: 'Pays-Bas', label: '🇳🇱 Pays-Bas' },
+    { value: 'Autriche', label: '🇦🇹 Autriche' },
+    // Technologies
+    { value: 'HTML5', label: '💻 HTML5 - Structure web' },
+    { value: 'CSS3', label: '💻 CSS3 - Styles et animations' },
+    { value: 'JavaScript', label: '💻 JavaScript - Interactivité' },
+    { value: 'React', label: '💻 React - Framework UI' },
+    { value: 'Vue.js', label: '💻 Vue.js - Framework progressif' },
+    { value: 'Angular', label: '💻 Angular - Framework complet' },
+    { value: 'Node.js', label: '💻 Node.js - JavaScript serveur' },
+    { value: 'Python', label: '💻 Python - Programmation polyvalente' },
+    { value: 'PHP', label: '💻 PHP - Développement web' },
+    { value: 'Java', label: '💻 Java - Programmation orientée objet' },
+    // Couleurs
+    { value: 'Bleu océan', label: '🎨 #2193b0 - Bleu océan' },
+    { value: 'Violet moderne', label: '🎨 #667eea - Violet moderne' },
+    { value: 'Rose sunset', label: '🎨 #f093fb - Rose sunset' },
+    { value: 'Vert nature', label: '🎨 #56ab2f - Vert nature' },
+    { value: 'Orange vibrant', label: '🎨 #ff9a9e - Orange vibrant' },
+    { value: 'Rouge passion', label: '🎨 #fc466b - Rouge passion' },
+    { value: 'Jaune soleil', label: '🎨 #fdbb2d - Jaune soleil' },
+    { value: 'Turquoise', label: '🎨 #43e97b - Turquoise' }
+  ];
+
+  return (
+    <div 
+      style={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        minHeight: '100vh'
+      }}
+    >
+      <style>{`
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .container {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 20px;
+          padding: 25px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          max-width: 350px;
+          width: 100%;
+          animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .form-group {
+          margin-bottom: 0;
+        }
+
+        label {
+          display: block;
+          margin-bottom: 8px;
+          color: #555;
+          font-weight: 500;
+          font-size: 1.1em;
+        }
+
+        .input-container {
+          position: relative;
+        }
+
+        input[type="text"] {
+          width: 100%;
+          padding: 15px 20px;
+          border: 2px solid #e1e8ed;
+          border-radius: 12px;
+          font-size: 16px;
+          background: #fff;
+          transition: all 0.3s ease;
+          outline: none;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type="text"]:focus {
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          transform: translateY(-2px);
+        }
+
+        input[type="text"]:hover {
+          border-color: #c2c9d6;
+        }
+
+        .input-container::after {
+          content: '▼';
+          position: absolute;
+          right: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #999;
+          pointer-events: none;
+          font-size: 12px;
+          transition: all 0.3s ease;
+        }
+
+        .input-container:hover::after {
+          color: #667eea;
+          transform: translateY(-50%) rotate(180deg);
+        }
+
+        .custom-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 2px solid #e1e8ed;
+          border-top: none;
+          border-radius: 0 0 12px 12px;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          max-height: 200px;
+          overflow-y: auto;
+          z-index: 1000;
+          display: none;
+        }
+
+        .custom-dropdown.show {
+          display: block;
+          animation: dropdownSlide 0.2s ease-out;
+        }
+
+        @keyframes dropdownSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .custom-option {
+          padding: 12px 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 1px solid #f5f5f5;
+        }
+
+        .custom-option:hover {
+          background: #f8f9ff;
+          color: #667eea;
+        }
+
+        .custom-option:last-child {
+          border-bottom: none;
+          border-radius: 0 0 10px 10px;
+        }
+
+        .custom-option.highlighted {
+          background: #667eea;
+          color: white;
+        }
+
+        .input-modern {
+          border-radius: 25px;
+          padding: 18px 25px;
+          border: none;
+          background: rgba(255, 255, 255, 0.9);
+          box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-modern:focus {
+          background: white;
+          box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 600px) {
+          .container {
+            padding: 20px;
+            margin: 10px;
+          }
+        }
+      `}</style>
+
+      <div className="container">
+        <CustomSelect
+          id="selection"
+          label="Recherchez ce que vous voulez"
+          icon="🔍"
+          placeholder="Pays, technologies, couleurs..."
+          options={options}
+          value={selectedValue}
+          onChange={setSelectedValue}
+          className="input-modern"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default DatalistApp;
