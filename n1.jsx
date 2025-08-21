@@ -208,4 +208,261 @@ const ApexPieChart = ({ title, data, color = "#475569", chartKey = 0 }) => {
       <span>{value || 0} {label || "Réponse"}</span> // AJOUTÉ: valeurs par défaut
     );
   })}
+
+};
+
+
+
+
+
+
+
+
+const ModernWordCloud = () => { 
+  const [wordCloudError, setWordCloudError] = useState(false); 
+  const [isVisible, setIsVisible] = useState(false); 
+  const containerRef = useRef(null); 
+
+  // ✅ AJOUT: Vérification précoce pour éviter les erreurs
+  if (!filteredApiData || !filteredApiData.prepared_text_for_word_cloud) {
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          background: "rgba(255, 255, 255, 0.6)",
+          backdropFilter: "blur(20px)",
+          borderRadius: "24px",
+          padding: "32px",
+          boxShadow: "0 12px 48px rgba(0, 0, 0, 0.08)",
+          border: "1px solid rgba(255, 255, 255, 0.4)",
+          minHeight: "320px",
+          position: "relative",
+          overflow: "hidden",
+          textAlign: "center",
+          color: "#64748b"
+        }}
+      >
+        <h3 style={{ margin: "0 0 28px 0", fontSize: "20px", fontWeight: "700", color: "#1e293b" }}>
+          💭 Commentaires et Suggestions
+        </h3>
+        <div>Aucun commentaire disponible</div>
+      </div>
+    );
+  }
+
+  // ✅ AJOUT: useEffect avec vérification robuste
+  useEffect(() => { 
+    const container = containerRef.current; 
+    if (!container) return; 
+
+    let observer;
+    try {
+      observer = new IntersectionObserver( 
+        ([entry]) => { 
+          if (entry && entry.isIntersecting) { 
+            setIsVisible(true); 
+            observer.disconnect(); 
+          } 
+        }, 
+        { threshold: 0.1 } 
+      ); 
+
+      observer.observe(container); 
+    } catch (error) {
+      console.error("Erreur IntersectionObserver:", error);
+      setIsVisible(true); // Fallback: afficher directement
+    }
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, []);
+
+  // ✅ CORRECTION: Traitement ultra-sécurisé du texte
+  let words = [];
+  try {
+    const textData = filteredApiData.prepared_text_for_word_cloud;
+    if (textData && typeof textData === 'string' && textData.trim().length > 0) {
+      words = textData
+        .trim()
+        .split(/\s+/) // Utilise une regex pour gérer tous types d'espaces
+        .filter((word) => word && word.length > 2)
+        .slice(0, 50) // Limite le nombre de mots pour éviter les problèmes de performance
+        .map((word, index) => ({ 
+          text: word.toLowerCase(), // Normalise le texte
+          value: Math.max(20, 50 - index), // Valeurs décroissantes
+        }));
+    }
+  } catch (error) {
+    console.error("Erreur traitement texte WordCloud:", error);
+    setWordCloudError(true);
+  }
+
+  // Si aucun mot valide
+  if (words.length === 0) {
+    return (
+      <div ref={containerRef} /* styles identiques au return du début */>
+        <h3>💭 Commentaires et Suggestions</h3>
+        <div>Aucun commentaire analysable</div>
+      </div>
+    );
+  }
+
+  const WordCloudWrapper = () => { 
+  if (!isVisible || wordCloudError) return null; 
+
+  try { 
+    return ( 
+      <div 
+        key={`wordcloud-${wordCloudKey}-${words.length}`} // ✅ Key plus stable
+        style={{ 
+          width: "100%", 
+          height: "100%", 
+          position: "relative", 
+        }} 
+      > 
+        <ReactWordcloud 
+          words={words} 
+          options={{
+            colors: ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"], 
+            enableTooltip: false, 
+            deterministic: true, 
+            fontFamily: "Inter, sans-serif", 
+            fontSizes: [16, 32], // ✅ Tailles réduites pour éviter les débordements
+            fontStyle: "normal", 
+            fontWeight: "normal", 
+            padding: 2, 
+            rotations: 1, // ✅ Réduit les rotations
+            rotationAngles: [0], 
+            scale: "linear", 
+            spiral: "archimedean", 
+            transitionDuration: 0, 
+            enableOptimizations: true,
+          }} 
+        /> 
+      </div> 
+    ); 
+  } catch (error) { 
+    console.error("Erreur rendu WordCloud:", error);
+    setWordCloudError(true); 
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        color: "#64748b",
+        fontSize: "14px",
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: "48px", marginBottom: "16px", opacity: 0.5 }}>
+          🔧
+        </div>
+        <div>Visualisation temporairement indisponible</div>
+        <div style={{ fontSize: "12px", marginTop: "8px", opacity: 0.7 }}>
+          Mots: {words.slice(0, 5).map(w => w.text).join(", ")}...
+        </div>
+      </div>
+    );
+  } 
+};
+
+// ✅ NOUVEAU: Composant Error Boundary à ajouter au début de votre fichier
+class WordCloudErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('WordCloud Error Boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          background: "rgba(255, 255, 255, 0.6)",
+          backdropFilter: "blur(20px)",
+          borderRadius: "24px",
+          padding: "32px",
+          textAlign: "center",
+          color: "#64748b"
+        }}>
+          <h3>💭 Commentaires et Suggestions</h3>
+          <div>Erreur lors du chargement des commentaires</div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// ✅ MODIFIÉ: Dans votre rendu principal, wrappez le WordCloud
+{filteredApiData?.prepared_text_for_word_cloud && (
+  <WordCloudErrorBoundary>
+    <ModernWordCloud />
+  </WordCloudErrorBoundary>
+)}
+
+
+// ✅ MODIFIÉ: useEffect pour le wordCloudKey avec protection
+useEffect(() => { 
+  if (filteredApiData?.prepared_text_for_word_cloud && 
+      typeof filteredApiData.prepared_text_for_word_cloud === 'string') { 
+    const timer = setTimeout(() => { 
+      setWordCloudKey((prev) => prev + 1); 
+    }, 300); // ✅ Délai augmenté pour laisser le temps au composant
+    return () => clearTimeout(timer); 
+  } 
+}, [filteredApiData?.prepared_text_for_word_cloud]); // ✅ Dépendance plus spécifique
+
+
+// ✅ ALTERNATIVE: Si les erreurs persistent, utilisez cette version simplifiée
+const SimpleWordDisplay = () => {
+  if (!filteredApiData?.prepared_text_for_word_cloud) return null;
+
+  const words = filteredApiData.prepared_text_for_word_cloud
+    .split(' ')
+    .filter(word => word.length > 2)
+    .slice(0, 20);
+
+  return (
+    <div style={{
+      background: "rgba(255, 255, 255, 0.6)",
+      backdropFilter: "blur(20px)",
+      borderRadius: "24px",
+      padding: "32px",
+      textAlign: "center"
+    }}>
+      <h3>💭 Commentaires et Suggestions</h3>
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "8px",
+        justifyContent: "center",
+        marginTop: "20px"
+      }}>
+        {words.map((word, index) => (
+          <span key={index} style={{
+            background: "#f1f5f9",
+            padding: "4px 12px",
+            borderRadius: "16px",
+            fontSize: `${Math.max(12, 20 - index)}px`,
+            color: ["#10b981", "#3b82f6", "#8b5cf6"][index % 3]
+          }}>
+            {word}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 };
