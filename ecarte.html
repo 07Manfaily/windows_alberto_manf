@@ -1,369 +1,300 @@
-import React, { useState, useEffect, useRef } from "react";
-import getInitial from "../utils/getInitial";
-import { UserCheck, UserX, Search } from "lucide-react"; // Import des icônes
+import React, { useState, useEffect } from 'react';
 
-export default function Presence() {
-  const [presenceData, setPresenceData] = useState({});
-  const [fileLoad, setFileLoad] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // Initialiser les données de présence au chargement
-  useEffect(() => {
-    if (selectedSession?.participants) {
-      const initialPresence = {};
-      selectedSession.participants.forEach((participant) => {
-        const effectiveParticipate = participant.effective_participate;
-        
-        // Si effective_participate est null, pas de sélection par défaut
-        if (effectiveParticipate === null) {
-          initialPresence[participant.matricule] = null;
-        }
-        // Si effective_participate est 0, automatiquement absent
-        else if (effectiveParticipate === 0) {
-          initialPresence[participant.matricule] = false;
-        }
-        // Si effective_participate est 1, automatiquement présent
-        else if (effectiveParticipate === 1) {
-          initialPresence[participant.matricule] = true;
-        }
-        // Par défaut, null (non marqué)
-        else {
-          initialPresence[participant.matricule] = null;
-        }
-      });
-      setPresenceData(initialPresence);
+// Utilitaires pour générer les couleurs
+const colorUtils = {
+  // Couleur basée sur le nom (toujours la même pour un nom donné)
+  getColorFromName: (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-  }, [selectedSession]);
+    const hue = Math.abs(hash % 360);
+    const saturation = 65 + (Math.abs(hash) % 20); // 65-85%
+    const lightness = 45 + (Math.abs(hash) % 15);  // 45-60%
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  },
 
-  const togglePresence = (participantId, isPresent) => {
-    setPresenceData((prev) => ({
-      ...prev,
-      [participantId]: isPresent,
-    }));
-  };
+  // Couleur complètement aléatoire
+  getRandomColor: () => {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = 60 + Math.floor(Math.random() * 25); // 60-85%
+    const lightness = 45 + Math.floor(Math.random() * 15);  // 45-60%
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  },
 
-  // Fonction pour déterminer si un participant peut changer d'état
-  const canTogglePresence = (participant) => {
-    return participant.effective_participate === null;
-  };
+  // Palette de couleurs prédéfinies
+  colorPalette: [
+    '#e74c3c', '#3498db', '#2ecc71', '#f39c12', 
+    '#9b59b6', '#1abc9c', '#e67e22', '#34495e',
+    '#f1c40f', '#e91e63', '#9c27b0', '#673ab7',
+    '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
+    '#ff5722', '#795548', '#607d8b', '#ff9800'
+  ],
 
-  // Fonction pour obtenir l'état actuel d'un participant
-  const getParticipantPresenceState = (participant) => {
-    return presenceData[participant.matricule];
-  };
+  getPresetColor: (index) => {
+    return colorUtils.colorPalette[index % colorUtils.colorPalette.length];
+  }
+};
 
-  // Fonction pour filtrer les participants selon le terme de recherche
-  const filteredParticipants = selectedSession?.participants?.filter((participant) => {
-    if (!searchTerm) return true;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      participant.nom?.toLowerCase().includes(searchLower) ||
-      participant.prenom?.toLowerCase().includes(searchLower) ||
-      participant.email?.toLowerCase().includes(searchLower) ||
-      participant.matricule?.toLowerCase().includes(searchLower)
-    );
-  }) || [];
+// Fonction pour extraire les initiales
+const getInitials = (name) => {
+  if (!name) return '??';
+  
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase())
+    .join('')
+    .substring(0, 2);
+};
+
+// Composant Avatar
+const Avatar = ({ participant, colorMethod = 'name-based', index = 0 }) => {
+  const initials = getInitials(participant.name || participant.firstName + ' ' + participant.lastName);
+  
+  let backgroundColor;
+  switch (colorMethod) {
+    case 'random':
+      backgroundColor = colorUtils.getRandomColor();
+      break;
+    case 'preset':
+      backgroundColor = colorUtils.getPresetColor(index);
+      break;
+    case 'name-based':
+    default:
+      backgroundColor = colorUtils.getColorFromName(participant.name || participant.firstName + ' ' + participant.lastName);
+      break;
+  }
 
   return (
-    <div>
-      <div style={{ marginBottom: "24px" }}>
-        <h3
-          style={{
-            fontSize: "16px",
-            fontWeight: "600",
-            color: "#111827",
-            margin: "0 0 12px 0",
-          }}
-        >
-          Feuille de présence
-        </h3>
-        <p
-          style={{
-            fontSize: "14px",
-            color: "#6b7280",
-            lineHeight: "1.6",
-            margin: "0 0 16px 0",
-          }}
-        >
-          Marquez la présence des participants à cette session de formation.
-        </p>
-
-        {/* Barre de recherche */}
-        <div style={{ position: "relative", maxWidth: "400px" }}>
-          <Search
-            size={16}
-            style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#9ca3af",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Rechercher par nom, prénom, email ou matricule..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px 10px 36px",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              fontSize: "14px",
-              color: "#374151",
-              backgroundColor: "#ffffff",
-              outline: "none",
-              transition: "all 0.2s",
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#3b82f6";
-              e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#d1d5db";
-              e.target.style.boxShadow = "none";
-            }}
-          />
-        </div>
-      </div>
-
-      {selectedSession?.participants?.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {/* Affichage du nombre de résultats de recherche */}
-          {searchTerm && (
-            <div style={{ marginBottom: "8px" }}>
-              <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
-                {filteredParticipants.length} participant(s) trouvé(s) sur {selectedSession.participants.length}
-              </p>
-            </div>
-          )}
-
-          {filteredParticipants.length > 0 ? (
-            filteredParticipants.map((participant, index) => {
-            const isPresent = getParticipantPresenceState(participant);
-            const canToggle = canTogglePresence(participant);
-            
-            return (
-              <div
-                key={participant.matricule}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "16px",
-                  backgroundColor: "#f9fafb",
-                  borderRadius: "12px",
-                  border: "1px solid #e5e7eb",
-                  transition: "all 0.2s",
-                }}
-              >
-                <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    backgroundColor:
-                      index % 4 === 0
-                        ? "#fb923c"
-                        : index % 4 === 1
-                        ? "#60a5fa"
-                        : index % 4 === 2
-                        ? "#34d399"
-                        : "#f59e0b",
-                    color: "white",
-                  }}
-                >
-                  {getInitial(participant.nom, participant.prenom)}
-                </div>
-
-                <div style={{ flex: 1 }}>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: "#111827",
-                      margin: "0 0 4px 0",
-                    }}
-                  >
-                    {participant.nom} {participant.prenom}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#6b7280",
-                      margin: "0 0 2px 0",
-                    }}
-                  >
-                    {participant.email}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "11px",
-                      color: "#9ca3af",
-                      margin: 0,
-                    }}
-                  >
-                    Matricule: {participant.matricule}
-                    {!canToggle && (
-                      <span style={{ marginLeft: "8px", fontStyle: "italic" }}>
-                        (Statut fixé automatiquement)
-                      </span>
-                    )}
-                  </p>
-                </div>
-
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={() => canToggle && togglePresence(participant.matricule, true)}
-                    disabled={!canToggle}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: isPresent === true ? "#10b981" : "#f3f4f6",
-                      color: isPresent === true ? "white" : "#6b7280",
-                      border: "1px solid",
-                      borderColor: isPresent === true ? "#10b981" : "#d1d5db",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      cursor: canToggle ? "pointer" : "not-allowed",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s",
-                      opacity: !canToggle ? 0.6 : 1,
-                    }}
-                  >
-                    <UserCheck size={14} />
-                    Présent
-                  </button>
-
-                  <button
-                    onClick={() => canToggle && togglePresence(participant.matricule, false)}
-                    disabled={!canToggle}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: isPresent === false ? "#dc2626" : "#f3f4f6",
-                      color: isPresent === false ? "white" : "#6b7280",
-                      border: "1px solid",
-                      borderColor: isPresent === false ? "#dc2626" : "#d1d5db",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      cursor: canToggle ? "pointer" : "not-allowed",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s",
-                      opacity: !canToggle ? 0.6 : 1,
-                    }}
-                  >
-                    <UserX size={14} />
-                    Absent
-                  </button>
-                </div>
-              </div>
-            );
-          })
-          ) : (
-            searchTerm && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px 20px",
-                  color: "#6b7280",
-                  backgroundColor: "#f9fafb",
-                  borderRadius: "12px",
-                  border: "1px solid #e5e7eb",
-                }}
-              >
-                <Search
-                  size={48}
-                  color="#d1d5db"
-                  style={{ marginBottom: "16px" }}
-                />
-                <p style={{ margin: 0, fontSize: "16px" }}>
-                  Aucun participant trouvé
-                </p>
-                <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
-                  Essayez avec d'autres termes de recherche
-                </p>
-              </div>
-            )
-          )}
-
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "16px",
-              backgroundColor: "#f0f9ff",
-              borderRadius: "8px",
-              border: "1px solid #bae6fd",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#1e40af",
-                }}
-              >
-                Statistiques de présence
-              </span>
-              <div style={{ display: "flex", gap: "16px" }}>
-                <span style={{ fontSize: "12px", color: "#10b981" }}>
-                  Présents:{" "}
-                  {Object.values(presenceData).filter((p) => p === true).length}
-                </span>
-                <span style={{ fontSize: "12px", color: "#dc2626" }}>
-                  Absents:{" "}
-                  {Object.values(presenceData).filter((p) => p === false).length}
-                </span>
-                <span style={{ fontSize: "12px", color: "#6b7280" }}>
-                  Non marqués:{" "}
-                  {Object.values(presenceData).filter((p) => p === null).length}
-                </span>
-                <span style={{ fontSize: "12px", color: "#3b82f6" }}>
-                  Total: {selectedSession.participants.length}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "40px 20px",
-            color: "#6b7280",
-          }}
-        >
-          <UserCheck
-            size={48}
-            color="#d1d5db"
-            style={{ marginBottom: "16px" }}
-          />
-          <p style={{ margin: 0, fontSize: "16px" }}>
-            Aucun participant dans cette session
-          </p>
-          <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>
-            Ajoutez des participants pour gérer leur présence
-          </p>
-        </div>
-      )}
+    <div
+      className="avatar"
+      style={{
+        backgroundColor,
+        width: '50px',
+        height: '50px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: '16px',
+        margin: '4px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        cursor: 'pointer',
+        transition: 'transform 0.2s'
+      }}
+      onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+      title={participant.name || `${participant.firstName} ${participant.lastName}`}
+    >
+      {initials}
     </div>
   );
-}
+};
+
+// Composant principal
+const ParticipantAvatars = () => {
+  const [participants, setParticipants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [colorMethod, setColorMethod] = useState('name-based');
+
+  // Simulation d'une API call
+  const fetchParticipants = async () => {
+    setLoading(true);
+    
+    // Simuler un délai d'API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Données simulées - remplacez par votre vraie API
+    const mockData = [
+      { id: 1, name: "Marie Dupont", email: "marie@example.com" },
+      { id: 2, firstName: "Jean", lastName: "Martin", email: "jean@example.com" },
+      { id: 3, name: "Sophie Bernard", email: "sophie@example.com" },
+      { id: 4, firstName: "Pierre", lastName: "Durand", email: "pierre@example.com" },
+      { id: 5, name: "Anna Lefebvre", email: "anna@example.com" },
+      { id: 6, firstName: "Marc", lastName: "Roux", email: "marc@example.com" },
+      { id: 7, name: "Julie Moreau", email: "julie@example.com" },
+      { id: 8, firstName: "Thomas", lastName: "Simon", email: "thomas@example.com" }
+    ];
+    
+    setParticipants(mockData);
+    setLoading(false);
+  };
+
+  // Votre vraie fonction API ressemblerait à ça :
+  /*
+  const fetchParticipants = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/participants');
+      const data = await response.json();
+      setParticipants(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des participants:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  */
+
+  useEffect(() => {
+    fetchParticipants();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          margin: '0 auto 20px'
+        }}></div>
+        <p>Chargement des participants...</p>
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ 
+      maxWidth: '800px', 
+      margin: '0 auto', 
+      padding: '20px',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <h1 style={{ textAlign: 'center', color: '#2c3e50', marginBottom: '30px' }}>
+        🎨 Avatars des Participants
+      </h1>
+
+      {/* Contrôles */}
+      <div style={{ 
+        marginBottom: '30px', 
+        padding: '20px', 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '8px',
+        display: 'flex',
+        gap: '15px',
+        flexWrap: 'wrap',
+        alignItems: 'center'
+      }}>
+        <label style={{ fontWeight: 'bold', color: '#34495e' }}>
+          Méthode de couleur :
+        </label>
+        
+        <button
+          onClick={() => setColorMethod('name-based')}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            backgroundColor: colorMethod === 'name-based' ? '#3498db' : '#ecf0f1',
+            color: colorMethod === 'name-based' ? 'white' : '#34495e',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          Basée sur le nom
+        </button>
+        
+        <button
+          onClick={() => setColorMethod('preset')}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            backgroundColor: colorMethod === 'preset' ? '#3498db' : '#ecf0f1',
+            color: colorMethod === 'preset' ? 'white' : '#34495e',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          Palette prédéfinie
+        </button>
+        
+        <button
+          onClick={() => setColorMethod('random')}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            backgroundColor: colorMethod === 'random' ? '#3498db' : '#ecf0f1',
+            color: colorMethod === 'random' ? 'white' : '#34495e',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          Aléatoire
+        </button>
+
+        <button
+          onClick={fetchParticipants}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            backgroundColor: '#2ecc71',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '14px',
+            marginLeft: 'auto'
+          }}
+        >
+          🔄 Recharger
+        </button>
+      </div>
+
+      {/* Liste des avatars */}
+      <div style={{ 
+        display: 'flex', 
+        flexWrap: 'wrap', 
+        gap: '12px',
+        padding: '20px',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+      }}>
+        {participants.map((participant, index) => (
+          <Avatar
+            key={participant.id}
+            participant={participant}
+            colorMethod={colorMethod}
+            index={index}
+          />
+        ))}
+      </div>
+
+      {/* Informations */}
+      <div style={{ 
+        marginTop: '30px', 
+        padding: '20px', 
+        backgroundColor: '#e8f5e8', 
+        borderRadius: '8px',
+        borderLeft: '4px solid #2ecc71'
+      }}>
+        <h3 style={{ color: '#27ae60', marginTop: 0 }}>💡 Comment utiliser :</h3>
+        <ul style={{ color: '#2d5a2d', lineHeight: '1.6' }}>
+          <li><strong>Basée sur le nom :</strong> Même couleur pour chaque personne (recommandé)</li>
+          <li><strong>Palette prédéfinie :</strong> Utilise des couleurs harmonieuses</li>
+          <li><strong>Aléatoire :</strong> Nouvelle couleur à chaque chargement</li>
+        </ul>
+        <p style={{ color: '#2d5a2d', marginBottom: 0 }}>
+          Total : <strong>{participants.length} participants</strong>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default ParticipantAvatars;
