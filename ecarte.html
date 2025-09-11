@@ -1,252 +1,318 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const PieceComptable = () => {
-  const [lignes, setLignes] = useState([
-    { compte: '512001', libelle: 'Banque Crédit Agricole', debit: 15000, credit: 0 },
-    { compte: '411001', libelle: 'Client Dupont SA', debit: 0, credit: 12000 },
-    { compte: '701001', libelle: 'Ventes de marchandises', debit: 0, credit: 3000 }
-  ]);
-
-  const [nouvelleLigne, setNouvelleLigne] = useState({
-    compte: '',
-    libelle: '',
-    debit: 0,
-    credit: 0
-  });
-
-  const ajouterLigne = () => {
-    if (nouvelleLigne.compte && nouvelleLigne.libelle) {
-      setLignes([...lignes, { ...nouvelleLigne }]);
-      setNouvelleLigne({ compte: '', libelle: '', debit: 0, credit: 0 });
-    }
-  };
-
-  const supprimerLigne = (index) => {
-    setLignes(lignes.filter((_, i) => i !== index));
-  };
-
-  const totalDebit = lignes.reduce((sum, ligne) => sum + Number(ligne.debit), 0);
-  const totalCredit = lignes.reduce((sum, ligne) => sum + Number(ligne.credit), 0);
-
-  const containerStyle = {
-    maxWidth: '1200px',
-    margin: '20px auto',
-    padding: '20px',
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-  };
-
-  const headerStyle = {
-    backgroundColor: '#2c3e50',
-    color: 'white',
-    padding: '20px',
-    borderRadius: '8px 8px 0 0',
-    marginBottom: '20px'
-  };
-
-  const titleStyle = {
-    margin: '0 0 10px 0',
-    fontSize: '24px',
-    fontWeight: 'bold'
-  };
-
-  const infoRowStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '14px'
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  };
-
-  const thStyle = {
-    backgroundColor: '#34495e',
-    color: 'white',
-    padding: '12px',
-    textAlign: 'left',
-    fontWeight: 'bold',
-    fontSize: '14px'
-  };
-
-  const tdStyle = {
-    padding: '10px 12px',
-    borderBottom: '1px solid #eee',
-    fontSize: '13px'
-  };
-
-  const inputRowStyle = {
-    backgroundColor: '#f1f2f6'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '8px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '13px'
-  };
-
-  const buttonStyle = {
-    backgroundColor: '#27ae60',
-    color: 'white',
-    border: 'none',
-    padding: '8px 15px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    fontWeight: 'bold'
-  };
-
-  const deleteButtonStyle = {
-    backgroundColor: '#e74c3c',
-    color: 'white',
-    border: 'none',
-    padding: '5px 10px',
-    borderRadius: '3px',
-    cursor: 'pointer',
-    fontSize: '11px'
-  };
-
-  const totalRowStyle = {
-    backgroundColor: '#2c3e50',
-    color: 'white',
-    fontWeight: 'bold'
-  };
-
-  const numberStyle = {
-    textAlign: 'right'
-  };
-
-  const balanceStyle = {
-    margin: '20px 0',
-    padding: '15px',
-    backgroundColor: totalDebit === totalCredit ? '#d4edda' : '#f8d7da',
-    border: `1px solid ${totalDebit === totalCredit ? '#c3e6cb' : '#f5c6cb'}`,
-    borderRadius: '5px',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: totalDebit === totalCredit ? '#155724' : '#721c24'
-  };
-
-  const formatNumber = (num) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(num);
-  };
-
+// Simulation du package react-table-component
+// En pratique, vous importeriez : import { Table } from 'react-table-component';
+const Table = ({ data, columns, style }) => {
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>PIÈCE COMPTABLE</h1>
-        <div style={infoRowStyle}>
-          <span>N° de pièce: PC-2024-001</span>
-          <span>Date: {new Date().toLocaleDateString('fr-FR')}</span>
-          <span>Journal: VTE</span>
-        </div>
-      </div>
-
-      <table style={tableStyle}>
-        <thead>
+    <div style={{ overflowX: 'auto', ...style }}>
+      <table style={{ width: '100%', border: '1px solid #d1d5db', borderCollapse: 'collapse' }}>
+        <thead style={{ backgroundColor: '#f9fafb' }}>
           <tr>
-            <th style={thStyle}>N° Compte</th>
-            <th style={thStyle}>Libellé</th>
-            <th style={thStyle}>Débit (€)</th>
-            <th style={thStyle}>Crédit (€)</th>
-            <th style={thStyle}>Actions</th>
+            {columns.map((column, index) => (
+              <th
+                key={index}
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  borderBottom: '1px solid #d1d5db'
+                }}
+              >
+                {column.header}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {lignes.map((ligne, index) => (
-            <tr key={index}>
-              <td style={tdStyle}>{ligne.compte}</td>
-              <td style={tdStyle}>{ligne.libelle}</td>
-              <td style={{...tdStyle, ...numberStyle}}>
-                {ligne.debit > 0 ? formatNumber(ligne.debit) : '-'}
-              </td>
-              <td style={{...tdStyle, ...numberStyle}}>
-                {ligne.credit > 0 ? formatNumber(ligne.credit) : '-'}
-              </td>
-              <td style={tdStyle}>
-                <button 
-                  style={deleteButtonStyle}
-                  onClick={() => supprimerLigne(index)}
+          {data.map((row, rowIndex) => (
+            <tr 
+              key={rowIndex} 
+              style={{ backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }}
+            >
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}
                 >
-                  Supprimer
-                </button>
-              </td>
+                  {row[column.accessor]}
+                </td>
+              ))}
             </tr>
           ))}
-          
-          <tr style={inputRowStyle}>
-            <td style={tdStyle}>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="N° compte"
-                value={nouvelleLigne.compte}
-                onChange={(e) => setNouvelleLigne({...nouvelleLigne, compte: e.target.value})}
-              />
-            </td>
-            <td style={tdStyle}>
-              <input
-                style={inputStyle}
-                type="text"
-                placeholder="Libellé"
-                value={nouvelleLigne.libelle}
-                onChange={(e) => setNouvelleLigne({...nouvelleLigne, libelle: e.target.value})}
-              />
-            </td>
-            <td style={tdStyle}>
-              <input
-                style={inputStyle}
-                type="number"
-                placeholder="Débit"
-                value={nouvelleLigne.debit}
-                onChange={(e) => setNouvelleLigne({...nouvelleLigne, debit: Number(e.target.value)})}
-              />
-            </td>
-            <td style={tdStyle}>
-              <input
-                style={inputStyle}
-                type="number"
-                placeholder="Crédit"
-                value={nouvelleLigne.credit}
-                onChange={(e) => setNouvelleLigne({...nouvelleLigne, credit: Number(e.target.value)})}
-              />
-            </td>
-            <td style={tdStyle}>
-              <button style={buttonStyle} onClick={ajouterLigne}>
-                Ajouter
-              </button>
-            </td>
-          </tr>
-          
-          <tr style={totalRowStyle}>
-            <td style={tdStyle} colSpan="2">TOTAUX</td>
-            <td style={{...tdStyle, ...numberStyle}}>{formatNumber(totalDebit)}</td>
-            <td style={{...tdStyle, ...numberStyle}}>{formatNumber(totalCredit)}</td>
-            <td style={tdStyle}></td>
-          </tr>
         </tbody>
       </table>
+    </div>
+  );
+};
 
-      <div style={balanceStyle}>
-        {totalDebit === totalCredit ? 
-          '✓ Équilibre respecté - Débit = Crédit' : 
-          `⚠ Déséquilibre: ${formatNumber(Math.abs(totalDebit - totalCredit))}€`
-        }
+const ReactTablesComponent = () => {
+  // Premier tableau - Données basées sur la structure "Data"
+  const dataColumns = [
+    { header: 'Matricule', accessor: 'matricule' },
+    { header: 'Nom', accessor: 'nom' },
+    { header: 'Prénom', accessor: 'prenom' },
+    { header: 'Numéro Compte', accessor: 'numero_compte' },
+    { header: 'Mode Hébergement', accessor: 'accommodation_mode' },
+    { header: 'Nom Hôtel', accessor: 'hotel_name' },
+    { header: 'Nombre de Nuits', accessor: 'number_of_nights' },
+    { header: 'Coût par Nuit', accessor: 'nightly_cost' },
+    { header: 'Type Transport', accessor: 'type_transport' },
+    { header: 'Coût Péage', accessor: 'toll_cost' },
+    { header: 'Coût Transport A/R', accessor: 'cost_of_round_trip_transport' },
+    { header: 'Date Arrivée', accessor: 'arrival_date' },
+    { header: 'Date Retour', accessor: 'return_date' },
+    { header: 'Durée (jours)', accessor: 'duration_in_days' },
+    { header: 'Allocation Hébergement', accessor: 'accommodation_allowance' },
+    { header: 'Total Hébergement', accessor: 'total_accommodation' },
+    { header: 'Total Hébergement + Perdiem', accessor: 'total_accommodation_and_perdiem' },
+    { header: 'Distance', accessor: 'distance' },
+    { header: 'Allocation Transport', accessor: 'transport_allowance' },
+    { header: 'Coût Taxi', accessor: 'cab_cost' },
+    { header: 'Total Transport', accessor: 'total_transport' },
+    { header: 'Montant Total Remboursement', accessor: 'total_amount_to_be_reimbursed' }
+  ];
+
+  const dataTableData = [
+    {
+      matricule: 'EMP001',
+      nom: 'Dupont',
+      prenom: 'Jean',
+      numero_compte: '123456789',
+      accommodation_mode: 'Hôtel',
+      hotel_name: 'Hôtel Central',
+      number_of_nights: 3,
+      nightly_cost: 120,
+      type_transport: 'Voiture',
+      toll_cost: 25,
+      cost_of_round_trip_transport: 150,
+      arrival_date: '2024-01-15',
+      return_date: '2024-01-18',
+      duration_in_days: 3,
+      accommodation_allowance: 300,
+      total_accommodation: 360,
+      total_accommodation_and_perdiem: 450,
+      distance: 250,
+      transport_allowance: 100,
+      cab_cost: 30,
+      total_transport: 180,
+      total_amount_to_be_reimbursed: 630
+    },
+    {
+      matricule: 'EMP002',
+      nom: 'Martin',
+      prenom: 'Marie',
+      numero_compte: '987654321',
+      accommodation_mode: 'Hébergement privé',
+      hotel_name: '',
+      number_of_nights: 2,
+      nightly_cost: 0,
+      type_transport: 'Train',
+      toll_cost: 0,
+      cost_of_round_trip_transport: 180,
+      arrival_date: '2024-01-20',
+      return_date: '2024-01-22',
+      duration_in_days: 2,
+      accommodation_allowance: 200,
+      total_accommodation: 200,
+      total_accommodation_and_perdiem: 280,
+      distance: 300,
+      transport_allowance: 120,
+      cab_cost: 20,
+      total_transport: 200,
+      total_amount_to_be_reimbursed: 480
+    }
+  ];
+
+  // Deuxième tableau - Données basées sur la structure "Piece_comptable"
+  const pieceComptableColumns = [
+    { header: 'Code AG Débit', accessor: 'code_ag_debit' },
+    { header: 'Compte de Charges', accessor: 'compte_de_charges' },
+    { header: 'Sens au Débit', accessor: 'sens_au_debit' },
+    { header: 'Montant au Débit', accessor: 'montant_au_debit' },
+    { header: 'Matricule', accessor: 'matricule' },
+    { header: 'Libellé Complémentaire', accessor: 'libelle_complementaire' },
+    { header: 'Code AG Crédit', accessor: 'code_ag_credit' },
+    { header: 'Sens au Crédit', accessor: 'sens_au_credit' },
+    { header: 'Montant au Crédit', accessor: 'montant_au_credit' },
+    { header: 'Fournisseur', accessor: 'fournisseur' },
+    { header: 'Compte Contrepartie', accessor: 'compte_contrepartie' }
+  ];
+
+  const pieceComptableData = [
+    {
+      code_ag_debit: 'AG001',
+      compte_de_charges: '6251000',
+      sens_au_debit: 'D',
+      montant_au_debit: 630,
+      matricule: 'EMP001',
+      libelle_complementaire: 'Frais mission Jean Dupont',
+      code_ag_credit: 'AG001',
+      sens_au_credit: 'C',
+      montant_au_credit: 630,
+      fournisseur: 'TRESORERIE',
+      compte_contrepartie: '5312000'
+    },
+    {
+      code_ag_debit: 'AG002',
+      compte_de_charges: '6251000',
+      sens_au_debit: 'D',
+      montant_au_debit: 480,
+      matricule: 'EMP002',
+      libelle_complementaire: 'Frais mission Marie Martin',
+      code_ag_credit: 'AG002',
+      sens_au_credit: 'C',
+      montant_au_credit: 480,
+      fournisseur: 'TRESORERIE',
+      compte_contrepartie: '5312000'
+    }
+  ];
+
+  return (
+    <div style={{ 
+      padding: '24px', 
+      backgroundColor: '#f3f4f6', 
+      minHeight: '100vh',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h1 style={{ 
+        fontSize: '32px', 
+        fontWeight: 'bold', 
+        color: '#1f2937', 
+        textAlign: 'center', 
+        marginBottom: '32px' 
+      }}>
+        Tableaux de Synthèse
+      </h1>
+
+      {/* Premier tableau - Données */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderRadius: '8px', 
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+        padding: '24px',
+        marginBottom: '32px'
+      }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '16px',
+          borderBottom: '2px solid #e5e7eb',
+          paddingBottom: '8px'
+        }}>
+          📊 Tableau de Données - Frais de Mission
+        </h2>
+        <div style={{ 
+          marginBottom: '16px', 
+          fontSize: '14px', 
+          color: '#6b7280' 
+        }}>
+          Ce tableau présente le détail des frais de mission pour chaque employé
+        </div>
+        <Table 
+          data={dataTableData} 
+          columns={dataColumns}
+          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        />
+      </div>
+
+      {/* Deuxième tableau - Pièce comptable */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderRadius: '8px', 
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+        padding: '24px',
+        marginBottom: '32px'
+      }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '16px',
+          borderBottom: '2px solid #e5e7eb',
+          paddingBottom: '8px'
+        }}>
+          💰 Tableau Pièce Comptable
+        </h2>
+        <div style={{ 
+          marginBottom: '16px', 
+          fontSize: '14px', 
+          color: '#6b7280' 
+        }}>
+          Ce tableau présente les écritures comptables correspondant aux remboursements
+        </div>
+        <Table 
+          data={pieceComptableData} 
+          columns={pieceComptableColumns}
+          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        />
+      </div>
+
+      {/* Résumé */}
+      <div style={{ 
+        backgroundColor: '#eff6ff', 
+        borderRadius: '8px', 
+        padding: '24px',
+        borderLeft: '4px solid #3b82f6'
+      }}>
+        <h3 style={{ 
+          fontSize: '18px', 
+          fontWeight: '600', 
+          color: '#1e40af', 
+          marginBottom: '8px' 
+        }}>
+          📋 Résumé
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: '16px', 
+          fontSize: '14px' 
+        }}>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: '500', color: '#374151' }}>Total Employés</div>
+            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>
+              {dataTableData.length}
+            </div>
+          </div>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: '500', color: '#374151' }}>Montant Total</div>
+            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#059669' }}>
+              {dataTableData.reduce((sum, item) => sum + item.total_amount_to_be_reimbursed, 0).toLocaleString()} €
+            </div>
+          </div>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: '500', color: '#374151' }}>Écritures Comptables</div>
+            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#7c3aed' }}>
+              {pieceComptableData.length}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default PieceComptable;
+export default ReactTablesComponent;
