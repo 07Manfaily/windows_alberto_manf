@@ -1,318 +1,147 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Plus, X, Users, Calendar } from 'lucide-react';
 
-// Simulation du package react-table-component
-// En pratique, vous importeriez : import { Table } from 'react-table-component';
-const Table = ({ data, columns, style }) => {
+const UserMeetingSelector = () => {
+  // Liste d'utilisateurs exemple
+  const [allUsers] = useState([
+    { id: 1, name: 'Marie Dupont', email: 'marie.dupont@email.com', department: 'Marketing' },
+    { id: 2, name: 'Pierre Martin', email: 'pierre.martin@email.com', department: 'Développement' },
+    { id: 3, name: 'Sophie Durand', email: 'sophie.durand@email.com', department: 'Design' },
+    { id: 4, name: 'Jean Moreau', email: 'jean.moreau@email.com', department: 'Commercial' },
+    { id: 5, name: 'Lisa Chen', email: 'lisa.chen@email.com', department: 'RH' },
+    { id: 6, name: 'Alex Dubois', email: 'alex.dubois@email.com', department: 'Finance' },
+    { id: 7, name: 'Emma Leroy', email: 'emma.leroy@email.com', department: 'Support' },
+    { id: 8, name: 'Thomas Bernard', email: 'thomas.bernard@email.com', department: 'Marketing' }
+  ]);
+
+  // Utilisateurs sélectionnés pour la réunion
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
+  // Ajouter un utilisateur à la réunion
+  const addUserToMeeting = (user) => {
+    if (!selectedUsers.find(u => u.id === user.id)) {
+      setSelectedUsers([...selectedUsers, user]);
+    }
+  };
+
+  // Supprimer un utilisateur de la réunion
+  const removeUserFromMeeting = (userId) => {
+    setSelectedUsers(selectedUsers.filter(user => user.id !== userId));
+  };
+
+  // Obtenir les utilisateurs non sélectionnés
+  const availableUsers = allUsers.filter(user => 
+    !selectedUsers.find(selected => selected.id === user.id)
+  );
+
   return (
-    <div style={{ overflowX: 'auto', ...style }}>
-      <table style={{ width: '100%', border: '1px solid #d1d5db', borderCollapse: 'collapse' }}>
-        <thead style={{ backgroundColor: '#f9fafb' }}>
-          <tr>
-            {columns.map((column, index) => (
-              <th
-                key={index}
-                style={{
-                  padding: '12px 16px',
-                  textAlign: 'left',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  borderBottom: '1px solid #d1d5db'
-                }}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, rowIndex) => (
-            <tr 
-              key={rowIndex} 
-              style={{ backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }}
-            >
-              {columns.map((column, colIndex) => (
-                <td
-                  key={colIndex}
-                  style={{
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    color: '#111827',
-                    borderBottom: '1px solid #e5e7eb'
-                  }}
-                >
-                  {row[column.accessor]}
-                </td>
+    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <Calendar className="text-blue-500" />
+          Organisateur de réunion
+        </h1>
+        <p className="text-gray-600">Sélectionnez les participants pour votre réunion</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Tableau des utilisateurs disponibles */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Users className="text-green-500" />
+            Utilisateurs disponibles ({availableUsers.length})
+          </h2>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="text-left py-3 px-2 font-semibold text-gray-700">Nom</th>
+                  <th className="text-left py-3 px-2 font-semibold text-gray-700">Département</th>
+                  <th className="text-center py-3 px-2 font-semibold text-gray-700">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availableUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-2">
+                      <div>
+                        <div className="font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-2">
+                      <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {user.department}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <button
+                        onClick={() => addUserToMeeting(user)}
+                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors duration-200 flex items-center justify-center mx-auto"
+                        title="Ajouter à la réunion"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {availableUsers.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                Tous les utilisateurs ont été sélectionnés pour la réunion
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Liste des participants sélectionnés */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Calendar className="text-blue-500" />
+            Participants sélectionnés ({selectedUsers.length})
+          </h2>
+          
+          {selectedUsers.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
+              <p>Aucun participant sélectionné</p>
+              <p className="text-sm">Cliquez sur + pour ajouter des participants</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {selectedUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{user.name}</div>
+                    <div className="text-sm text-gray-600">{user.email}</div>
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">
+                      {user.department}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => removeUserFromMeeting(user.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200 ml-3"
+                    title="Retirer de la réunion"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const ReactTablesComponent = () => {
-  // Premier tableau - Données basées sur la structure "Data"
-  const dataColumns = [
-    { header: 'Matricule', accessor: 'matricule' },
-    { header: 'Nom', accessor: 'nom' },
-    { header: 'Prénom', accessor: 'prenom' },
-    { header: 'Numéro Compte', accessor: 'numero_compte' },
-    { header: 'Mode Hébergement', accessor: 'accommodation_mode' },
-    { header: 'Nom Hôtel', accessor: 'hotel_name' },
-    { header: 'Nombre de Nuits', accessor: 'number_of_nights' },
-    { header: 'Coût par Nuit', accessor: 'nightly_cost' },
-    { header: 'Type Transport', accessor: 'type_transport' },
-    { header: 'Coût Péage', accessor: 'toll_cost' },
-    { header: 'Coût Transport A/R', accessor: 'cost_of_round_trip_transport' },
-    { header: 'Date Arrivée', accessor: 'arrival_date' },
-    { header: 'Date Retour', accessor: 'return_date' },
-    { header: 'Durée (jours)', accessor: 'duration_in_days' },
-    { header: 'Allocation Hébergement', accessor: 'accommodation_allowance' },
-    { header: 'Total Hébergement', accessor: 'total_accommodation' },
-    { header: 'Total Hébergement + Perdiem', accessor: 'total_accommodation_and_perdiem' },
-    { header: 'Distance', accessor: 'distance' },
-    { header: 'Allocation Transport', accessor: 'transport_allowance' },
-    { header: 'Coût Taxi', accessor: 'cab_cost' },
-    { header: 'Total Transport', accessor: 'total_transport' },
-    { header: 'Montant Total Remboursement', accessor: 'total_amount_to_be_reimbursed' }
-  ];
-
-  const dataTableData = [
-    {
-      matricule: 'EMP001',
-      nom: 'Dupont',
-      prenom: 'Jean',
-      numero_compte: '123456789',
-      accommodation_mode: 'Hôtel',
-      hotel_name: 'Hôtel Central',
-      number_of_nights: 3,
-      nightly_cost: 120,
-      type_transport: 'Voiture',
-      toll_cost: 25,
-      cost_of_round_trip_transport: 150,
-      arrival_date: '2024-01-15',
-      return_date: '2024-01-18',
-      duration_in_days: 3,
-      accommodation_allowance: 300,
-      total_accommodation: 360,
-      total_accommodation_and_perdiem: 450,
-      distance: 250,
-      transport_allowance: 100,
-      cab_cost: 30,
-      total_transport: 180,
-      total_amount_to_be_reimbursed: 630
-    },
-    {
-      matricule: 'EMP002',
-      nom: 'Martin',
-      prenom: 'Marie',
-      numero_compte: '987654321',
-      accommodation_mode: 'Hébergement privé',
-      hotel_name: '',
-      number_of_nights: 2,
-      nightly_cost: 0,
-      type_transport: 'Train',
-      toll_cost: 0,
-      cost_of_round_trip_transport: 180,
-      arrival_date: '2024-01-20',
-      return_date: '2024-01-22',
-      duration_in_days: 2,
-      accommodation_allowance: 200,
-      total_accommodation: 200,
-      total_accommodation_and_perdiem: 280,
-      distance: 300,
-      transport_allowance: 120,
-      cab_cost: 20,
-      total_transport: 200,
-      total_amount_to_be_reimbursed: 480
-    }
-  ];
-
-  // Deuxième tableau - Données basées sur la structure "Piece_comptable"
-  const pieceComptableColumns = [
-    { header: 'Code AG Débit', accessor: 'code_ag_debit' },
-    { header: 'Compte de Charges', accessor: 'compte_de_charges' },
-    { header: 'Sens au Débit', accessor: 'sens_au_debit' },
-    { header: 'Montant au Débit', accessor: 'montant_au_debit' },
-    { header: 'Matricule', accessor: 'matricule' },
-    { header: 'Libellé Complémentaire', accessor: 'libelle_complementaire' },
-    { header: 'Code AG Crédit', accessor: 'code_ag_credit' },
-    { header: 'Sens au Crédit', accessor: 'sens_au_credit' },
-    { header: 'Montant au Crédit', accessor: 'montant_au_credit' },
-    { header: 'Fournisseur', accessor: 'fournisseur' },
-    { header: 'Compte Contrepartie', accessor: 'compte_contrepartie' }
-  ];
-
-  const pieceComptableData = [
-    {
-      code_ag_debit: 'AG001',
-      compte_de_charges: '6251000',
-      sens_au_debit: 'D',
-      montant_au_debit: 630,
-      matricule: 'EMP001',
-      libelle_complementaire: 'Frais mission Jean Dupont',
-      code_ag_credit: 'AG001',
-      sens_au_credit: 'C',
-      montant_au_credit: 630,
-      fournisseur: 'TRESORERIE',
-      compte_contrepartie: '5312000'
-    },
-    {
-      code_ag_debit: 'AG002',
-      compte_de_charges: '6251000',
-      sens_au_debit: 'D',
-      montant_au_debit: 480,
-      matricule: 'EMP002',
-      libelle_complementaire: 'Frais mission Marie Martin',
-      code_ag_credit: 'AG002',
-      sens_au_credit: 'C',
-      montant_au_credit: 480,
-      fournisseur: 'TRESORERIE',
-      compte_contrepartie: '5312000'
-    }
-  ];
-
-  return (
-    <div style={{ 
-      padding: '24px', 
-      backgroundColor: '#f3f4f6', 
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ 
-        fontSize: '32px', 
-        fontWeight: 'bold', 
-        color: '#1f2937', 
-        textAlign: 'center', 
-        marginBottom: '32px' 
-      }}>
-        Tableaux de Synthèse
-      </h1>
-
-      {/* Premier tableau - Données */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        borderRadius: '8px', 
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-        padding: '24px',
-        marginBottom: '32px'
-      }}>
-        <h2 style={{ 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          color: '#374151', 
-          marginBottom: '16px',
-          borderBottom: '2px solid #e5e7eb',
-          paddingBottom: '8px'
-        }}>
-          📊 Tableau de Données - Frais de Mission
-        </h2>
-        <div style={{ 
-          marginBottom: '16px', 
-          fontSize: '14px', 
-          color: '#6b7280' 
-        }}>
-          Ce tableau présente le détail des frais de mission pour chaque employé
-        </div>
-        <Table 
-          data={dataTableData} 
-          columns={dataColumns}
-          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-        />
-      </div>
-
-      {/* Deuxième tableau - Pièce comptable */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        borderRadius: '8px', 
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-        padding: '24px',
-        marginBottom: '32px'
-      }}>
-        <h2 style={{ 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          color: '#374151', 
-          marginBottom: '16px',
-          borderBottom: '2px solid #e5e7eb',
-          paddingBottom: '8px'
-        }}>
-          💰 Tableau Pièce Comptable
-        </h2>
-        <div style={{ 
-          marginBottom: '16px', 
-          fontSize: '14px', 
-          color: '#6b7280' 
-        }}>
-          Ce tableau présente les écritures comptables correspondant aux remboursements
-        </div>
-        <Table 
-          data={pieceComptableData} 
-          columns={pieceComptableColumns}
-          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-        />
-      </div>
-
-      {/* Résumé */}
-      <div style={{ 
-        backgroundColor: '#eff6ff', 
-        borderRadius: '8px', 
-        padding: '24px',
-        borderLeft: '4px solid #3b82f6'
-      }}>
-        <h3 style={{ 
-          fontSize: '18px', 
-          fontWeight: '600', 
-          color: '#1e40af', 
-          marginBottom: '8px' 
-        }}>
-          📋 Résumé
-        </h3>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '16px', 
-          fontSize: '14px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: '500', color: '#374151' }}>Total Employés</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>
-              {dataTableData.length}
+              
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200">
+                  Organiser la réunion ({selectedUsers.length} participant{selectedUsers.length > 1 ? 's' : ''})
+                </button>
+              </div>
             </div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: '500', color: '#374151' }}>Montant Total</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#059669' }}>
-              {dataTableData.reduce((sum, item) => sum + item.total_amount_to_be_reimbursed, 0).toLocaleString()} €
-            </div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: '500', color: '#374151' }}>Écritures Comptables</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#7c3aed' }}>
-              {pieceComptableData.length}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default ReactTablesComponent;
+export default UserMeetingSelector;
