@@ -1,36 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const DirectionEffectifSelector = () => {
-  // Génération de 100 directions d'exemple
-  const [directions] = useState(() => {
-    const baseDirections = [
-      'Direction Générale', 'Direction des Ressources Humaines', 'Direction Financière',
-      'Direction Commerciale', 'Direction Technique', 'Direction Marketing',
-      'Direction Juridique', 'Direction Opérationnelle', 'Direction de la Qualité',
-      'Direction des Achats', 'Direction Logistique', 'Direction Innovation',
-      'Direction Communication', 'Direction Formation', 'Direction Sécurité',
-      'Direction Audit', 'Direction Stratégie', 'Direction Production',
-      'Direction Maintenance', 'Direction Environnement'
-    ];
-    
-    const allDirections = [];
-    for (let i = 1; i <= 100; i++) {
-      if (i <= baseDirections.length) {
-        allDirections.push(baseDirections[i - 1]);
-      } else {
-        const baseIndex = (i - 1) % baseDirections.length;
-        allDirections.push(`${baseDirections[baseIndex]} ${Math.ceil(i / baseDirections.length)}`);
-      }
-    }
-    return allDirections.sort();
-  });
-
+const DirectionEffectifSelector = ({ formData, setFormData, errors }) => {
+  // Utiliser les données du formData.stepG au lieu d'un état local
+  const [_directions, setDirections] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDirections, setSelectedDirections] = useState({}); // {directionName: effectif}
+  const [selectedDirections, setSelectedDirections] = useState(formData?.stepG?.selectedDirections || {});
   const [currentDirection, setCurrentDirection] = useState('');
   const [currentEffectif, setCurrentEffectif] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
-  const filteredDirections = directions.filter(direction =>
+  // Fetch des directions depuis l'API
+  useEffect(() => {
+    const fetchDirections = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("formation/directions"); // Votre endpoint
+        const data = await response.json();
+        setDirections(data.directions || []);
+      } catch (error) {
+        console.error("Erreur lors du chargement des directions:", error);
+        setDirections([]); // Fallback à un tableau vide
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDirections();
+  }, []);
+
+  // Filtrer les directions selon le terme de recherche
+  const filteredDirections = _directions.filter(direction =>
     direction.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -41,10 +41,23 @@ const DirectionEffectifSelector = () => {
 
   const handleAddDirection = () => {
     if (currentDirection && currentEffectif) {
-      setSelectedDirections(prev => ({
-        ...prev,
+      const newSelectedDirections = {
+        ...selectedDirections,
         [currentDirection]: parseInt(currentEffectif)
+      };
+      
+      setSelectedDirections(newSelectedDirections);
+      
+      // Mettre à jour le formData
+      setFormData(prev => ({
+        ...prev,
+        stepG: {
+          ...prev.stepG,
+          selectedDirections: newSelectedDirections,
+          totalEffectif: Object.values(newSelectedDirections).reduce((sum, eff) => sum + eff, 0)
+        }
       }));
+      
       setCurrentDirection('');
       setCurrentEffectif('');
       setSearchTerm('');
@@ -52,11 +65,64 @@ const DirectionEffectifSelector = () => {
   };
 
   const handleRemoveDirection = (direction) => {
-    setSelectedDirections(prev => {
-      const newDirections = { ...prev };
-      delete newDirections[direction];
-      return newDirections;
-    });
+    const newSelectedDirections = { ...selectedDirections };
+    delete newSelectedDirections[direction];
+    
+    setSelectedDirections(newSelectedDirections);
+    
+    // Mettre à jour le formData
+    setFormData(prev => ({
+      ...prev,
+      stepG: {
+        ...prev.stepG,
+        selectedDirections: newSelectedDirections,
+        totalEffectif: Object.values(newSelectedDirections).reduce((sum, eff) => sum + eff, 0)
+      }
+    }));
+  };
+
+  // Fonction pour envoyer les données à l'API
+  const sendToAPI = async () => {
+    setIsSending(true);
+    
+    try {
+      const dataToSend = {
+        directions: Object.entries(selectedDirections).map(([direction, effectif]) => ({
+          nom: direction,
+          effectif: effectif
+        })),
+        effectifTotal: Object.values(selectedDirections).reduce((sum, eff) => sum + eff, 0),
+        nombreDirections: Object.keys(selectedDirections).length,
+        // Vous pouvez ajouter d'autres données du formData si nécessaire
+        ...formData // Inclure toutes les autres étapes du formulaire
+      };
+
+      const response = await fetch('/api/directions-effectifs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('Données envoyées avec succès !');
+        console.log('Réponse de l\'API:', result);
+        
+        // Optionnel: passer à l'étape suivante du formulaire
+        // setFormData(prev => ({ ...prev, currentStep: 'stepH' }));
+        
+      } else {
+        throw new Error('Erreur lors de l\'envoi des données');
+      }
+      
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'envoi des données. Veuillez réessayer.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const totalEffectif = Object.values(selectedDirections).reduce((sum, eff) => sum + eff, 0);
@@ -100,324 +166,405 @@ const DirectionEffectifSelector = () => {
           </p>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '30px'
-        }}>
-          
-          {/* Section de sélection */}
-          <div>
-            <h3 style={{
-              color: '#2c3e50',
-              marginBottom: '20px',
-              fontSize: '1.3em',
-              fontWeight: '600'
-            }}>
-              🔍 Recherche et Sélection
-            </h3>
+        {/* Loading state */}
+        {isLoading && (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px',
+            color: '#7f8c8d'
+          }}>
+            <div style={{
+              display: 'inline-block',
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #3498db',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p>Chargement des directions...</p>
+          </div>
+        )}
+
+        {!isLoading && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '30px'
+          }}>
             
-            {/* Barre de recherche */}
-            <div style={{
-              marginBottom: '20px'
-            }}>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher une direction..."
-                style={{
-                  width: '100%',
-                  padding: '12px 15px',
-                  borderRadius: '10px',
-                  border: '2px solid #e2e8f0',
-                  fontSize: '1em',
-                  outline: 'none',
-                  transition: 'border-color 0.3s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#3498db';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0';
-                }}
-              />
-            </div>
-
-            {/* Liste des directions */}
-            <div style={{
-              maxHeight: '300px',
-              overflowY: 'auto',
-              border: '1px solid #e2e8f0',
-              borderRadius: '10px',
-              backgroundColor: '#f8fafc'
-            }}>
-              {filteredDirections.map((direction, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleDirectionSelect(direction)}
-                  style={{
-                    padding: '10px 15px',
-                    borderBottom: '1px solid #e2e8f0',
-                    cursor: 'pointer',
-                    backgroundColor: currentDirection === direction ? '#e8f4fd' : 'transparent',
-                    color: currentDirection === direction ? '#2980b9' : '#2c3e50',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentDirection !== direction) {
-                      e.target.style.backgroundColor = '#f1f5f9';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentDirection !== direction) {
-                      e.target.style.backgroundColor = 'transparent';
-                    }
-                  }}
-                >
-                  <span>{direction}</span>
-                  {selectedDirections[direction] && (
-                    <span style={{
-                      backgroundColor: '#27ae60',
-                      color: 'white',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '0.8em',
-                      fontWeight: 'bold'
-                    }}>
-                      {selectedDirections[direction]}
-                    </span>
-                  )}
-                </div>
-              ))}
-              
-              {filteredDirections.length === 0 && (
-                <div style={{
-                  padding: '20px',
-                  textAlign: 'center',
-                  color: '#7f8c8d'
-                }}>
-                  Aucune direction trouvée
-                </div>
-              )}
-            </div>
-
-            {/* Saisie effectif */}
-            {currentDirection && (
-              <div style={{
-                marginTop: '20px',
-                padding: '20px',
-                backgroundColor: '#f8fafc',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0'
+            {/* Section de sélection */}
+            <div>
+              <h3 style={{
+                color: '#2c3e50',
+                marginBottom: '20px',
+                fontSize: '1.3em',
+                fontWeight: '600'
               }}>
-                <h4 style={{
-                  color: '#2c3e50',
-                  margin: '0 0 15px 0',
-                  fontSize: '1.1em'
-                }}>
-                  Direction sélectionnée :
-                </h4>
-                <div style={{
-                  fontWeight: 'bold',
-                  color: '#3498db',
-                  marginBottom: '15px'
-                }}>
-                  {currentDirection}
-                </div>
-                
-                <div style={{
-                  display: 'flex',
-                  gap: '10px',
-                  alignItems: 'end'
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{
-                      display: 'block',
-                      color: '#34495e',
-                      fontWeight: '500',
-                      marginBottom: '5px',
-                      fontSize: '0.9em'
-                    }}>
-                      Effectif :
-                    </label>
-                    <input
-                      type="number"
-                      value={currentEffectif}
-                      onChange={(e) => setCurrentEffectif(e.target.value)}
-                      placeholder="Nombre de personnes"
-                      min="0"
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: '2px solid #e2e8f0',
-                        fontSize: '1em',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-                  
-                  <button
-                    onClick={handleAddDirection}
-                    disabled={!currentEffectif}
+                🔍 Recherche et Sélection
+              </h3>
+              
+              {/* Barre de recherche */}
+              <div style={{
+                marginBottom: '20px'
+              }}>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher une direction..."
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px',
+                    borderRadius: '10px',
+                    border: '2px solid #e2e8f0',
+                    fontSize: '1em',
+                    outline: 'none',
+                    transition: 'border-color 0.3s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3498db';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e2e8f0';
+                  }}
+                />
+              </div>
+
+              {/* Liste des directions */}
+              <div style={{
+                maxHeight: '300px',
+                overflowY: 'auto',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                backgroundColor: '#f8fafc'
+              }}>
+                {filteredDirections.map((direction, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleDirectionSelect(direction)}
                     style={{
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      backgroundColor: currentEffectif ? '#27ae60' : '#bdc3c7',
-                      color: 'white',
-                      fontSize: '0.9em',
-                      fontWeight: '600',
-                      cursor: currentEffectif ? 'pointer' : 'not-allowed',
-                      transition: 'all 0.3s ease'
+                      padding: '10px 15px',
+                      borderBottom: '1px solid #e2e8f0',
+                      cursor: 'pointer',
+                      backgroundColor: currentDirection === direction ? '#e8f4fd' : 'transparent',
+                      color: currentDirection === direction ? '#2980b9' : '#2c3e50',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentDirection !== direction) {
+                        e.target.style.backgroundColor = '#f1f5f9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentDirection !== direction) {
+                        e.target.style.backgroundColor = 'transparent';
+                      }
                     }}
                   >
-                    Ajouter
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Section récapitulatif */}
-          <div>
-            <h3 style={{
-              color: '#2c3e50',
-              marginBottom: '20px',
-              fontSize: '1.3em',
-              fontWeight: '600',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span>📊 Récapitulatif</span>
-              <span style={{
-                fontSize: '0.9em',
-                color: '#7f8c8d',
-                fontWeight: 'normal'
-              }}>
-                {Object.keys(selectedDirections).length} direction(s)
-              </span>
-            </h3>
-
-            {/* Total */}
-            {Object.keys(selectedDirections).length > 0 && (
-              <div style={{
-                padding: '15px',
-                backgroundColor: '#e8f8f5',
-                borderRadius: '12px',
-                border: '2px solid #27ae60',
-                marginBottom: '20px',
-                textAlign: 'center'
-              }}>
-                <div style={{
-                  fontSize: '1.2em',
-                  fontWeight: 'bold',
-                  color: '#27ae60'
-                }}>
-                  Total Effectif : {totalEffectif} personnes
-                </div>
-              </div>
-            )}
-
-            {/* Liste des directions sélectionnées */}
-            <div style={{
-              maxHeight: '400px',
-              overflowY: 'auto',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              backgroundColor: '#ffffff'
-            }}>
-              {Object.keys(selectedDirections).length === 0 ? (
-                <div style={{
-                  padding: '40px 20px',
-                  textAlign: 'center',
-                  color: '#7f8c8d'
-                }}>
-                  Aucune direction sélectionnée
-                </div>
-              ) : (
-                Object.entries(selectedDirections).map(([direction, effectif]) => (
-                  <div key={direction} style={{
-                    padding: '12px 15px',
-                    borderBottom: '1px solid #f1f5f9',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    <span>{direction}</span>
+                    {selectedDirections[direction] && (
+                      <span style={{
+                        backgroundColor: '#27ae60',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.8em',
+                        fontWeight: 'bold'
+                      }}>
+                        {selectedDirections[direction]}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                
+                {filteredDirections.length === 0 && !isLoading && (
+                  <div style={{
+                    padding: '20px',
+                    textAlign: 'center',
+                    color: '#7f8c8d'
                   }}>
-                    <div style={{
-                      flex: 1,
-                      marginRight: '10px'
-                    }}>
-                      <div style={{
+                    {_directions.length === 0 ? 'Aucune direction disponible' : 'Aucune direction trouvée'}
+                  </div>
+                )}
+              </div>
+
+              {/* Saisie effectif */}
+              {currentDirection && (
+                <div style={{
+                  marginTop: '20px',
+                  padding: '20px',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <h4 style={{
+                    color: '#2c3e50',
+                    margin: '0 0 15px 0',
+                    fontSize: '1.1em'
+                  }}>
+                    Direction sélectionnée :
+                  </h4>
+                  <div style={{
+                    fontWeight: 'bold',
+                    color: '#3498db',
+                    marginBottom: '15px'
+                  }}>
+                    {currentDirection}
+                  </div>
+                  
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    alignItems: 'end'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{
+                        display: 'block',
+                        color: '#34495e',
                         fontWeight: '500',
-                        color: '#2c3e50',
-                        marginBottom: '2px'
+                        marginBottom: '5px',
+                        fontSize: '0.9em'
                       }}>
-                        {direction}
-                      </div>
-                      <div style={{
-                        fontSize: '0.9em',
-                        color: '#7f8c8d'
-                      }}>
-                        {effectif} personne{effectif > 1 ? 's' : ''}
-                      </div>
+                        Effectif :
+                      </label>
+                      <input
+                        type="number"
+                        value={currentEffectif}
+                        onChange={(e) => setCurrentEffectif(e.target.value)}
+                        placeholder="Nombre de personnes"
+                        min="0"
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          borderRadius: '8px',
+                          border: '2px solid #e2e8f0',
+                          fontSize: '1em',
+                          outline: 'none'
+                        }}
+                      />
                     </div>
                     
                     <button
-                      onClick={() => handleRemoveDirection(direction)}
+                      onClick={handleAddDirection}
+                      disabled={!currentEffectif}
                       style={{
-                        padding: '5px 10px',
-                        borderRadius: '6px',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
                         border: 'none',
-                        backgroundColor: '#e74c3c',
+                        backgroundColor: currentEffectif ? '#27ae60' : '#bdc3c7',
                         color: 'white',
-                        fontSize: '0.8em',
-                        cursor: 'pointer',
+                        fontSize: '0.9em',
+                        fontWeight: '600',
+                        cursor: currentEffectif ? 'pointer' : 'not-allowed',
                         transition: 'all 0.3s ease'
                       }}
                     >
-                      Supprimer
+                      Ajouter
                     </button>
                   </div>
-                ))
+                </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Bouton de validation final */}
-        {Object.keys(selectedDirections).length > 0 && (
+            {/* Section récapitulatif */}
+            <div>
+              <h3 style={{
+                color: '#2c3e50',
+                marginBottom: '20px',
+                fontSize: '1.3em',
+                fontWeight: '600',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span>📊 Récapitulatif</span>
+                <span style={{
+                  fontSize: '0.9em',
+                  color: '#7f8c8d',
+                  fontWeight: 'normal'
+                }}>
+                  {Object.keys(selectedDirections).length} direction(s)
+                </span>
+              </h3>
+
+              {/* Total */}
+              {Object.keys(selectedDirections).length > 0 && (
+                <div style={{
+                  padding: '15px',
+                  backgroundColor: '#e8f8f5',
+                  borderRadius: '12px',
+                  border: '2px solid #27ae60',
+                  marginBottom: '20px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{
+                    fontSize: '1.2em',
+                    fontWeight: 'bold',
+                    color: '#27ae60'
+                  }}>
+                    Total Effectif : {totalEffectif} personnes
+                  </div>
+                </div>
+              )}
+
+              {/* Liste des directions sélectionnées */}
+              <div style={{
+                maxHeight: '400px',
+                overflowY: 'auto',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                backgroundColor: '#ffffff'
+              }}>
+                {Object.keys(selectedDirections).length === 0 ? (
+                  <div style={{
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    color: '#7f8c8d'
+                  }}>
+                    Aucune direction sélectionnée
+                  </div>
+                ) : (
+                  Object.entries(selectedDirections).map(([direction, effectif]) => (
+                    <div key={direction} style={{
+                      padding: '12px 15px',
+                      borderBottom: '1px solid #f1f5f9',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{
+                        flex: 1,
+                        marginRight: '10px'
+                      }}>
+                        <div style={{
+                          fontWeight: '500',
+                          color: '#2c3e50',
+                          marginBottom: '2px'
+                        }}>
+                          {direction}
+                        </div>
+                        <div style={{
+                          fontSize: '0.9em',
+                          color: '#7f8c8d'
+                        }}>
+                          {effectif} personne{effectif > 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => handleRemoveDirection(direction)}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: '#e74c3c',
+                          color: 'white',
+                          fontSize: '0.8em',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Boutons d'action */}
+        {Object.keys(selectedDirections).length > 0 && !isLoading && (
           <div style={{
-            textAlign: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '20px',
             marginTop: '30px'
           }}>
+            {/* Bouton de prévisualisation */}
             <button
               onClick={() => {
-                alert(`Récapitulatif final :\n${Object.entries(selectedDirections).map(([dir, eff]) => `${dir}: ${eff} personnes`).join('\n')}\n\nTotal: ${totalEffectif} personnes`);
+                const summary = Object.entries(selectedDirections)
+                  .map(([dir, eff]) => `${dir}: ${eff} personnes`)
+                  .join('\n');
+                alert(`Récapitulatif:\n${summary}\n\nTotal: ${totalEffectif} personnes`);
               }}
+              style={{
+                padding: '15px 30px',
+                borderRadius: '12px',
+                border: '2px solid #3498db',
+                backgroundColor: 'transparent',
+                color: '#3498db',
+                fontSize: '1.1em',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              Prévisualiser
+            </button>
+
+            {/* Bouton d'envoi à l'API */}
+            <button
+              onClick={sendToAPI}
+              disabled={isSending}
               style={{
                 padding: '15px 40px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: '#3498db',
+                backgroundColor: isSending ? '#bdc3c7' : '#27ae60',
                 color: 'white',
                 fontSize: '1.1em',
                 fontWeight: '600',
-                cursor: 'pointer',
+                cursor: isSending ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 5px 15px rgba(52, 152, 219, 0.3)'
+                boxShadow: !isSending ? '0 5px 15px rgba(39, 174, 96, 0.3)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
               }}
             >
-              Valider le Récapitulatif Final
+              {isSending && (
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid transparent',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+              )}
+              {isSending ? 'Envoi en cours...' : 'Envoyer à l\'API'}
             </button>
           </div>
         )}
+
+        {/* Erreurs */}
+        {errors?.stepG && (
+          <div style={{
+            marginTop: '20px',
+            padding: '15px',
+            backgroundColor: '#fee',
+            border: '1px solid #fcc',
+            borderRadius: '8px',
+            color: '#c33'
+          }}>
+            {errors.stepG}
+          </div>
+        )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
