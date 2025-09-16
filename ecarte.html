@@ -1,147 +1,425 @@
 import React, { useState } from 'react';
-import { Plus, X, Users, Calendar } from 'lucide-react';
 
-const UserMeetingSelector = () => {
-  // Liste d'utilisateurs exemple
-  const [allUsers] = useState([
-    { id: 1, name: 'Marie Dupont', email: 'marie.dupont@email.com', department: 'Marketing' },
-    { id: 2, name: 'Pierre Martin', email: 'pierre.martin@email.com', department: 'Développement' },
-    { id: 3, name: 'Sophie Durand', email: 'sophie.durand@email.com', department: 'Design' },
-    { id: 4, name: 'Jean Moreau', email: 'jean.moreau@email.com', department: 'Commercial' },
-    { id: 5, name: 'Lisa Chen', email: 'lisa.chen@email.com', department: 'RH' },
-    { id: 6, name: 'Alex Dubois', email: 'alex.dubois@email.com', department: 'Finance' },
-    { id: 7, name: 'Emma Leroy', email: 'emma.leroy@email.com', department: 'Support' },
-    { id: 8, name: 'Thomas Bernard', email: 'thomas.bernard@email.com', department: 'Marketing' }
-  ]);
+const DirectionEffectifSelector = () => {
+  // Génération de 100 directions d'exemple
+  const [directions] = useState(() => {
+    const baseDirections = [
+      'Direction Générale', 'Direction des Ressources Humaines', 'Direction Financière',
+      'Direction Commerciale', 'Direction Technique', 'Direction Marketing',
+      'Direction Juridique', 'Direction Opérationnelle', 'Direction de la Qualité',
+      'Direction des Achats', 'Direction Logistique', 'Direction Innovation',
+      'Direction Communication', 'Direction Formation', 'Direction Sécurité',
+      'Direction Audit', 'Direction Stratégie', 'Direction Production',
+      'Direction Maintenance', 'Direction Environnement'
+    ];
+    
+    const allDirections = [];
+    for (let i = 1; i <= 100; i++) {
+      if (i <= baseDirections.length) {
+        allDirections.push(baseDirections[i - 1]);
+      } else {
+        const baseIndex = (i - 1) % baseDirections.length;
+        allDirections.push(`${baseDirections[baseIndex]} ${Math.ceil(i / baseDirections.length)}`);
+      }
+    }
+    return allDirections.sort();
+  });
 
-  // Utilisateurs sélectionnés pour la réunion
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDirections, setSelectedDirections] = useState({}); // {directionName: effectif}
+  const [currentDirection, setCurrentDirection] = useState('');
+  const [currentEffectif, setCurrentEffectif] = useState('');
 
-  // Ajouter un utilisateur à la réunion
-  const addUserToMeeting = (user) => {
-    if (!selectedUsers.find(u => u.id === user.id)) {
-      setSelectedUsers([...selectedUsers, user]);
+  const filteredDirections = directions.filter(direction =>
+    direction.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleDirectionSelect = (direction) => {
+    setCurrentDirection(direction);
+    setCurrentEffectif(selectedDirections[direction] || '');
+  };
+
+  const handleAddDirection = () => {
+    if (currentDirection && currentEffectif) {
+      setSelectedDirections(prev => ({
+        ...prev,
+        [currentDirection]: parseInt(currentEffectif)
+      }));
+      setCurrentDirection('');
+      setCurrentEffectif('');
+      setSearchTerm('');
     }
   };
 
-  // Supprimer un utilisateur de la réunion
-  const removeUserFromMeeting = (userId) => {
-    setSelectedUsers(selectedUsers.filter(user => user.id !== userId));
+  const handleRemoveDirection = (direction) => {
+    setSelectedDirections(prev => {
+      const newDirections = { ...prev };
+      delete newDirections[direction];
+      return newDirections;
+    });
   };
 
-  // Obtenir les utilisateurs non sélectionnés
-  const availableUsers = allUsers.filter(user => 
-    !selectedUsers.find(selected => selected.id === user.id)
-  );
+  const totalEffectif = Object.values(selectedDirections).reduce((sum, eff) => sum + eff, 0);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <Calendar className="text-blue-500" />
-          Organisateur de réunion
-        </h1>
-        <p className="text-gray-600">Sélectionnez les participants pour votre réunion</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tableau des utilisateurs disponibles */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Users className="text-green-500" />
-            Utilisateurs disponibles ({availableUsers.length})
-          </h2>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-3 px-2 font-semibold text-gray-700">Nom</th>
-                  <th className="text-left py-3 px-2 font-semibold text-gray-700">Département</th>
-                  <th className="text-center py-3 px-2 font-semibold text-gray-700">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availableUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-2">
-                      <div>
-                        <div className="font-medium text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                        {user.department}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-center">
-                      <button
-                        onClick={() => addUserToMeeting(user)}
-                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors duration-200 flex items-center justify-center mx-auto"
-                        title="Ajouter à la réunion"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {availableUsers.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                Tous les utilisateurs ont été sélectionnés pour la réunion
-              </div>
-            )}
-          </div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px',
+      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
+    }}>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        background: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        
+        {/* Header */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '30px'
+        }}>
+          <h1 style={{
+            fontSize: '2.2em',
+            color: '#2c3e50',
+            margin: '0 0 10px 0',
+            fontWeight: '700'
+          }}>
+            Gestion des Effectifs par Direction
+          </h1>
+          <p style={{
+            color: '#7f8c8d',
+            fontSize: '1.1em',
+            margin: '0'
+          }}>
+            Recherchez et sélectionnez vos directions, puis définissez les effectifs
+          </p>
         </div>
 
-        {/* Liste des participants sélectionnés */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Calendar className="text-blue-500" />
-            Participants sélectionnés ({selectedUsers.length})
-          </h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '30px'
+        }}>
           
-          {selectedUsers.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>Aucun participant sélectionné</p>
-              <p className="text-sm">Cliquez sur + pour ajouter des participants</p>
+          {/* Section de sélection */}
+          <div>
+            <h3 style={{
+              color: '#2c3e50',
+              marginBottom: '20px',
+              fontSize: '1.3em',
+              fontWeight: '600'
+            }}>
+              🔍 Recherche et Sélection
+            </h3>
+            
+            {/* Barre de recherche */}
+            <div style={{
+              marginBottom: '20px'
+            }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Rechercher une direction..."
+                style={{
+                  width: '100%',
+                  padding: '12px 15px',
+                  borderRadius: '10px',
+                  border: '2px solid #e2e8f0',
+                  fontSize: '1em',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3498db';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                }}
+              />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {selectedUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{user.name}</div>
-                    <div className="text-sm text-gray-600">{user.email}</div>
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">
-                      {user.department}
+
+            {/* Liste des directions */}
+            <div style={{
+              maxHeight: '300px',
+              overflowY: 'auto',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              backgroundColor: '#f8fafc'
+            }}>
+              {filteredDirections.map((direction, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleDirectionSelect(direction)}
+                  style={{
+                    padding: '10px 15px',
+                    borderBottom: '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    backgroundColor: currentDirection === direction ? '#e8f4fd' : 'transparent',
+                    color: currentDirection === direction ? '#2980b9' : '#2c3e50',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentDirection !== direction) {
+                      e.target.style.backgroundColor = '#f1f5f9';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentDirection !== direction) {
+                      e.target.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                >
+                  <span>{direction}</span>
+                  {selectedDirections[direction] && (
+                    <span style={{
+                      backgroundColor: '#27ae60',
+                      color: 'white',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      fontSize: '0.8em',
+                      fontWeight: 'bold'
+                    }}>
+                      {selectedDirections[direction]}
                     </span>
-                  </div>
-                  <button
-                    onClick={() => removeUserFromMeeting(user.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200 ml-3"
-                    title="Retirer de la réunion"
-                  >
-                    <X size={16} />
-                  </button>
+                  )}
                 </div>
               ))}
               
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200">
-                  Organiser la réunion ({selectedUsers.length} participant{selectedUsers.length > 1 ? 's' : ''})
-                </button>
-              </div>
+              {filteredDirections.length === 0 && (
+                <div style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  color: '#7f8c8d'
+                }}>
+                  Aucune direction trouvée
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Saisie effectif */}
+            {currentDirection && (
+              <div style={{
+                marginTop: '20px',
+                padding: '20px',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <h4 style={{
+                  color: '#2c3e50',
+                  margin: '0 0 15px 0',
+                  fontSize: '1.1em'
+                }}>
+                  Direction sélectionnée :
+                </h4>
+                <div style={{
+                  fontWeight: 'bold',
+                  color: '#3498db',
+                  marginBottom: '15px'
+                }}>
+                  {currentDirection}
+                </div>
+                
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'end'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{
+                      display: 'block',
+                      color: '#34495e',
+                      fontWeight: '500',
+                      marginBottom: '5px',
+                      fontSize: '0.9em'
+                    }}>
+                      Effectif :
+                    </label>
+                    <input
+                      type="number"
+                      value={currentEffectif}
+                      onChange={(e) => setCurrentEffectif(e.target.value)}
+                      placeholder="Nombre de personnes"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '2px solid #e2e8f0',
+                        fontSize: '1em',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={handleAddDirection}
+                    disabled={!currentEffectif}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: currentEffectif ? '#27ae60' : '#bdc3c7',
+                      color: 'white',
+                      fontSize: '0.9em',
+                      fontWeight: '600',
+                      cursor: currentEffectif ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section récapitulatif */}
+          <div>
+            <h3 style={{
+              color: '#2c3e50',
+              marginBottom: '20px',
+              fontSize: '1.3em',
+              fontWeight: '600',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>📊 Récapitulatif</span>
+              <span style={{
+                fontSize: '0.9em',
+                color: '#7f8c8d',
+                fontWeight: 'normal'
+              }}>
+                {Object.keys(selectedDirections).length} direction(s)
+              </span>
+            </h3>
+
+            {/* Total */}
+            {Object.keys(selectedDirections).length > 0 && (
+              <div style={{
+                padding: '15px',
+                backgroundColor: '#e8f8f5',
+                borderRadius: '12px',
+                border: '2px solid #27ae60',
+                marginBottom: '20px',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  fontSize: '1.2em',
+                  fontWeight: 'bold',
+                  color: '#27ae60'
+                }}>
+                  Total Effectif : {totalEffectif} personnes
+                </div>
+              </div>
+            )}
+
+            {/* Liste des directions sélectionnées */}
+            <div style={{
+              maxHeight: '400px',
+              overflowY: 'auto',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              backgroundColor: '#ffffff'
+            }}>
+              {Object.keys(selectedDirections).length === 0 ? (
+                <div style={{
+                  padding: '40px 20px',
+                  textAlign: 'center',
+                  color: '#7f8c8d'
+                }}>
+                  Aucune direction sélectionnée
+                </div>
+              ) : (
+                Object.entries(selectedDirections).map(([direction, effectif]) => (
+                  <div key={direction} style={{
+                    padding: '12px 15px',
+                    borderBottom: '1px solid #f1f5f9',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{
+                      flex: 1,
+                      marginRight: '10px'
+                    }}>
+                      <div style={{
+                        fontWeight: '500',
+                        color: '#2c3e50',
+                        marginBottom: '2px'
+                      }}>
+                        {direction}
+                      </div>
+                      <div style={{
+                        fontSize: '0.9em',
+                        color: '#7f8c8d'
+                      }}>
+                        {effectif} personne{effectif > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleRemoveDirection(direction)}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: '#e74c3c',
+                        color: 'white',
+                        fontSize: '0.8em',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Bouton de validation final */}
+        {Object.keys(selectedDirections).length > 0 && (
+          <div style={{
+            textAlign: 'center',
+            marginTop: '30px'
+          }}>
+            <button
+              onClick={() => {
+                alert(`Récapitulatif final :\n${Object.entries(selectedDirections).map(([dir, eff]) => `${dir}: ${eff} personnes`).join('\n')}\n\nTotal: ${totalEffectif} personnes`);
+              }}
+              style={{
+                padding: '15px 40px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#3498db',
+                color: 'white',
+                fontSize: '1.1em',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 5px 15px rgba(52, 152, 219, 0.3)'
+              }}
+            >
+              Valider le Récapitulatif Final
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default UserMeetingSelector;
+export default DirectionEffectifSelector;
