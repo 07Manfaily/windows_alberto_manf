@@ -1,572 +1,900 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import { Search, Upload, X, Plus, UserPlus, Users, Filter, Save } from 'lucide-react';
 
-const DirectionEffectifSelector = ({ formData, setFormData, errors }) => {
-  // Utiliser les données du formData.stepG au lieu d'un état local
-  const [_directions, setDirections] = useState([]);
+const ParticipantsManager = () => {
+  const [isMainModalOpen, setIsMainModalOpen] = useState(false);
+  const [isCriteriaModalOpen, setIsCriteriaModalOpen] = useState(false);
+  
+  // État pour les critères
+  const [selectedCriteria, setSelectedCriteria] = useState({
+    experience: false,
+    disponibilite: false,
+    competences: false,
+    localisation: false,
+    certification: false,
+    motivation: false,
+    collaboration: false,
+    innovation: false
+  });
+
+  // Liste des critères disponibles
+  const availableCriteria = [
+    { id: 'experience', label: 'Expérience professionnelle', description: 'Années d\'expérience dans le domaine' },
+    { id: 'disponibilite', label: 'Disponibilité', description: 'Disponibilité horaire et géographique' },
+    { id: 'competences', label: 'Compétences techniques', description: 'Maîtrise des outils et technologies' },
+    { id: 'localisation', label: 'Localisation géographique', description: 'Proximité avec le lieu de mission' },
+    { id: 'certification', label: 'Certifications', description: 'Diplômes et certifications reconnues' },
+    { id: 'motivation', label: 'Motivation', description: 'Intérêt pour le projet et engagement' },
+    { id: 'collaboration', label: 'Esprit d\'équipe', description: 'Capacité à travailler en équipe' },
+    { id: 'innovation', label: 'Capacité d\'innovation', description: 'Créativité et propositions d\'amélioration' }
+  ];
+  
+  // Participants déjà sélectionnés (venant de l'API)
+  const [selectedParticipants, setSelectedParticipants] = useState([
+    {
+      id: 1,
+      name: 'SMITH JOHN',
+      email: 'innovation@live.fr',
+      matricule: '789',
+      initials: 'SJ',
+      color: '#FF8C00'
+    }
+  ]);
+
+  // Liste globale des participants disponibles
+  const [availableParticipants, setAvailableParticipants] = useState([
+    { id: 2, name: 'BERNARD Marie', email: 'marie.bernard@company.fr', role: 'Gestionnaire', initials: 'BM', color: '#4A90E2' },
+    { id: 3, name: 'DUBOIS Pierre', email: 'pierre.dubois@company.fr', role: 'Manager', initials: 'DP', color: '#5CB85C' },
+    { id: 4, name: 'THOMAS Michel', email: 'michel.thomas@company.fr', role: 'Développeur', initials: 'TM', color: '#17A2B8' },
+    { id: 5, name: 'ROBERT Alain', email: 'alain.robert@company.fr', role: 'Consultant', initials: 'RA', color: '#DC3545' },
+    { id: 6, name: 'LEFEBVRE Claire', email: 'claire.lefebvre@company.fr', role: 'Chef de projet', initials: 'CL', color: '#FFC107' },
+    { id: 7, name: 'MOREAU Julien', email: 'julien.moreau@company.fr', role: 'Analyste', initials: 'JM', color: '#8E44AD' },
+    { id: 8, name: 'GARNIER Laura', email: 'laura.garnier@company.fr', role: 'RH', initials: 'LG', color: '#FF9800' },
+    { id: 9, name: 'FAURE Nicolas', email: 'nicolas.faure@company.fr', role: 'Architecte', initials: 'NF', color: '#3F51B5' },
+    { id: 10, name: 'CHEVALIER Emma', email: 'emma.chevalier@company.fr', role: 'Testeur', initials: 'EC', color: '#9C27B0' },
+    { id: 11, name: 'RIVIERE Hugo', email: 'hugo.riviere@company.fr', role: 'Support', initials: 'HR', color: '#00BCD4' },
+    { id: 12, name: 'PEREZ Manon', email: 'manon.perez@company.fr', role: 'UI Designer', initials: 'MP', color: '#FF5722' },
+    { id: 13, name: 'BOUCHER Lucas', email: 'lucas.boucher@company.fr', role: 'Développeur', initials: 'LB', color: '#4CAF50' },
+    { id: 14, name: 'DUVAL Léa', email: 'lea.duval@company.fr', role: 'Scrum Master', initials: 'LD', color: '#607D8B' },
+    { id: 15, name: 'MARCHAND Antoine', email: 'antoine.marchand@company.fr', role: 'Manager', initials: 'AM', color: '#E91E63' },
+    { id: 16, name: 'ROUX Camille', email: 'camille.roux@company.fr', role: 'Data Scientist', initials: 'CR', color: '#795548' },
+    { id: 17, name: 'COLLET Paul', email: 'paul.collet@company.fr', role: 'Développeur', initials: 'PC', color: '#009688' },
+    { id: 18, name: 'GUYOT Alice', email: 'alice.guyot@company.fr', role: 'Consultant', initials: 'AG', color: '#CDDC39' },
+    { id: 19, name: 'BARBIER Louis', email: 'louis.barbier@company.fr', role: 'Chef de produit', initials: 'LB', color: '#673AB7' },
+    { id: 20, name: 'CARON Chloé', email: 'chloe.caron@company.fr', role: 'Stagiaire', initials: 'CC', color: '#F44336' },
+  ]);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDirections, setSelectedDirections] = useState(formData?.stepG?.selectedDirections || {});
-  const [currentDirection, setCurrentDirection] = useState('');
-  const [currentEffectif, setCurrentEffectif] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSending, setIsSending] = useState(false);
+  const [searchSelectedTerm, setSearchSelectedTerm] = useState('');
+  const [showAddSection, setShowAddSection] = useState(false);
+  const fileInputRef = useRef(null);
 
-  // Fetch des directions depuis l'API
-  useEffect(() => {
-    const fetchDirections = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch("formation/directions"); // Votre endpoint
-        const data = await response.json();
-        setDirections(data.directions || []);
-      } catch (error) {
-        console.error("Erreur lors du chargement des directions:", error);
-        setDirections([]); // Fallback à un tableau vide
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDirections();
-  }, []);
-
-  // Filtrer les directions selon le terme de recherche
-  const filteredDirections = _directions.filter(direction =>
-    direction.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filtrer les participants disponibles selon la recherche
+  const filteredParticipants = availableParticipants.filter(participant =>
+    participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    participant.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDirectionSelect = (direction) => {
-    setCurrentDirection(direction);
-    setCurrentEffectif(selectedDirections[direction] || '');
-  };
+  // Filtrer les participants sélectionnés selon la recherche
+  const filteredSelectedParticipants = selectedParticipants.filter(participant =>
+    participant.name.toLowerCase().includes(searchSelectedTerm.toLowerCase()) ||
+    participant.email.toLowerCase().includes(searchSelectedTerm.toLowerCase())
+  );
 
-  const handleAddDirection = () => {
-    if (currentDirection && currentEffectif) {
-      const newSelectedDirections = {
-        ...selectedDirections,
-        [currentDirection]: parseInt(currentEffectif)
-      };
-      
-      setSelectedDirections(newSelectedDirections);
-      
-      // Mettre à jour le formData
-      setFormData(prev => ({
-        ...prev,
-        stepG: {
-          ...prev.stepG,
-          selectedDirections: newSelectedDirections,
-          totalEffectif: Object.values(newSelectedDirections).reduce((sum, eff) => sum + eff, 0)
-        }
-      }));
-      
-      setCurrentDirection('');
-      setCurrentEffectif('');
-      setSearchTerm('');
-    }
-  };
-
-  const handleRemoveDirection = (direction) => {
-    const newSelectedDirections = { ...selectedDirections };
-    delete newSelectedDirections[direction];
-    
-    setSelectedDirections(newSelectedDirections);
-    
-    // Mettre à jour le formData
-    setFormData(prev => ({
+  // Gérer les critères
+  const handleCriteriaChange = (criteriaId) => {
+    setSelectedCriteria(prev => ({
       ...prev,
-      stepG: {
-        ...prev.stepG,
-        selectedDirections: newSelectedDirections,
-        totalEffectif: Object.values(newSelectedDirections).reduce((sum, eff) => sum + eff, 0)
-      }
+      [criteriaId]: !prev[criteriaId]
     }));
   };
 
-  // Fonction pour envoyer les données à l'API
-  const sendToAPI = async () => {
-    setIsSending(true);
+  // Sauvegarder et envoyer les critères à l'API
+  const saveCriteria = async () => {
+    const selectedCriteriaList = Object.keys(selectedCriteria).filter(key => selectedCriteria[key]);
     
     try {
-      const dataToSend = {
-        directions: Object.entries(selectedDirections).map(([direction, effectif]) => ({
-          nom: direction,
-          effectif: effectif
-        })),
-        effectifTotal: Object.values(selectedDirections).reduce((sum, eff) => sum + eff, 0),
-        nombreDirections: Object.keys(selectedDirections).length,
-        // Vous pouvez ajouter d'autres données du formData si nécessaire
-        ...formData // Inclure toutes les autres étapes du formulaire
-      };
-
-      const response = await fetch('/api/directions-effectifs', {
+      // Simulation d'un appel API
+      console.log('Critères sélectionnés:', selectedCriteriaList);
+      
+      // Exemple d'appel API (à remplacer par votre vraie API)
+      /*
+      const response = await fetch('/api/save-criteria', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify({
+          criteria: selectedCriteriaList,
+          participantIds: selectedParticipants.map(p => p.id)
+        }),
       });
-
+      
       if (response.ok) {
-        const result = await response.json();
-        alert('Données envoyées avec succès !');
-        console.log('Réponse de l\'API:', result);
-        
-        // Optionnel: passer à l'étape suivante du formulaire
-        // setFormData(prev => ({ ...prev, currentStep: 'stepH' }));
-        
+        alert('Critères sauvegardés avec succès !');
       } else {
-        throw new Error('Erreur lors de l\'envoi des données');
+        alert('Erreur lors de la sauvegarde');
       }
+      */
+      
+      // Pour la démo
+      alert(`Critères sauvegardés : ${selectedCriteriaList.join(', ')}`);
+      setIsCriteriaModalOpen(false);
       
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de l\'envoi des données. Veuillez réessayer.');
-    } finally {
-      setIsSending(false);
+      alert('Erreur lors de la sauvegarde des critères');
     }
   };
 
-  const totalEffectif = Object.values(selectedDirections).reduce((sum, eff) => sum + eff, 0);
+  // Compter les critères sélectionnés
+  const selectedCriteriaCount = Object.values(selectedCriteria).filter(Boolean).length;
+
+  // Ajouter un participant à la liste sélectionnée
+  const addParticipant = (participant) => {
+    if (!selectedParticipants.find(p => p.id === participant.id)) {
+      setSelectedParticipants([...selectedParticipants, {
+        ...participant
+      }]);
+      setAvailableParticipants(availableParticipants.filter(p => p.id !== participant.id));
+    }
+    setSearchTerm('');
+  };
+
+  // Supprimer un participant de la liste sélectionnée
+  const removeParticipant = (participantId) => {
+    const participantToRemove = selectedParticipants.find(p => p.id === participantId);
+    if (participantToRemove) {
+      setSelectedParticipants(selectedParticipants.filter(p => p.id !== participantId));
+      if (participantId !== 1) {
+        setAvailableParticipants([...availableParticipants, participantToRemove]);
+      }
+    }
+  };
+
+  // Gérer l'upload de fichier
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log('Fichier uploadé:', file.name);
+      alert(`Fichier "${file.name}" chargé avec succès !`);
+    }
+  };
+
+  // Fermer tous les modals
+  const closeAllModals = () => {
+    setIsMainModalOpen(false);
+    setIsCriteriaModalOpen(false);
+    setShowAddSection(false);
+    setSearchTerm('');
+    setSearchSelectedTerm('');
+  };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px',
-      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '20px',
-        padding: '30px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        
-        {/* Header */}
+    <div>
+      {/* Bouton principal pour ouvrir le modal */}
+      <button
+        onClick={() => setIsMainModalOpen(true)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '12px 20px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          fontSize: '16px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,123,255,0.3)',
+          transition: 'all 0.2s ease',
+          fontFamily: 'Arial, sans-serif'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = '#0056b3';
+          e.target.style.transform = 'translateY(-1px)';
+          e.target.style.boxShadow = '0 4px 12px rgba(0,123,255,0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = '#007bff';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 2px 8px rgba(0,123,255,0.3)';
+        }}
+      >
+        <Users size={20} />
+        Participants ({selectedParticipants.length})
+      </button>
+
+      {/* Modal principal de gestion des participants */}
+      {isMainModalOpen && (
         <div style={{
-          textAlign: 'center',
-          marginBottom: '30px'
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
         }}>
-          <h1 style={{
-            fontSize: '2.2em',
-            color: '#2c3e50',
-            margin: '0 0 10px 0',
-            fontWeight: '700'
-          }}>
-            Gestion des Effectifs par Direction
-          </h1>
-          <p style={{
-            color: '#7f8c8d',
-            fontSize: '1.1em',
-            margin: '0'
-          }}>
-            Recherchez et sélectionnez vos directions, puis définissez les effectifs
-          </p>
-        </div>
-
-        {/* Loading state */}
-        {isLoading && (
           <div style={{
-            textAlign: 'center',
-            padding: '40px',
-            color: '#7f8c8d'
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            width: '90%',
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            overflow: 'hidden',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            fontFamily: 'Arial, sans-serif'
           }}>
-            <div style={{
-              display: 'inline-block',
-              width: '40px',
-              height: '40px',
-              border: '4px solid #f3f3f3',
-              borderTop: '4px solid #3498db',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <p>Chargement des directions...</p>
-          </div>
-        )}
-
-        {!isLoading && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '30px'
-          }}>
-            
-            {/* Section de sélection */}
-            <div>
-              <h3 style={{
-                color: '#2c3e50',
-                marginBottom: '20px',
-                fontSize: '1.3em',
-                fontWeight: '600'
-              }}>
-                🔍 Recherche et Sélection
-              </h3>
-              
-              {/* Barre de recherche */}
-              <div style={{
-                marginBottom: '20px'
-              }}>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher une direction..."
-                  style={{
-                    width: '100%',
-                    padding: '12px 15px',
-                    borderRadius: '10px',
-                    border: '2px solid #e2e8f0',
-                    fontSize: '1em',
-                    outline: 'none',
-                    transition: 'border-color 0.3s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#3498db';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e2e8f0';
-                  }}
-                />
-              </div>
-
-              {/* Liste des directions */}
-              <div style={{
-                maxHeight: '300px',
-                overflowY: 'auto',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                backgroundColor: '#f8fafc'
-              }}>
-                {filteredDirections.map((direction, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleDirectionSelect(direction)}
-                    style={{
-                      padding: '10px 15px',
-                      borderBottom: '1px solid #e2e8f0',
-                      cursor: 'pointer',
-                      backgroundColor: currentDirection === direction ? '#e8f4fd' : 'transparent',
-                      color: currentDirection === direction ? '#2980b9' : '#2c3e50',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentDirection !== direction) {
-                        e.target.style.backgroundColor = '#f1f5f9';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentDirection !== direction) {
-                        e.target.style.backgroundColor = 'transparent';
-                      }
-                    }}
-                  >
-                    <span>{direction}</span>
-                    {selectedDirections[direction] && (
-                      <span style={{
-                        backgroundColor: '#27ae60',
-                        color: 'white',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontSize: '0.8em',
-                        fontWeight: 'bold'
-                      }}>
-                        {selectedDirections[direction]}
-                      </span>
-                    )}
-                  </div>
-                ))}
-                
-                {filteredDirections.length === 0 && !isLoading && (
-                  <div style={{
-                    padding: '20px',
-                    textAlign: 'center',
-                    color: '#7f8c8d'
-                  }}>
-                    {_directions.length === 0 ? 'Aucune direction disponible' : 'Aucune direction trouvée'}
-                  </div>
-                )}
-              </div>
-
-              {/* Saisie effectif */}
-              {currentDirection && (
-                <div style={{
-                  marginTop: '20px',
-                  padding: '20px',
-                  backgroundColor: '#f8fafc',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <h4 style={{
-                    color: '#2c3e50',
-                    margin: '0 0 15px 0',
-                    fontSize: '1.1em'
-                  }}>
-                    Direction sélectionnée :
-                  </h4>
-                  <div style={{
-                    fontWeight: 'bold',
-                    color: '#3498db',
-                    marginBottom: '15px'
-                  }}>
-                    {currentDirection}
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    gap: '10px',
-                    alignItems: 'end'
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{
-                        display: 'block',
-                        color: '#34495e',
-                        fontWeight: '500',
-                        marginBottom: '5px',
-                        fontSize: '0.9em'
-                      }}>
-                        Effectif :
-                      </label>
-                      <input
-                        type="number"
-                        value={currentEffectif}
-                        onChange={(e) => setCurrentEffectif(e.target.value)}
-                        placeholder="Nombre de personnes"
-                        min="0"
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          borderRadius: '8px',
-                          border: '2px solid #e2e8f0',
-                          fontSize: '1em',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-                    
-                    <button
-                      onClick={handleAddDirection}
-                      disabled={!currentEffectif}
-                      style={{
-                        padding: '10px 20px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: currentEffectif ? '#27ae60' : '#bdc3c7',
-                        color: 'white',
-                        fontSize: '0.9em',
-                        fontWeight: '600',
-                        cursor: currentEffectif ? 'pointer' : 'not-allowed',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Section récapitulatif */}
-            <div>
-              <h3 style={{
-                color: '#2c3e50',
-                marginBottom: '20px',
-                fontSize: '1.3em',
-                fontWeight: '600',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span>📊 Récapitulatif</span>
-                <span style={{
-                  fontSize: '0.9em',
-                  color: '#7f8c8d',
-                  fontWeight: 'normal'
-                }}>
-                  {Object.keys(selectedDirections).length} direction(s)
-                </span>
-              </h3>
-
-              {/* Total */}
-              {Object.keys(selectedDirections).length > 0 && (
-                <div style={{
-                  padding: '15px',
-                  backgroundColor: '#e8f8f5',
-                  borderRadius: '12px',
-                  border: '2px solid #27ae60',
-                  marginBottom: '20px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{
-                    fontSize: '1.2em',
-                    fontWeight: 'bold',
-                    color: '#27ae60'
-                  }}>
-                    Total Effectif : {totalEffectif} personnes
-                  </div>
-                </div>
-              )}
-
-              {/* Liste des directions sélectionnées */}
-              <div style={{
-                maxHeight: '400px',
-                overflowY: 'auto',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                backgroundColor: '#ffffff'
-              }}>
-                {Object.keys(selectedDirections).length === 0 ? (
-                  <div style={{
-                    padding: '40px 20px',
-                    textAlign: 'center',
-                    color: '#7f8c8d'
-                  }}>
-                    Aucune direction sélectionnée
-                  </div>
-                ) : (
-                  Object.entries(selectedDirections).map(([direction, effectif]) => (
-                    <div key={direction} style={{
-                      padding: '12px 15px',
-                      borderBottom: '1px solid #f1f5f9',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div style={{
-                        flex: 1,
-                        marginRight: '10px'
-                      }}>
-                        <div style={{
-                          fontWeight: '500',
-                          color: '#2c3e50',
-                          marginBottom: '2px'
-                        }}>
-                          {direction}
-                        </div>
-                        <div style={{
-                          fontSize: '0.9em',
-                          color: '#7f8c8d'
-                        }}>
-                          {effectif} personne{effectif > 1 ? 's' : ''}
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={() => handleRemoveDirection(direction)}
-                        style={{
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          backgroundColor: '#e74c3c',
-                          color: 'white',
-                          fontSize: '0.8em',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        Supprimer
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Boutons d'action */}
-        {Object.keys(selectedDirections).length > 0 && !isLoading && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '20px',
-            marginTop: '30px'
-          }}>
-            {/* Bouton de prévisualisation */}
-            <button
-              onClick={() => {
-                const summary = Object.entries(selectedDirections)
-                  .map(([dir, eff]) => `${dir}: ${eff} personnes`)
-                  .join('\n');
-                alert(`Récapitulatif:\n${summary}\n\nTotal: ${totalEffectif} personnes`);
-              }}
-              style={{
-                padding: '15px 30px',
-                borderRadius: '12px',
-                border: '2px solid #3498db',
-                backgroundColor: 'transparent',
-                color: '#3498db',
-                fontSize: '1.1em',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              Prévisualiser
-            </button>
-
-            {/* Bouton d'envoi à l'API */}
-            <button
-              onClick={sendToAPI}
-              disabled={isSending}
-              style={{
-                padding: '15px 40px',
-                borderRadius: '12px',
-                border: 'none',
-                backgroundColor: isSending ? '#bdc3c7' : '#27ae60',
-                color: 'white',
-                fontSize: '1.1em',
-                fontWeight: '600',
-                cursor: isSending ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: !isSending ? '0 5px 15px rgba(39, 174, 96, 0.3)' : 'none',
+            {/* Header du modal principal */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              padding: '24px 24px 20px 24px',
+              borderBottom: '1px solid #eee'
+            }}>
+              <h2 style={{ 
+                margin: '0', 
+                fontSize: '24px', 
+                fontWeight: '600', 
+                color: '#333',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px'
-              }}
-            >
-              {isSending && (
+              }}>
+                <Users size={24} color="#007bff" />
+                Participants ({selectedParticipants.length})
+              </h2>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Upload size={16} />
+                  Charger participants
+                </button>
+
+                <button
+                  onClick={() => setIsCriteriaModalOpen(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    backgroundColor: selectedCriteriaCount > 0 ? '#17a2b8' : '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Filter size={16} />
+                  Critères {selectedCriteriaCount > 0 && `(${selectedCriteriaCount})`}
+                </button>
+                
+                <button
+                  onClick={() => setShowAddSection(!showAddSection)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    backgroundColor: showAddSection ? '#6c757d' : '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Plus size={16} />
+                  {showAddSection ? 'Annuler' : 'Ajouter'}
+                </button>
+
+                <button
+                  onClick={closeAllModals}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '28px',
+                    cursor: 'pointer',
+                    color: '#666',
+                    padding: '4px',
+                    borderRadius: '4px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Input file caché */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+
+            {/* Contenu principal du modal */}
+            <div style={{ 
+              display: 'flex',
+              height: 'calc(90vh - 120px)',
+              gap: '20px'
+            }}>
+              {/* Section gauche - Participants sélectionnés */}
+              <div style={{ 
+                flex: showAddSection ? '1' : '1',
+                padding: '20px 0 20px 24px',
+                transition: 'all 0.3s ease'
+              }}>
+                <h3 style={{ 
+                  margin: '0 0 16px 0', 
+                  fontSize: '18px', 
+                  fontWeight: '600', 
+                  color: '#333' 
+                }}>
+                  Participants sélectionnés
+                </h3>
+
+                {/* Barre de recherche pour les participants sélectionnés */}
+                {selectedParticipants.length > 0 && (
+                  <div style={{ 
+                    position: 'relative', 
+                    marginBottom: '16px',
+                    marginRight: '20px'
+                  }}>
+                    <Search 
+                      size={16} 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '10px', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#666' 
+                      }} 
+                    />
+                    <input
+                      type="text"
+                      placeholder="Rechercher dans les sélectionnés..."
+                      value={searchSelectedTerm}
+                      onChange={(e) => setSearchSelectedTerm(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 8px 8px 32px',
+                        border: '1px solid #ddd',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {filteredSelectedParticipants.length === 0 && selectedParticipants.length > 0 ? (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    color: '#666', 
+                    padding: '20px',
+                    fontSize: '14px',
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '8px',
+                    marginRight: '20px',
+                  }}>
+                    <Search size={32} color="#ccc" style={{ marginBottom: '12px' }} />
+                    <div>Aucun participant trouvé</div>
+                  </div>
+                ) : selectedParticipants.length === 0 ? (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    color: '#666', 
+                    padding: '40px 20px',
+                    fontSize: '14px',
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '8px'
+                  }}>
+                    <Users size={48} color="#ccc" style={{ marginBottom: '16px' }} />
+                    <div>Aucun participant sélectionné</div>
+                  </div>
+                ) : (
+                  <div style={{ 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', 
+                    padding: '16px',
+                    marginRight: '20px',
+                    overflowY: 'auto',
+                    maxHeight: '400px'
+                  }}>
+                    {filteredSelectedParticipants.map((participant, index) => (
+                      <div key={participant.id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 0',
+                        borderBottom: index < filteredSelectedParticipants.length - 1 ? '1px solid #dee2e6' : 'none'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            backgroundColor: participant.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '14px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}>
+                            {participant.initials}
+                          </div>
+                          <div>
+                            <div style={{ 
+                              fontWeight: '600', 
+                              color: '#333',
+                              fontSize: '14px',
+                              marginBottom: '2px'
+                            }}>
+                              {participant.name}
+                            </div>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#666' 
+                            }}>
+                              {participant.email}
+                              {participant.matricule && ` • Matricule: ${participant.matricule}`}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={() => removeParticipant(participant.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#dc3545',
+                            cursor: 'pointer',
+                            padding: '8px',
+                            borderRadius: '50%',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f8d7da'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Section droite - Ajouter des participants (conditionnelle) */}
+              {showAddSection && (
                 <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid transparent',
-                  borderTop: '2px solid white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
+                  flex: '1',
+                  borderLeft: '1px solid #eee',
+                  padding: '20px 24px 20px 20px',
+                  overflowY: 'auto',
+                  backgroundColor: '#fafbfc',
+                  animation: 'slideInRight 0.3s ease'
+                }}>
+                  <h3 style={{ 
+                    margin: '0 0 16px 0', 
+                    fontSize: '18px', 
+                    fontWeight: '600', 
+                    color: '#333',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <UserPlus size={20} color="#007bff" />
+                    Ajouter des participants
+                  </h3>
+
+                  {/* Barre de recherche */}
+                  <div style={{ 
+                    position: 'relative', 
+                    marginBottom: '20px' 
+                  }}>
+                    <Search 
+                      size={18} 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '12px', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#666' 
+                      }} 
+                    />
+                    <input
+                      type="text"
+                      placeholder="Rechercher par nom, email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 10px 10px 40px',
+                        border: '1px solid #ddd',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                  </div>
+
+                  {/* Liste des participants disponibles */}
+                  <div style={{ 
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #eee',
+                    maxHeight: '400px',
+                    overflowY: 'auto'
+                  }}>
+                    {filteredParticipants.length === 0 ? (
+                      <div style={{ 
+                        textAlign: 'center', 
+                        color: '#666', 
+                        padding: '30px 20px',
+                        fontSize: '14px'
+                      }}>
+                        {searchTerm ? (
+                          <>
+                            <Search size={32} color="#ccc" style={{ marginBottom: '12px' }} />
+                            <div>Aucun participant trouvé</div>
+                          </>
+                        ) : (
+                          <>
+                            <Users size={32} color="#ccc" style={{ marginBottom: '12px' }} />
+                            <div>Tous les participants ont été ajoutés</div>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      filteredParticipants.map((participant, index) => (
+                        <div 
+                          key={participant.id}
+                          onClick={() => addParticipant(participant)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            backgroundColor: 'white',
+                            borderBottom: index < filteredParticipants.length - 1 ? '1px solid #f0f0f0' : 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f8f9fa';
+                            e.currentTarget.style.transform = 'translateX(4px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                            e.currentTarget.style.transform = 'translateX(0)';
+                          }}
+                        >
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            backgroundColor: participant.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: '600',
+                            fontSize: '12px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}>
+                            {participant.initials}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ 
+                              fontWeight: '600', 
+                              color: '#333',
+                              fontSize: '14px',
+                              marginBottom: '2px'
+                            }}>
+                              {participant.name}
+                            </div>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#666' 
+                            }}>
+                              {participant.email} • {participant.role}
+                            </div>
+                          </div>
+                          <Plus size={16} color="#007bff" />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
-              {isSending ? 'Envoi en cours...' : 'Envoyer à l\'API'}
-            </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Erreurs */}
-        {errors?.stepG && (
+      {/* Modal des critères */}
+      {isCriteriaModalOpen && (
+        <div style={{
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100,
+          padding: '20px'
+        }}>
           <div style={{
-            marginTop: '20px',
-            padding: '15px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '8px',
-            color: '#c33'
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '80vh',
+            overflow: 'hidden',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            fontFamily: 'Arial, sans-serif'
           }}>
-            {errors.stepG}
-          </div>
-        )}
-      </div>
+            {/* Header du modal critères */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              padding: '24px 24px 20px 24px',
+              borderBottom: '1px solid #eee'
+            }}>
+              <h2 style={{ 
+                margin: '0', 
+                fontSize: '24px', 
+                fontWeight: '600', 
+                color: '#333',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <Filter size={24} color="#17a2b8" />
+                Critères de sélection
+              </h2>
+              
+              <button
+                onClick={() => setIsCriteriaModalOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '4px',
+                  borderRadius: '4px'
+                }}
+              >
+                ×
+              </button>
+            </div>
 
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+            {/* Contenu du modal critères */}
+            <div style={{ 
+              padding: '24px',
+              overflowY: 'auto',
+              maxHeight: 'calc(80vh - 140px)'
+            }}>
+              <p style={{ 
+                color: '#666', 
+                marginBottom: '24px',
+                fontSize: '14px',
+                lineHeight: '1.5'
+              }}>
+                Sélectionnez les critères à appliquer pour l'évaluation des participants :
+              </p>
+
+              {/* Liste des critères */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {availableCriteria.map((criteria) => (
+                  <div 
+                    key={criteria.id} 
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                      padding: '16px',
+                      border: `2px solid ${selectedCriteria[criteria.id] ? '#17a2b8' : '#e9ecef'}`,
+                      borderRadius: '8px',
+                      backgroundColor: selectedCriteria[criteria.id] ? '#f8fdff' : '#fff',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onClick={() => handleCriteriaChange(criteria.id)}
+                    onMouseEnter={(e) => {
+                      if (!selectedCriteria[criteria.id]) {
+                        e.currentTarget.style.borderColor = '#17a2b8';
+                        e.currentTarget.style.backgroundColor = '#f8f9fa';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!selectedCriteria[criteria.id]) {
+                        e.currentTarget.style.borderColor = '#e9ecef';
+                        e.currentTarget.style.backgroundColor = '#fff';
+                      }
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCriteria[criteria.id]}
+                      onChange={() => handleCriteriaChange(criteria.id)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        marginTop: '2px',
+                        cursor: 'pointer',
+                        accentColor: '#17a2b8'
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontWeight: '600',
+                        color: '#333',
+                        fontSize: '16px',
+                        marginBottom: '4px'
+                      }}>
+                        {criteria.label}
+                      </div>
+                      <div style={{
+                        color: '#666',
+                        fontSize: '14px',
+                        lineHeight: '1.4'
+                      }}>
+                        {criteria.description}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Résumé des critères sélectionnés */}
+              {selectedCriteriaCount > 0 && (
+                <div style={{
+                  marginTop: '24px',
+                  padding: '16px',
+                  backgroundColor: '#e7f3ff',
+                  border: '1px solid #b3d9ff',
+                  borderRadius: '8px'
+                }}>
+                  <div style={{
+                    fontWeight: '600',
+                    color: '#0056b3',
+                    fontSize: '14px',
+                    marginBottom: '8px'
+                  }}>
+                    {selectedCriteriaCount} critère{selectedCriteriaCount > 1 ? 's' : ''} sélectionné{selectedCriteriaCount > 1 ? 's' : ''} :
+                  </div>
+                  <div style={{
+                    color: '#0056b3',
+                    fontSize: '13px',
+                    lineHeight: '1.4'
+                  }}>
+                    {availableCriteria
+                      .filter(c => selectedCriteria[c.id])
+                      .map(c => c.label)
+                      .join(', ')}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer du modal critères */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '20px 24px',
+              borderTop: '1px solid #eee',
+              backgroundColor: '#f8f9fa'
+            }}>
+              <div style={{
+                fontSize: '14px',
+                color: '#666'
+              }}>
+                {selectedCriteriaCount} / {availableCriteria.length} critères sélectionnés
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setIsCriteriaModalOpen(false)}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#545b62'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#6c757d'}
+                >
+                  Annuler
+                </button>
+                
+                <button
+                  onClick={saveCriteria}
+                  disabled={selectedCriteriaCount === 0}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    backgroundColor: selectedCriteriaCount > 0 ? '#28a745' : '#ccc',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: selectedCriteriaCount > 0 ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedCriteriaCount > 0) {
+                      e.target.style.backgroundColor = '#218838';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedCriteriaCount > 0) {
+                      e.target.style.backgroundColor = '#28a745';
+                    }
+                  }}
+                >
+                  <Save size={16} />
+                  Sauvegarder les critères
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default DirectionEffectifSelector;
+export default ParticipantsManager;
