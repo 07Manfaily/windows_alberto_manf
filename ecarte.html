@@ -1,251 +1,695 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const WarningModal = () => {
-  const [isOpen, setIsOpen] = useState(true);
-
-  const handleCreateSession = () => {
-    console.log('Session créée');
-    setIsOpen(false);
-  };
-
-  const handleForce = () => {
-    console.log('Action forcée');
-    setIsOpen(false);
-  };
-
-  const openModal = () => {
-    setIsOpen(true);
-  };
-
-  if (!isOpen) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f5f5f5'
-      }}>
-        <button
-          onClick={openModal}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#ff6b6b',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          Ouvrir le Modal
-        </button>
-      </div>
-    );
-  }
-
+// Simulation du package react-table-component
+// En pratique, vous importeriez : import { Table } from 'react-table-component';
+const Table = ({ data, columns, style }) => {
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      {/* Conteneur principal du modal */}
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        padding: '0',
-        maxWidth: '350px',
-        width: '90%',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        
-        {/* Header avec profil */}
-        <div style={{
-          backgroundColor: '#f0f0f0',
-          padding: '16px 20px',
-          borderBottom: '1px solid #e0e0e0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              backgroundColor: '#ff4458',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}>
-              F
-            </div>
-            <div>
-              <div style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333'
-              }}>
-                Florent Koffi
-              </div>
-              <div style={{
-                fontSize: '12px',
-                color: '#666'
-              }}>
-                Prendre soin de toi là-bas
-              </div>
-            </div>
-          </div>
-          
-          <button
-            onClick={() => setIsOpen(false)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              color: '#666',
-              cursor: 'pointer',
-              padding: '4px'
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Titre */}
-        <div style={{
-          backgroundColor: '#e8e8e8',
-          padding: '16px 20px',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          color: '#333',
-          textAlign: 'left'
-        }}>
-          Ouvrir l'application
-        </div>
-
-        {/* Contenu principal */}
-        <div style={{
-          padding: '40px 20px',
-          textAlign: 'center'
-        }}>
-          {/* Icône d'avertissement */}
-          <div style={{
-            width: '60px',
-            height: '60px',
-            backgroundColor: '#fff3cd',
-            borderRadius: '50%',
-            margin: '0 auto 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '3px solid #ffc107'
-          }}>
-            <span style={{
-              fontSize: '32px',
-              color: '#856404',
-              fontWeight: 'bold'
-            }}>
-              !
-            </span>
-          </div>
-
-          {/* Titre Warning */}
-          <h3 style={{
-            fontSize: '20px',
-            fontWeight: '600',
-            color: '#333',
-            margin: '0 0 12px 0'
-          }}>
-            Warning
-          </h3>
-
-          {/* Message */}
-          <p style={{
-            fontSize: '16px',
-            color: '#666',
-            margin: '0 0 32px 0',
-            lineHeight: '1.4'
-          }}>
-            Are you sure about this action?
-          </p>
-
-          {/* Boutons */}
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'center'
-          }}>
-            <button
-              onClick={handleCreateSession}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'transparent',
-                color: '#666',
-                border: '2px solid #ddd',
-                borderRadius: '25px',
-                fontSize: '16px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                minWidth: '120px',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.backgroundColor = '#f5f5f5';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-              }}
+    <div style={{ overflowX: 'auto', ...style }}>
+      <table style={{ width: '100%', border: '1px solid #d1d5db', borderCollapse: 'collapse' }}>
+        <thead style={{ backgroundColor: '#f9fafb' }}>
+          <tr>
+            {columns.map((column, index) => (
+              <th
+                key={index}
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  borderBottom: '1px solid #d1d5db'
+                }}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, rowIndex) => (
+            <tr 
+              key={rowIndex} 
+              style={{ backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }}
             >
-              Créer Session
-            </button>
-            
-            <button
-              onClick={handleForce}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#ff8c00',
-                color: 'white',
-                border: 'none',
-                borderRadius: '25px',
-                fontSize: '16px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                minWidth: '120px',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(255, 140, 0, 0.3)'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.backgroundColor = '#e67e00';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.backgroundColor = '#ff8c00';
-              }}
-            >
-              Forcer
-            </button>
-          </div>
-        </div>
-      </div>
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}
+                >
+                  {column.render ? column.render(row) : row[column.accessor]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default WarningModal;
+const ReactTablesComponent = () => {
+  const [selectedPiece, setSelectedPiece] = React.useState(null);
+  const [showPopup, setShowPopup] = React.useState(false);
+
+  const showPieceDetails = (pieceData) => {
+    setSelectedPiece(pieceData);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedPiece(null);
+  };
+
+  // Premier tableau - Données basées sur la structure réelle de l'API
+  const dataColumns = [
+    { 
+      header: 'Info Employé', 
+      accessor: 'info_employe',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.nom}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Mat: {row.matricule}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Fonction: {row.fonction}</div>
+          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Dept: {row.departement}</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Mission', 
+      accessor: 'mission',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.thematic}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Code: {row.code_session}</div>
+          <div style={{ fontSize: '12px', color: '#059669' }}>Activité: {row.activite}</div>
+          <div style={{ fontSize: '12px', color: '#dc2626' }}>Type: {row.type}</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Trajet', 
+      accessor: 'trajet',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.Ville_Depart_x} → {row.Ville_Arrivee_x}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Distance: {row.Distance} km</div>
+          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Transport: {row.type_transport}</div>
+          <div style={{ fontSize: '12px', color: '#dc2626' }}>Direction: {row.direction}</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Hébergement', 
+      accessor: 'hebergement',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.accommodation_mode}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>{row.hotel_name}</div>
+          <div style={{ fontSize: '12px', color: '#059669' }}>
+            {row.number_of_nights} nuit(s) × {row.nightly_cost.toLocaleString()}€
+          </div>
+          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Localité: {row.localite}</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Période', 
+      accessor: 'periode',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Arrivée: {new Date(row.arrival_date).toLocaleDateString()}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Retour: {new Date(row.return_date).toLocaleDateString()}</div>
+          <div style={{ fontWeight: 'bold', color: '#7c3aed' }}>{row.duration_in_days} jour(s)</div>
+          <div style={{ fontSize: '12px', color: '#059669' }}>Perdiem: {row.perdiem.toLocaleString()}€</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Coûts', 
+      accessor: 'couts',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Hébergement: {row.total_accommodation.toLocaleString()}€</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Transport: {row.total_transport.toLocaleString()}€</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Allocation Transport: {row.transport_allowance.toLocaleString()}€</div>
+          <div style={{ fontSize: '12px', color: '#dc2626' }}>Péage: {row.toll_cost}€</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Total Remboursement', 
+      accessor: 'total_amount_to_be_reimbursed',
+      render: (row) => (
+        <div style={{ 
+          textAlign: 'center', 
+          fontSize: '16px', 
+          fontWeight: 'bold', 
+          color: '#ffffff',
+          backgroundColor: '#059669',
+          padding: '8px',
+          borderRadius: '6px'
+        }}>
+          {row.total_amount_to_be_reimbursed.toLocaleString()}€
+        </div>
+      )
+    }
+  ];
+
+  // Données d'exemple basées sur la structure réelle de l'API
+  const dataTableData = [
+    {
+      Depart_Arrivee: "BOUAKE_ABIDJAN",
+      Distance: 300,
+      Ville_Arrivee_x: "ABIDJAN",
+      Ville_Arrivee_y: "ABIDJAN", 
+      Ville_Depart_x: "BOUAKE",
+      Ville_Depart_y: "BOUAKE",
+      accommodation_allowance: "0",
+      accommodation_mode: "Hôtel",
+      activite: "AUTRES FILIERES",
+      arrival_date: "Thu, 18 Sep 2025 00:00:00 GMT",
+      cab_cost: "0",
+      city: "Abidjan",
+      code_session: "P25003501",
+      cost_of_round_trip_transport: "30000",
+      departement: "XXXXXXXXXX",
+      direction: "DDT",
+      duration_in_days: 2,
+      email: "XXXXXXXXX",
+      entite: 0,
+      fonction: "DATA SCIENTIST",
+      grade: 0,
+      hotel_name: "HOTEL IVOIRE",
+      invoice: 0,
+      localite: "BOUAKE",
+      matricule: "2236",
+      nightly_cost: 200000,
+      nom: "XXXXXXXXX",
+      nom_manager: "XXXXXXXXX",
+      number_of_nights: "2",
+      numero_compte: 0,
+      one_way_ticket: 0,
+      perdiem: "13000",
+      place: 0,
+      prenom: "XXXXXXXXX",
+      prevision_end_date: "Fri, 19 Sep 2025 00:00:00 GMT",
+      prevision_start_date: "Fri, 19 Sep 2025 00:00:00 GMT",
+      return_date: "Sat, 20 Sep 2025 00:00:00 GMT",
+      return_ticket: 0,
+      service: 0,
+      thematic: "Responsabilité Sociale et Environnementale",
+      toll_cost: 0,
+      total_accommodation: 0,
+      total_accommodation_and_perdiem: 39000,
+      total_amount_to_be_reimbursed: 105000,
+      total_perdiem: 39000,
+      total_transport: 66000,
+      transport_allowance: "36000",
+      type: "interne",
+      type_transport: "Transport en commun"
+    }
+  ];
+
+  // Deuxième tableau - Pièce comptable basée sur la structure réelle
+  const pieceComptableColumns = [
+    { 
+      header: 'Info Opération', 
+      accessor: 'info_operation',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>Mat: {row.matricule}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>{row.libelle_complementaire}</div>
+          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Fournisseur: {row.fournisseur}</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Écriture Débit', 
+      accessor: 'ecriture_debit',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#dc2626' }}>Code AG: {row.code_ag_debit}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Compte: {row.compte_de_charges}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Sens: {row.sens_au_debit}</div>
+          <div style={{ fontWeight: 'bold', color: '#dc2626' }}>Montant: {row.montant_au_debit.toLocaleString()}€</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Écriture Crédit', 
+      accessor: 'ecriture_credit',
+      render: (row) => (
+        <div style={{ lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 'bold', color: '#059669' }}>Code AG: {row.code_ag_credit}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Compte: {row.compte_contrepartie}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Sens: {row.sens_au_credit}</div>
+          <div style={{ fontWeight: 'bold', color: '#059669' }}>Montant: {row.montant_au_credit.toLocaleString()}€</div>
+        </div>
+      )
+    },
+    { 
+      header: 'Équilibre', 
+      accessor: 'equilibre',
+      render: (row) => {
+        const isEquilibre = row.montant_au_debit === row.montant_au_credit;
+        return (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '8px',
+            borderRadius: '6px',
+            backgroundColor: isEquilibre ? '#10b981' : '#ef4444',
+            color: '#ffffff',
+            fontWeight: 'bold'
+          }}>
+            {isEquilibre ? '✓ Équilibré' : '✗ Déséquilibré'}
+          </div>
+        );
+      }
+    },
+    { 
+      header: 'Visualiser', 
+      accessor: 'visualiser',
+      render: (row) => (
+        <div style={{ textAlign: 'center' }}>
+          <button
+            onClick={() => showPieceDetails(row)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+          >
+            📄 Voir Pièce
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  // Données de pièce comptable basées sur la structure réelle
+  const pieceComptableData = [
+    {
+      code_ag_credit: "XXXX",
+      code_ag_debit: "XXXX", 
+      compte_contrepartie: 0,
+      compte_de_charges: "000021814",
+      fournisseur: "XXXXXXXXX XXXXXXXXX",
+      libelle_complementaire: "FRAIS DE TRANSPORT FOR INT RESPONSABILITÉ SOCIALE ET ENVIRONNEMENTALE",
+      matricule: 2236,
+      montant_au_credit: 66000,
+      montant_au_debit: 66000,
+      sens_au_debit: "D"
+    },
+    {
+      code_ag_credit: "XXXX",
+      code_ag_debit: "XXXX",
+      compte_contrepartie: 0, 
+      compte_de_charges: "000021814",
+      fournisseur: "XXXXXXXXX XXXXXXXXX",
+      libelle_complementaire: "FRAIS DE SEJOUR ET PERDIEM FOR INT RESPONSABILITÉ SOCIALE ET ENVIRONNEMENTALE",
+      matricule: 2236,
+      montant_au_credit: 39000,
+      montant_au_debit: 39000,
+      sens_au_debit: "C"
+    }
+  ];
+
+  return (
+    <div style={{ 
+      padding: '24px', 
+      backgroundColor: '#f3f4f6', 
+      minHeight: '100vh',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h1 style={{ 
+        fontSize: '32px', 
+        fontWeight: 'bold', 
+        color: '#1f2937', 
+        textAlign: 'center', 
+        marginBottom: '32px' 
+      }}>
+        Tableaux de Synthèse - Données API Réelles
+      </h1>
+
+      {/* Premier tableau - Données mission */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderRadius: '8px', 
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+        padding: '24px',
+        marginBottom: '32px'
+      }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '16px',
+          borderBottom: '2px solid #e5e7eb',
+          paddingBottom: '8px'
+        }}>
+          📊 Tableau de Données - Frais de Mission (API)
+        </h2>
+        <div style={{ 
+          marginBottom: '16px', 
+          fontSize: '14px', 
+          color: '#6b7280' 
+        }}>
+          Données réelles provenant de l'API - Structure optimisée
+        </div>
+        <Table 
+          data={dataTableData} 
+          columns={dataColumns}
+          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        />
+      </div>
+
+      {/* Deuxième tableau - Pièce comptable */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderRadius: '8px', 
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+        padding: '24px',
+        marginBottom: '32px'
+      }}>
+        <h2 style={{ 
+          fontSize: '24px', 
+          fontWeight: '600', 
+          color: '#374151', 
+          marginBottom: '16px',
+          borderBottom: '2px solid #e5e7eb',
+          paddingBottom: '8px'
+        }}>
+          💰 Tableau Pièce Comptable (API)
+        </h2>
+        <div style={{ 
+          marginBottom: '16px', 
+          fontSize: '14px', 
+          color: '#6b7280' 
+        }}>
+          Écritures comptables basées sur les données réelles de l'API
+        </div>
+        <Table 
+          data={pieceComptableData} 
+          columns={pieceComptableColumns}
+          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        />
+      </div>
+
+      {/* Résumé */}
+      <div style={{ 
+        backgroundColor: '#eff6ff', 
+        borderRadius: '8px', 
+        padding: '24px',
+        borderLeft: '4px solid #3b82f6'
+      }}>
+        <h3 style={{ 
+          fontSize: '18px', 
+          fontWeight: '600', 
+          color: '#1e40af', 
+          marginBottom: '8px' 
+        }}>
+          📋 Informations basées sur l'API
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gap: '16px', 
+          fontSize: '14px' 
+        }}>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Structure réelle</div>
+            <div style={{ color: '#374151' }}>Basé sur les vrais champs de l'API</div>
+          </div>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Données formatées</div>
+            <div style={{ color: '#374151' }}>Montants, dates et textes optimisés</div>
+          </div>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Champs spécifiques</div>
+            <div style={{ color: '#374151' }}>Thématique, code session, localité</div>
+          </div>
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '12px', 
+            borderRadius: '6px', 
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Popup détaillé</div>
+            <div style={{ color: '#374151' }}>Visualisation complète des pièces</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Popup pour afficher la pièce comptable */}
+      {showPopup && selectedPiece && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80%',
+            overflow: 'auto',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            position: 'relative'
+          }}>
+            {/* Header de la popup */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+              borderBottom: '2px solid #e5e7eb',
+              paddingBottom: '16px'
+            }}>
+              <h3 style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: '#1f2937',
+                margin: 0
+              }}>
+                📄 Pièce Comptable - Mat: {selectedPiece.matricule}
+              </h3>
+              <button
+                onClick={closePopup}
+                style={{
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Contenu de la pièce comptable */}
+            <div style={{ lineHeight: '1.6' }}>
+              {/* Informations générales */}
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#374151', fontSize: '18px' }}>
+                  ℹ️ Informations Générales
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <strong>Matricule:</strong> {selectedPiece.matricule}
+                  </div>
+                  <div>
+                    <strong>Fournisseur:</strong> {selectedPiece.fournisseur}
+                  </div>
+                </div>
+                <div style={{ marginTop: '8px' }}>
+                  <strong>Libellé:</strong> {selectedPiece.libelle_complementaire}
+                </div>
+              </div>
+
+              {/* Écriture au débit */}
+              <div style={{
+                backgroundColor: '#fef2f2',
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                border: '1px solid #fecaca'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#dc2626', fontSize: '18px' }}>
+                  📉 Écriture au Débit
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <strong>Code AG:</strong> {selectedPiece.code_ag_debit}
+                  </div>
+                  <div>
+                    <strong>Sens:</strong> {selectedPiece.sens_au_debit}
+                  </div>
+                  <div>
+                    <strong>Compte de charges:</strong> {selectedPiece.compte_de_charges}
+                  </div>
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: '#dc2626'
+                  }}>
+                    <strong>Montant:</strong> {selectedPiece.montant_au_debit.toLocaleString()}€
+                  </div>
+                </div>
+              </div>
+
+              {/* Écriture au crédit */}
+              <div style={{
+                backgroundColor: '#f0fdf4',
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                border: '1px solid #bbf7d0'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#059669', fontSize: '18px' }}>
+                  📈 Écriture au Crédit
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <strong>Code AG:</strong> {selectedPiece.code_ag_credit}
+                  </div>
+                  <div>
+                    <strong>Sens:</strong> {selectedPiece.sens_au_credit || 'C'}
+                  </div>
+                  <div>
+                    <strong>Compte contrepartie:</strong> {selectedPiece.compte_contrepartie || 'N/A'}
+                  </div>
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: '#059669'
+                  }}>
+                    <strong>Montant:</strong> {selectedPiece.montant_au_credit.toLocaleString()}€
+                  </div>
+                </div>
+              </div>
+
+              {/* Vérification d'équilibre */}
+              <div style={{
+                backgroundColor: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '#f0fdf4' : '#fef2f2',
+                padding: '16px',
+                borderRadius: '8px',
+                textAlign: 'center',
+                border: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '1px solid #bbf7d0' : '1px solid #fecaca'
+              }}>
+                <h4 style={{
+                  margin: '0 0 8px 0',
+                  color: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '#059669' : '#dc2626',
+                  fontSize: '18px'
+                }}>
+                  {selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '✅ Équilibre Vérifié' : '❌ Déséquilibre Détecté'}
+                </h4>
+                <div style={{
+                  fontSize: '16px',
+                  color: '#6b7280'
+                }}>
+                  Débit: {selectedPiece.montant_au_debit.toLocaleString()}€ | Crédit: {selectedPiece.montant_au_credit.toLocaleString()}€
+                </div>
+              </div>
+            </div>
+
+            {/* Footer avec actions */}
+            <div style={{
+              marginTop: '24px',
+              paddingTop: '16px',
+              borderTop: '1px solid #e5e7eb',
+              textAlign: 'right'
+            }}>
+              <button
+                onClick={closePopup}
+                style={{
+                  backgroundColor: '#6b7280',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  marginRight: '12px'
+                }}
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  // Ici vous pourriez ajouter une fonction d'impression ou d'export
+                  alert('Fonction d\'impression à implémenter');
+                }}
+                style={{
+                  backgroundColor: '#3b82f6',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                🖨️ Imprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ReactTablesComponent;
