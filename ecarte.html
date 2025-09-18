@@ -1,190 +1,251 @@
-const _ciblage = async () => {
-  try {
-    // Vérifier que selectedKeysCritere existe et n'est pas vide
-    if (!selectedKeysCritere || selectedKeysCritere.length === 0) {
-      toast.error("Veuillez sélectionner au moins un critère de ciblage", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "dark",
-      });
-      return; // Arrêter l'exécution si aucun critère sélectionné
-    }
+import React, { useState } from 'react';
 
-    console.log("Critères sélectionnés à envoyer:", selectedKeysCritere);
+const WarningModal = () => {
+  const [isOpen, setIsOpen] = useState(true);
 
-    const response = await api.post(
-      `/repartir/participant/${code}`,
-      {
-        participants: defaultParticipant,
-        force: force ? 1 : null,
-        create_session: create ? 1 : null,
-        targeting_constraints: selectedKeysCritere, // Votre tableau de clés
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+  const handleCreateSession = () => {
+    console.log('Session créée');
+    setIsOpen(false);
+  };
+
+  const handleForce = () => {
+    console.log('Action forcée');
+    setIsOpen(false);
+  };
+
+  const openModal = () => {
+    setIsOpen(true);
+  };
+
+  if (!isOpen) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f5f5f5'
+      }}>
+        <button
+          onClick={openModal}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#ff6b6b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Ouvrir le Modal
+        </button>
+      </div>
     );
-
-    console.log("response", response);
-
-    // Vérifier le statut de la réponse
-    if (response.status === 200 || response.status === 201) {
-      // Vérifier si la réponse indique un succès
-      if (response.data && response.data.success !== false) {
-        toast.success("Ciblage effectué 👍", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "dark",
-        });
-        
-        // Actions après succès (fermer modal, rafraîchir données, etc.)
-        setOpen(true); // ou handleClose() selon votre logique
-        
-        // Optionnel : rafraîchir les données ou rediriger
-        // await fetchUpdatedData();
-        
-      } else {
-        // API a répondu 200 mais avec une erreur métier
-        const errorMessage = response.data?.message || "Erreur lors du ciblage";
-        toast.error(errorMessage, {
-          position: "top-right",
-          autoClose: 4000,
-          theme: "dark",
-        });
-      }
-    } else {
-      // Statut HTTP non attendu
-      toast.error(`Erreur HTTP: ${response.status}`, {
-        position: "top-right",
-        autoClose: 4000,
-        theme: "dark",
-      });
-    }
-
-  } catch (error) {
-    console.error("Erreur lors du ciblage:", error);
-    
-    // Gestion détaillée des erreurs
-    let errorMessage = "Erreur lors du ciblage";
-    
-    if (error.response) {
-      // L'API a répondu avec un statut d'erreur
-      const status = error.response.status;
-      const data = error.response.data;
-      
-      switch (status) {
-        case 400:
-          errorMessage = data?.message || "Données invalides";
-          break;
-        case 401:
-          errorMessage = "Non autorisé - Veuillez vous reconnecter";
-          break;
-        case 403:
-          errorMessage = "Accès interdit";
-          break;
-        case 404:
-          errorMessage = "Ressource non trouvée";
-          break;
-        case 422:
-          errorMessage = data?.message || "Erreur de validation";
-          break;
-        case 500:
-          errorMessage = "Erreur serveur - Veuillez réessayer";
-          break;
-        default:
-          errorMessage = `Erreur ${status}: ${data?.message || "Erreur inconnue"}`;
-      }
-    } else if (error.request) {
-      // Pas de réponse du serveur
-      errorMessage = "Pas de réponse du serveur - Vérifiez votre connexion";
-    } else {
-      // Erreur dans la configuration de la requête
-      errorMessage = "Erreur de configuration de la requête";
-    }
-    
-    toast.error(errorMessage, {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      theme: "dark",
-    });
   }
-};
 
-// Fonction pour préparer selectedKeysCritere avant l'envoi
-const prepareSelectedCriteria = () => {
-  const selectedKeys = Object.entries(selectedCriteria)
-    .filter(([key, isSelected]) => isSelected)
-    .map(([key]) => key);
-    
-  console.log("Critères préparés:", selectedKeys);
-  return selectedKeys;
-};
-
-// Fonction complète qui prépare et envoie
-const handleCiblageSubmit = async () => {
-  // Préparer les critères sélectionnés
-  const selectedKeysCritere = prepareSelectedCriteria();
-  
-  // Validation
-  if (selectedKeysCritere.length === 0) {
-    toast.warning("Veuillez sélectionner au moins un critère", {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "dark",
-    });
-    return;
-  }
-  
-  // Confirmer avant envoi (optionnel)
-  const confirmSend = window.confirm(
-    `Voulez-vous appliquer le ciblage avec ${selectedKeysCritere.length} critère(s) sélectionné(s) ?`
-  );
-  
-  if (confirmSend) {
-    await _ciblage(selectedKeysCritere);
-  }
-};
-
-// Bouton d'envoi amélioré
-const SubmitButton = () => {
-  const selectedCount = Object.values(selectedCriteria).filter(Boolean).length;
-  
   return (
-    <button
-      onClick={handleCiblageSubmit}
-      disabled={selectedCount === 0}
-      style={{
-        padding: '12px 24px',
-        backgroundColor: selectedCount > 0 ? '#1732bb' : '#ccc',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        fontSize: '16px',
-        fontWeight: '600',
-        cursor: selectedCount > 0 ? 'pointer' : 'not-allowed',
-        marginTop: '20px',
-        transition: 'background-color 0.2s ease'
-      }}
-    >
-      {selectedCount > 0 
-        ? `Appliquer le ciblage (${selectedCount} critère${selectedCount > 1 ? 's' : ''})` 
-        : 'Sélectionnez des critères'
-      }
-    </button>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      {/* Conteneur principal du modal */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '0',
+        maxWidth: '350px',
+        width: '90%',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        
+        {/* Header avec profil */}
+        <div style={{
+          backgroundColor: '#f0f0f0',
+          padding: '16px 20px',
+          borderBottom: '1px solid #e0e0e0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              backgroundColor: '#ff4458',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}>
+              F
+            </div>
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#333'
+              }}>
+                Florent Koffi
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: '#666'
+              }}>
+                Prendre soin de toi là-bas
+              </div>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => setIsOpen(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              color: '#666',
+              cursor: 'pointer',
+              padding: '4px'
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Titre */}
+        <div style={{
+          backgroundColor: '#e8e8e8',
+          padding: '16px 20px',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          color: '#333',
+          textAlign: 'left'
+        }}>
+          Ouvrir l'application
+        </div>
+
+        {/* Contenu principal */}
+        <div style={{
+          padding: '40px 20px',
+          textAlign: 'center'
+        }}>
+          {/* Icône d'avertissement */}
+          <div style={{
+            width: '60px',
+            height: '60px',
+            backgroundColor: '#fff3cd',
+            borderRadius: '50%',
+            margin: '0 auto 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid #ffc107'
+          }}>
+            <span style={{
+              fontSize: '32px',
+              color: '#856404',
+              fontWeight: 'bold'
+            }}>
+              !
+            </span>
+          </div>
+
+          {/* Titre Warning */}
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#333',
+            margin: '0 0 12px 0'
+          }}>
+            Warning
+          </h3>
+
+          {/* Message */}
+          <p style={{
+            fontSize: '16px',
+            color: '#666',
+            margin: '0 0 32px 0',
+            lineHeight: '1.4'
+          }}>
+            Are you sure about this action?
+          </p>
+
+          {/* Boutons */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'center'
+          }}>
+            <button
+              onClick={handleCreateSession}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: 'transparent',
+                color: '#666',
+                border: '2px solid #ddd',
+                borderRadius: '25px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                minWidth: '120px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = '#f5f5f5';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              Créer Session
+            </button>
+            
+            <button
+              onClick={handleForce}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#ff8c00',
+                color: 'white',
+                border: 'none',
+                borderRadius: '25px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                minWidth: '120px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(255, 140, 0, 0.3)'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = '#e67e00';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = '#ff8c00';
+              }}
+            >
+              Forcer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export default WarningModal;
