@@ -1,695 +1,305 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-// Simulation du package react-table-component
-// En pratique, vous importeriez : import { Table } from 'react-table-component';
-const Table = ({ data, columns, style }) => {
-  return (
-    <div style={{ overflowX: 'auto', ...style }}>
-      <table style={{ width: '100%', border: '1px solid #d1d5db', borderCollapse: 'collapse' }}>
-        <thead style={{ backgroundColor: '#f9fafb' }}>
-          <tr>
-            {columns.map((column, index) => (
-              <th
-                key={index}
-                style={{
-                  padding: '12px 16px',
-                  textAlign: 'left',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  borderBottom: '1px solid #d1d5db'
-                }}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, rowIndex) => (
-            <tr 
-              key={rowIndex} 
-              style={{ backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#f9fafb' }}
-            >
-              {columns.map((column, colIndex) => (
-                <td
-                  key={colIndex}
-                  style={{
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    color: '#111827',
-                    borderBottom: '1px solid #e5e7eb'
-                  }}
-                >
-                  {column.render ? column.render(row) : row[column.accessor]}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const ReactTablesComponent = () => {
-  const [selectedPiece, setSelectedPiece] = React.useState(null);
-  const [showPopup, setShowPopup] = React.useState(false);
-
-  const showPieceDetails = (pieceData) => {
-    setSelectedPiece(pieceData);
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setSelectedPiece(null);
-  };
-
-  // Premier tableau - Données basées sur la structure réelle de l'API
-  const dataColumns = [
-    { 
-      header: 'Info Employé', 
-      accessor: 'info_employe',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.nom}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Mat: {row.matricule}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Fonction: {row.fonction}</div>
-          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Dept: {row.departement}</div>
-        </div>
-      )
+const FormationWizard = ({ isOpen = false, onClose = () => {} }) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [validationErrors, setValidationErrors] = useState({});
+  const dialogRef = useRef(null);
+  
+  const [formData, setFormData] = useState({
+    step1: {
+      year: '',
+      intitule_formation: ''
     },
-    { 
-      header: 'Mission', 
-      accessor: 'mission',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.thematic}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Code: {row.code_session}</div>
-          <div style={{ fontSize: '12px', color: '#059669' }}>Activité: {row.activite}</div>
-          <div style={{ fontSize: '12px', color: '#dc2626' }}>Type: {row.type}</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Trajet', 
-      accessor: 'trajet',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.Ville_Depart_x} → {row.Ville_Arrivee_x}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Distance: {row.Distance} km</div>
-          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Transport: {row.type_transport}</div>
-          <div style={{ fontSize: '12px', color: '#dc2626' }}>Direction: {row.direction}</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Hébergement', 
-      accessor: 'hebergement',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>{row.accommodation_mode}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>{row.hotel_name}</div>
-          <div style={{ fontSize: '12px', color: '#059669' }}>
-            {row.number_of_nights} nuit(s) × {row.nightly_cost.toLocaleString()}€
-          </div>
-          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Localité: {row.localite}</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Période', 
-      accessor: 'periode',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Arrivée: {new Date(row.arrival_date).toLocaleDateString()}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Retour: {new Date(row.return_date).toLocaleDateString()}</div>
-          <div style={{ fontWeight: 'bold', color: '#7c3aed' }}>{row.duration_in_days} jour(s)</div>
-          <div style={{ fontSize: '12px', color: '#059669' }}>Perdiem: {row.perdiem.toLocaleString()}€</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Coûts', 
-      accessor: 'couts',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Hébergement: {row.total_accommodation.toLocaleString()}€</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Transport: {row.total_transport.toLocaleString()}€</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Allocation Transport: {row.transport_allowance.toLocaleString()}€</div>
-          <div style={{ fontSize: '12px', color: '#dc2626' }}>Péage: {row.toll_cost}€</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Total Remboursement', 
-      accessor: 'total_amount_to_be_reimbursed',
-      render: (row) => (
-        <div style={{ 
-          textAlign: 'center', 
-          fontSize: '16px', 
-          fontWeight: 'bold', 
-          color: '#ffffff',
-          backgroundColor: '#059669',
-          padding: '8px',
-          borderRadius: '6px'
-        }}>
-          {row.total_amount_to_be_reimbursed.toLocaleString()}€
-        </div>
-      )
+    step2: {
+      formation_obligatoire: null
     }
+  });
+
+  const steps = [
+    { id: 1, title: 'Informations Générales', icon: '📋' },
+    { id: 2, title: 'Configuration', icon: '⚙️' },
+    { id: 3, title: 'Finalisation', icon: '✨' }
   ];
 
-  // Données d'exemple basées sur la structure réelle de l'API
-  const dataTableData = [
-    {
-      Depart_Arrivee: "BOUAKE_ABIDJAN",
-      Distance: 300,
-      Ville_Arrivee_x: "ABIDJAN",
-      Ville_Arrivee_y: "ABIDJAN", 
-      Ville_Depart_x: "BOUAKE",
-      Ville_Depart_y: "BOUAKE",
-      accommodation_allowance: "0",
-      accommodation_mode: "Hôtel",
-      activite: "AUTRES FILIERES",
-      arrival_date: "Thu, 18 Sep 2025 00:00:00 GMT",
-      cab_cost: "0",
-      city: "Abidjan",
-      code_session: "P25003501",
-      cost_of_round_trip_transport: "30000",
-      departement: "XXXXXXXXXX",
-      direction: "DDT",
-      duration_in_days: 2,
-      email: "XXXXXXXXX",
-      entite: 0,
-      fonction: "DATA SCIENTIST",
-      grade: 0,
-      hotel_name: "HOTEL IVOIRE",
-      invoice: 0,
-      localite: "BOUAKE",
-      matricule: "2236",
-      nightly_cost: 200000,
-      nom: "XXXXXXXXX",
-      nom_manager: "XXXXXXXXX",
-      number_of_nights: "2",
-      numero_compte: 0,
-      one_way_ticket: 0,
-      perdiem: "13000",
-      place: 0,
-      prenom: "XXXXXXXXX",
-      prevision_end_date: "Fri, 19 Sep 2025 00:00:00 GMT",
-      prevision_start_date: "Fri, 19 Sep 2025 00:00:00 GMT",
-      return_date: "Sat, 20 Sep 2025 00:00:00 GMT",
-      return_ticket: 0,
-      service: 0,
-      thematic: "Responsabilité Sociale et Environnementale",
-      toll_cost: 0,
-      total_accommodation: 0,
-      total_accommodation_and_perdiem: 39000,
-      total_amount_to_be_reimbursed: 105000,
-      total_perdiem: 39000,
-      total_transport: 66000,
-      transport_allowance: "36000",
-      type: "interne",
-      type_transport: "Transport en commun"
+  useEffect(() => {
+    if (isOpen && dialogRef.current) {
+      dialogRef.current.showModal();
+    } else if (dialogRef.current) {
+      dialogRef.current.close();
     }
-  ];
+  }, [isOpen]);
 
-  // Deuxième tableau - Pièce comptable basée sur la structure réelle
-  const pieceComptableColumns = [
-    { 
-      header: 'Info Opération', 
-      accessor: 'info_operation',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#1f2937' }}>Mat: {row.matricule}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>{row.libelle_complementaire}</div>
-          <div style={{ fontSize: '12px', color: '#7c3aed' }}>Fournisseur: {row.fournisseur}</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Écriture Débit', 
-      accessor: 'ecriture_debit',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#dc2626' }}>Code AG: {row.code_ag_debit}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Compte: {row.compte_de_charges}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Sens: {row.sens_au_debit}</div>
-          <div style={{ fontWeight: 'bold', color: '#dc2626' }}>Montant: {row.montant_au_debit.toLocaleString()}€</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Écriture Crédit', 
-      accessor: 'ecriture_credit',
-      render: (row) => (
-        <div style={{ lineHeight: '1.4' }}>
-          <div style={{ fontWeight: 'bold', color: '#059669' }}>Code AG: {row.code_ag_credit}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Compte: {row.compte_contrepartie}</div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Sens: {row.sens_au_credit}</div>
-          <div style={{ fontWeight: 'bold', color: '#059669' }}>Montant: {row.montant_au_credit.toLocaleString()}€</div>
-        </div>
-      )
-    },
-    { 
-      header: 'Équilibre', 
-      accessor: 'equilibre',
-      render: (row) => {
-        const isEquilibre = row.montant_au_debit === row.montant_au_credit;
+  const validateStep = (stepNumber) => {
+    const newErrors = {};
+    
+    if (stepNumber === 0) {
+      if (!formData.step1.year) {
+        newErrors.year = "Année requise";
+      }
+      if (!formData.step1.intitule_formation) {
+        newErrors.intitule_formation = "Titre requis";
+      }
+    }
+    
+    if (stepNumber === 1) {
+      if (formData.step2.formation_obligatoire === null) {
+        newErrors.formation_obligatoire = "Choix requis";
+      }
+    }
+    
+    setValidationErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    // Valider et afficher les erreurs visuellement
+    if (!validateStep(currentStep - 1)) {
+      // Les erreurs sont maintenant affichées visuellement
+      // Pas d'alert, juste le retour anticipé
+      return;
+    }
+    
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+      setValidationErrors({});
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      setValidationErrors({});
+    }
+  };
+
+  const handleInputChange = (step, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [step]: {
+        ...prev[step],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSubmit = () => {
+    console.log('Données:', formData);
+    alert('Formation créée !');
+    onClose();
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '12px',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    fontSize: '16px'
+  };
+
+  const errorStyle = {
+    color: '#ef4444',
+    fontSize: '14px',
+    marginTop: '4px'
+  };
+
+  const buttonStyle = {
+    padding: '12px 24px',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '16px',
+    cursor: 'pointer',
+    background: '#667eea',
+    color: 'white'
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
         return (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '8px',
-            borderRadius: '6px',
-            backgroundColor: isEquilibre ? '#10b981' : '#ef4444',
-            color: '#ffffff',
-            fontWeight: 'bold'
-          }}>
-            {isEquilibre ? '✓ Équilibré' : '✗ Déséquilibré'}
+          <div>
+            <h2>Informations Générales</h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label>Année *</label>
+              <input
+                type="number"
+                value={formData.step1.year}
+                onChange={(e) => handleInputChange('step1', 'year', e.target.value)}
+                style={{
+                  ...inputStyle,
+                  borderColor: validationErrors.year ? '#ef4444' : '#ddd'
+                }}
+                placeholder="2024"
+              />
+              {validationErrors.year && (
+                <div style={errorStyle}>{validationErrors.year}</div>
+              )}
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label>Titre de la formation *</label>
+              <input
+                type="text"
+                value={formData.step1.intitule_formation}
+                onChange={(e) => handleInputChange('step1', 'intitule_formation', e.target.value)}
+                style={{
+                  ...inputStyle,
+                  borderColor: validationErrors.intitule_formation ? '#ef4444' : '#ddd'
+                }}
+                placeholder="Nom de la formation"
+              />
+              {validationErrors.intitule_formation && (
+                <div style={errorStyle}>{validationErrors.intitule_formation}</div>
+              )}
+            </div>
           </div>
         );
-      }
-    },
-    { 
-      header: 'Visualiser', 
-      accessor: 'visualiser',
-      render: (row) => (
-        <div style={{ textAlign: 'center' }}>
-          <button
-            onClick={() => showPieceDetails(row)}
-            style={{
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
-          >
-            📄 Voir Pièce
-          </button>
-        </div>
-      )
-    }
-  ];
 
-  // Données de pièce comptable basées sur la structure réelle
-  const pieceComptableData = [
-    {
-      code_ag_credit: "XXXX",
-      code_ag_debit: "XXXX", 
-      compte_contrepartie: 0,
-      compte_de_charges: "000021814",
-      fournisseur: "XXXXXXXXX XXXXXXXXX",
-      libelle_complementaire: "FRAIS DE TRANSPORT FOR INT RESPONSABILITÉ SOCIALE ET ENVIRONNEMENTALE",
-      matricule: 2236,
-      montant_au_credit: 66000,
-      montant_au_debit: 66000,
-      sens_au_debit: "D"
-    },
-    {
-      code_ag_credit: "XXXX",
-      code_ag_debit: "XXXX",
-      compte_contrepartie: 0, 
-      compte_de_charges: "000021814",
-      fournisseur: "XXXXXXXXX XXXXXXXXX",
-      libelle_complementaire: "FRAIS DE SEJOUR ET PERDIEM FOR INT RESPONSABILITÉ SOCIALE ET ENVIRONNEMENTALE",
-      matricule: 2236,
-      montant_au_credit: 39000,
-      montant_au_debit: 39000,
-      sens_au_debit: "C"
-    }
-  ];
-
-  return (
-    <div style={{ 
-      padding: '24px', 
-      backgroundColor: '#f3f4f6', 
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ 
-        fontSize: '32px', 
-        fontWeight: 'bold', 
-        color: '#1f2937', 
-        textAlign: 'center', 
-        marginBottom: '32px' 
-      }}>
-        Tableaux de Synthèse - Données API Réelles
-      </h1>
-
-      {/* Premier tableau - Données mission */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        borderRadius: '8px', 
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-        padding: '24px',
-        marginBottom: '32px'
-      }}>
-        <h2 style={{ 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          color: '#374151', 
-          marginBottom: '16px',
-          borderBottom: '2px solid #e5e7eb',
-          paddingBottom: '8px'
-        }}>
-          📊 Tableau de Données - Frais de Mission (API)
-        </h2>
-        <div style={{ 
-          marginBottom: '16px', 
-          fontSize: '14px', 
-          color: '#6b7280' 
-        }}>
-          Données réelles provenant de l'API - Structure optimisée
-        </div>
-        <Table 
-          data={dataTableData} 
-          columns={dataColumns}
-          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-        />
-      </div>
-
-      {/* Deuxième tableau - Pièce comptable */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        borderRadius: '8px', 
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-        padding: '24px',
-        marginBottom: '32px'
-      }}>
-        <h2 style={{ 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          color: '#374151', 
-          marginBottom: '16px',
-          borderBottom: '2px solid #e5e7eb',
-          paddingBottom: '8px'
-        }}>
-          💰 Tableau Pièce Comptable (API)
-        </h2>
-        <div style={{ 
-          marginBottom: '16px', 
-          fontSize: '14px', 
-          color: '#6b7280' 
-        }}>
-          Écritures comptables basées sur les données réelles de l'API
-        </div>
-        <Table 
-          data={pieceComptableData} 
-          columns={pieceComptableColumns}
-          style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-        />
-      </div>
-
-      {/* Résumé */}
-      <div style={{ 
-        backgroundColor: '#eff6ff', 
-        borderRadius: '8px', 
-        padding: '24px',
-        borderLeft: '4px solid #3b82f6'
-      }}>
-        <h3 style={{ 
-          fontSize: '18px', 
-          fontWeight: '600', 
-          color: '#1e40af', 
-          marginBottom: '8px' 
-        }}>
-          📋 Informations basées sur l'API
-        </h3>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '16px', 
-          fontSize: '14px' 
-        }}>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Structure réelle</div>
-            <div style={{ color: '#374151' }}>Basé sur les vrais champs de l'API</div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Données formatées</div>
-            <div style={{ color: '#374151' }}>Montants, dates et textes optimisés</div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Champs spécifiques</div>
-            <div style={{ color: '#374151' }}>Thématique, code session, localité</div>
-          </div>
-          <div style={{ 
-            backgroundColor: '#ffffff', 
-            padding: '12px', 
-            borderRadius: '6px', 
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' 
-          }}>
-            <div style={{ fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>✓ Popup détaillé</div>
-            <div style={{ color: '#374151' }}>Visualisation complète des pièces</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Popup pour afficher la pièce comptable */}
-      {showPopup && selectedPiece && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            padding: '32px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80%',
-            overflow: 'auto',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            position: 'relative'
-          }}>
-            {/* Header de la popup */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '24px',
-              borderBottom: '2px solid #e5e7eb',
-              paddingBottom: '16px'
-            }}>
-              <h3 style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: '#1f2937',
-                margin: 0
+      case 2:
+        return (
+          <div>
+            <h2>Configuration</h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label>Formation obligatoire ? *</label>
+              <div style={{ 
+                marginTop: '10px',
+                border: validationErrors.formation_obligatoire ? '2px solid #ef4444' : '2px solid #ddd',
+                padding: '15px',
+                borderRadius: '8px'
               }}>
-                📄 Pièce Comptable - Mat: {selectedPiece.matricule}
-              </h3>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="radio"
+                      checked={formData.step2.formation_obligatoire === true}
+                      onChange={() => handleInputChange('step2', 'formation_obligatoire', true)}
+                    />
+                    Oui
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="radio"
+                      checked={formData.step2.formation_obligatoire === false}
+                      onChange={() => handleInputChange('step2', 'formation_obligatoire', false)}
+                    />
+                    Non
+                  </label>
+                </div>
+              </div>
+              {validationErrors.formation_obligatoire && (
+                <div style={errorStyle}>{validationErrors.formation_obligatoire}</div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div>
+            <h2>Finalisation</h2>
+            <p>Récapitulatif de votre formation :</p>
+            <ul>
+              <li>Année : {formData.step1.year}</li>
+              <li>Titre : {formData.step1.intitule_formation}</li>
+              <li>Obligatoire : {formData.step2.formation_obligatoire ? 'Oui' : 'Non'}</li>
+            </ul>
+            
+            <button onClick={handleSubmit} style={buttonStyle}>
+              Créer la Formation
+            </button>
+          </div>
+        );
+
+      default:
+        return <div>Étape inconnue</div>;
+    }
+  };
+
+  // Version standalone pour test
+  if (!isOpen) {
+    return (
+      <div style={{ padding: '20px' }}>
+        <button 
+          onClick={() => dialogRef.current?.showModal()}
+          style={buttonStyle}
+        >
+          Ouvrir le formulaire de formation
+        </button>
+        
+        <dialog
+          ref={dialogRef}
+          style={{
+            width: '600px',
+            height: '500px',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '0'
+          }}
+        >
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+              background: '#334155',
+              color: 'white',
+              padding: '20px',
+              position: 'relative'
+            }}>
               <button
-                onClick={closePopup}
+                onClick={() => dialogRef.current?.close()}
                 style={{
-                  backgroundColor: '#ef4444',
-                  color: '#ffffff',
+                  position: 'absolute',
+                  top: '10px',
+                  right: '15px',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  color: 'white',
+                  fontSize: '20px',
+                  cursor: 'pointer'
                 }}
               >
                 ×
               </button>
+              <h1 style={{ margin: 0 }}>Assistant de Formation</h1>
+              <p style={{ margin: '10px 0 0 0' }}>
+                Étape {currentStep} sur {steps.length} - {steps[currentStep - 1].title}
+              </p>
             </div>
 
-            {/* Contenu de la pièce comptable */}
-            <div style={{ lineHeight: '1.6' }}>
-              {/* Informations générales */}
-              <div style={{
-                backgroundColor: '#f9fafb',
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px'
-              }}>
-                <h4 style={{ margin: '0 0 12px 0', color: '#374151', fontSize: '18px' }}>
-                  ℹ️ Informations Générales
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <strong>Matricule:</strong> {selectedPiece.matricule}
-                  </div>
-                  <div>
-                    <strong>Fournisseur:</strong> {selectedPiece.fournisseur}
-                  </div>
-                </div>
-                <div style={{ marginTop: '8px' }}>
-                  <strong>Libellé:</strong> {selectedPiece.libelle_complementaire}
-                </div>
-              </div>
-
-              {/* Écriture au débit */}
-              <div style={{
-                backgroundColor: '#fef2f2',
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                border: '1px solid #fecaca'
-              }}>
-                <h4 style={{ margin: '0 0 12px 0', color: '#dc2626', fontSize: '18px' }}>
-                  📉 Écriture au Débit
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <strong>Code AG:</strong> {selectedPiece.code_ag_debit}
-                  </div>
-                  <div>
-                    <strong>Sens:</strong> {selectedPiece.sens_au_debit}
-                  </div>
-                  <div>
-                    <strong>Compte de charges:</strong> {selectedPiece.compte_de_charges}
-                  </div>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: '#dc2626'
-                  }}>
-                    <strong>Montant:</strong> {selectedPiece.montant_au_debit.toLocaleString()}€
-                  </div>
-                </div>
-              </div>
-
-              {/* Écriture au crédit */}
-              <div style={{
-                backgroundColor: '#f0fdf4',
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                border: '1px solid #bbf7d0'
-              }}>
-                <h4 style={{ margin: '0 0 12px 0', color: '#059669', fontSize: '18px' }}>
-                  📈 Écriture au Crédit
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <strong>Code AG:</strong> {selectedPiece.code_ag_credit}
-                  </div>
-                  <div>
-                    <strong>Sens:</strong> {selectedPiece.sens_au_credit || 'C'}
-                  </div>
-                  <div>
-                    <strong>Compte contrepartie:</strong> {selectedPiece.compte_contrepartie || 'N/A'}
-                  </div>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: '#059669'
-                  }}>
-                    <strong>Montant:</strong> {selectedPiece.montant_au_credit.toLocaleString()}€
-                  </div>
-                </div>
-              </div>
-
-              {/* Vérification d'équilibre */}
-              <div style={{
-                backgroundColor: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '#f0fdf4' : '#fef2f2',
-                padding: '16px',
-                borderRadius: '8px',
-                textAlign: 'center',
-                border: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '1px solid #bbf7d0' : '1px solid #fecaca'
-              }}>
-                <h4 style={{
-                  margin: '0 0 8px 0',
-                  color: selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '#059669' : '#dc2626',
-                  fontSize: '18px'
-                }}>
-                  {selectedPiece.montant_au_debit === selectedPiece.montant_au_credit ? '✅ Équilibre Vérifié' : '❌ Déséquilibre Détecté'}
-                </h4>
-                <div style={{
-                  fontSize: '16px',
-                  color: '#6b7280'
-                }}>
-                  Débit: {selectedPiece.montant_au_debit.toLocaleString()}€ | Crédit: {selectedPiece.montant_au_credit.toLocaleString()}€
-                </div>
-              </div>
+            <div style={{ flex: 1, padding: '30px', overflow: 'auto' }}>
+              {renderStep()}
             </div>
 
-            {/* Footer avec actions */}
             <div style={{
-              marginTop: '24px',
-              paddingTop: '16px',
-              borderTop: '1px solid #e5e7eb',
-              textAlign: 'right'
+              padding: '20px',
+              borderTop: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'space-between'
             }}>
               <button
-                onClick={closePopup}
+                onClick={prevStep}
+                disabled={currentStep === 1}
                 style={{
-                  backgroundColor: '#6b7280',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  marginRight: '12px'
+                  ...buttonStyle,
+                  background: currentStep === 1 ? '#ccc' : '#6b7280',
+                  cursor: currentStep === 1 ? 'not-allowed' : 'pointer'
                 }}
               >
-                Fermer
+                Précédent
               </button>
-              <button
-                onClick={() => {
-                  // Ici vous pourriez ajouter une fonction d'impression ou d'export
-                  alert('Fonction d\'impression à implémenter');
-                }}
-                style={{
-                  backgroundColor: '#3b82f6',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                🖨️ Imprimer
-              </button>
+              
+              {currentStep < steps.length && (
+                <button onClick={nextStep} style={buttonStyle}>
+                  Suivant
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </dialog>
+      </div>
+    );
+  }
+
+  return null;
 };
 
-export default ReactTablesComponent;
+export default FormationWizard;
