@@ -1,193 +1,421 @@
-import React, { useState, useEffect, useRef } from "react";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { Button } from "primereact/button";
-import { Tooltip } from "primereact/tooltip";
-import { classNames } from "primereact/utils";
+import React, { useState } from 'react';
+import { MessageCircle, Users, BookOpen, Facebook, Twitter, Linkedin, Heart, Bookmark, Lock, Camera } from 'lucide-react';
 
-export default function HotForm() {
-  const fileInputRef = useRef(null);
-  const [userResponse, setUserResponse] = useState([]);
-  const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [fileLoad, setFileLoad] = useState(false);
-  const [filters, setFilters] = useState({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
+const ProfilePage = () => {
+  const [activeTab, setActiveTab] = useState('posts');
+  const [coverImage, setCoverImage] = useState("https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=180&fit=crop");
 
-  // Custom score field
-  const stockBodyTemplate = (rowData) => {
-    const stockClassName = classNames(
-      "border-circle w-2rem h-2rem inline-flex font-bold justify-content-center align-items-center text-sm",
-      {
-        "bg-red-100 text-red-900": rowData.score === 0,
-        "bg-blue-100 text-blue-900": rowData.score > 0 && rowData.score < 10,
-        "bg-teal-100 text-teal-900": rowData.score >= 10,
-      }
-    );
-
-    return <div className={stockClassName}>{rowData.score}</div>;
-  };
-
-  const onGlobalFilterChange = (e) => {
-    const value = e.target.value;
-    let _filters = { ...filters };
-    _filters["global"].value = value;
-    setFilters(_filters);
-    setGlobalFilterValue(value);
-  };
-
-  // Charger le fichier pour l'évaluation à chaud
-  const uploadFileHot = async (event) => {
+  const handleCoverImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append("extraction", file);
-      try {
-        const response = await api.post(
-          `session/${selectedSession.code_session}/load/extraction-hot-form`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        if (response.status === 200) setFileLoad(true);
-      } catch (error) {
-        console.error("Erreur lors de l'envoi du fichier:", error);
-      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCoverImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Charger le formulaire à chaud après avoir téléversé le fichier
-  const _getResponseHotForm = async () => {
-    try {
-      const response = await api.get(
-        `session/${selectedSession.code_session}/hot-eval/responses`
-      );
-      console.log("form à chaud", response);
-      setUserResponse(response.data.data || []);
-    } catch (error) {
-      console.error("Erreur lors du chargement des collaborateurs:", error);
-      setUserResponse([]);
+  const tabs = [
+    { id: 'posts', label: 'Posts', count: 4, icon: MessageCircle },
+    { id: 'community', label: 'Community', count: 6, icon: Users },
+    { id: 'courses', label: 'Courses', count: 2, icon: BookOpen }
+  ];
+
+  const posts = [
+    {
+      id: 1,
+      title: "Long-awaited vacation",
+      description: "Today I'll tell you about my vacation in Mexico. We went with friends to chill on the...",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      likes: 12,
+      saved: 2,
+      isPremium: false
+    },
+    {
+      id: 2,
+      title: "A new single",
+      description: "Yesterday I've been in studio and recorded a new single, you'll be able to listen it on all music p...",
+      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+      likes: 10,
+      saved: 4,
+      isPremium: true
+    }
+  ];
+
+  const renderTabContent = () => {
+    switch(activeTab) {
+      case 'posts':
+        return (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+            padding: '20px 0'
+          }}>
+            {posts.map(post => (
+              <div key={post.id} style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                transition: 'transform 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <div style={{ position: 'relative' }}>
+                  <img 
+                    src={post.image} 
+                    alt={post.title}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover'
+                    }}
+                  />
+                  {post.isPremium && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      backgroundColor: 'rgba(0,0,0,0.7)',
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <Lock size={12} />
+                      Premium
+                    </div>
+                  )}
+                  {post.isPremium && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      padding: '8px 16px',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <Lock size={14} />
+                      Unlock
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: '16px' }}>
+                  <h3 style={{
+                    margin: '0 0 8px 0',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#1a1a1a'
+                  }}>
+                    {post.title}
+                  </h3>
+                  <p style={{
+                    margin: '0 0 16px 0',
+                    fontSize: '14px',
+                    color: '#666',
+                    lineHeight: '1.4'
+                  }}>
+                    {post.description}
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    fontSize: '14px',
+                    color: '#888'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <Heart size={16} />
+                      {post.likes} likes
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <Bookmark size={16} />
+                      {post.saved} saved
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'community':
+        return (
+          <div style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            color: '#666'
+          }}>
+            <Users size={48} style={{ margin: '0 auto 16px', color: '#ccc' }} />
+            <h3 style={{ margin: '0 0 8px 0', color: '#333' }}>Community Content</h3>
+            <p style={{ margin: 0 }}>Community posts and interactions will appear here.</p>
+          </div>
+        );
+      case 'courses':
+        return (
+          <div style={{
+            padding: '40px 20px',
+            textAlign: 'center',
+            color: '#666'
+          }}>
+            <BookOpen size={48} style={{ margin: '0 auto 16px', color: '#ccc' }} />
+            <h3 style={{ margin: '0 0 8px 0', color: '#333' }}>Courses</h3>
+            <p style={{ margin: 0 }}>Available courses and learning materials will be displayed here.</p>
+          </div>
+        );
+      default:
+        return null;
     }
   };
-
-  const saveAsExcelFile = (buffer, fileName) => {
-    import("file-saver").then((module) => {
-      if (module && module.default) {
-        let EXCEL_TYPE =
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
-        let EXCEL_EXTENSION = ".xlsx";
-        const data = new Blob([buffer], {
-          type: EXCEL_TYPE,
-        });
-        module.default.saveAs(
-          data,
-          fileName + "_export_" + new Date().getTime() + EXCEL_EXTENSION
-        );
-      }
-    });
-  };
-
-  const exportExcel = () => {
-    import("xlsx").then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(userResponse);
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ["data"] };
-      const excelBuffer = xlsx.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-      });
-      saveAsExcelFile(excelBuffer, "hot_form_responses");
-    });
-  };
-
-  const renderHeader = () => {
-    return (
-      <div className="flex justify-content-between align-items-center">
-        <IconField iconPosition="left">
-          <InputIcon className="pi pi-search" />
-          <InputText
-            value={globalFilterValue}
-            onChange={onGlobalFilterChange}
-            placeholder="Rechercher..."
-          />
-        </IconField>
-        <Button
-          type="button"
-          icon="pi pi-file-excel"
-          severity="success"
-          rounded
-          onClick={exportExcel}
-          data-pr-tooltip="Exporter en Excel"
-          className="export-buttons"
-        />
-      </div>
-    );
-  };
-
-  useEffect(() => {
-    if (fileLoad) _getResponseHotForm();
-  }, [fileLoad]);
 
   return (
-    <div>
-      <div style={{ marginBottom: "24px" }}>
-        <Button
-          onClick={() => fileInputRef.current?.click()}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#10b981",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            fontSize: "12px",
-            fontWeight: "500",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-          icon="pi pi-upload"
+    <div style={{
+      maxWidth: '800px',
+      margin: '0 auto',
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh'
+    }}>
+      {/* Header avec image de couverture */}
+      <div style={{
+        position: 'relative',
+        height: '180px',
+        background: `url("${coverImage}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderRadius: '0 0 20px 20px',
+        overflow: 'hidden'
+      }}>
+        {/* Icône caméra pour changer l'image de couverture */}
+        <label style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          color: 'white',
+          padding: '8px',
+          borderRadius: '50%',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.8)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.6)'}
         >
-          Charger la liste
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,.xlsx,.xls"
-          onChange={uploadFileHot}
-          style={{ display: "none" }}
-        />
+          <Camera size={20} />
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleCoverImageChange}
+            style={{ display: 'none' }}
+          />
+        </label>
+
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          right: '16px',
+          display: 'flex',
+          gap: '20px',
+          color: 'white',
+          fontSize: '14px'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>1289</div>
+            <div style={{ opacity: 0.8 }}>following</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>12</div>
+            <div style={{ opacity: 0.8 }}>followers</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>947</div>
+            <div style={{ opacity: 0.8 }}>likes</div>
+          </div>
+        </div>
+        
+        {/* Cercle avec initiales positionné sur l'image de couverture */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-50px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 3
+        }}>
+          <div style={{
+            width: '100px',
+            height: '100px',
+            borderRadius: '50%',
+            backgroundColor: 'white',
+            border: '4px solid white',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: '#333'
+          }}>
+            MP
+          </div>
+        </div>
       </div>
 
-      <div className="card">
-        <Tooltip target=".export-buttons" position="bottom" />
-        <DataTable
-          scrollable
-          scrollHeight="400px"
-          header={renderHeader()}
-          filters={filters}
-          globalFilterFields={['matricule', 'full_name', 'score']}
-          value={userResponse}
-          paginator
-          rows={5}
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          emptyMessage="Aucune donnée disponible"
-        >
-          <Column field="matricule" header="Matricule" sortable></Column>
-          <Column field="full_name" header="Nom et Prénoms" sortable></Column>
-          <Column
-            field="score"
-            header="Score"
-            body={stockBodyTemplate}
-            sortable
-          ></Column>
-        </DataTable>
+      {/* Profil utilisateur */}
+      <div style={{
+        padding: '60px 20px 0 20px',
+        position: 'relative',
+        zIndex: 2
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            marginBottom: '16px',
+            marginTop: '12px'
+          }}>
+            <button style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer'
+            }}>
+              ✓ Following
+            </button>
+            <button style={{
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}>
+              ✉
+            </button>
+          </div>
+          <h1 style={{
+            margin: '0 0 4px 0',
+            fontSize: '24px',
+            fontWeight: '600',
+            color: '#1a1a1a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            Mateo Petty 🥁
+          </h1>
+          <p style={{
+            margin: '0 0 16px 0',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            Drummer, Philadelphia (USA)
+          </p>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '12px'
+          }}>
+            <Facebook size={20} style={{ color: '#1877f2', cursor: 'pointer' }} />
+            <Twitter size={20} style={{ color: '#1da1f2', cursor: 'pointer' }} />
+            <Linkedin size={20} style={{ color: '#0077b5', cursor: 'pointer' }} />
+          </div>
+        </div>
+
+        {/* Navigation par onglets */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '4px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          display: 'flex',
+          gap: '4px'
+        }}>
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  backgroundColor: activeTab === tab.id ? '#007bff' : 'transparent',
+                  color: activeTab === tab.id ? 'white' : '#666',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                <Icon size={16} />
+                <span style={{ display: window.innerWidth > 480 ? 'inline' : 'none' }}>
+                  {tab.label}
+                </span>
+                <span style={{
+                  backgroundColor: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : '#e9ecef',
+                  color: activeTab === tab.id ? 'white' : '#666',
+                  padding: '2px 6px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  minWidth: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Contenu des onglets */}
+        <div style={{ paddingBottom: '40px' }}>
+          {renderTabContent()}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProfilePage;
