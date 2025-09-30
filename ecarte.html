@@ -10,7 +10,7 @@ const QuizManager = () => {
   const deleteDialogRef = useRef(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const CODE_FORMATION = 'FORM-2025-JS';
-  const [formData, setFormData] = useState({ quiz: '', type: 'qcm', modalities: [], mandatory: true });
+  const [formData, setFormData] = useState({ quiz: '', type: 'free', modalities: [], mandatory: true });
   const [currentModality, setCurrentModality] = useState('');
 
   const openFormDialog = (index = null) => {
@@ -77,7 +77,7 @@ const QuizManager = () => {
   };
 
   const resetForm = () => {
-    setFormData({ quiz: '', type: 'qcm', modalities: [], mandatory: true });
+    setFormData({ quiz: '', type: 'free', modalities: [], mandatory: true });
     setCurrentModality('');
     setEditingQuiz(null);
   };
@@ -109,10 +109,10 @@ const QuizManager = () => {
 
   if (viewingQuiz) {
     return (
-      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', background: viewingQuiz.mandatory ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', minHeight: '100vh' }}>
-        <button onClick={() => setViewingQuiz(null)} style={{ marginBottom: '24px', padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>← Retour</button>
-        <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
+        <button onClick={() => setViewingQuiz(null)} style={{ marginBottom: '24px', padding: '10px 20px', backgroundColor: 'white', color: '#374151', border: '2px solid #e5e7eb', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>← Retour</button>
+        <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px', paddingBottom: '20px', borderBottom: '2px solid #e5e7eb' }}>
             <div style={{ flex: 1 }}>
               <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#1f2937', margin: '0 0 8px 0' }}>{viewingQuiz.quiz}</h2>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -124,24 +124,30 @@ const QuizManager = () => {
               {viewingQuiz.mandatory ? <><AlertCircle size={20} style={{ color: '#dc2626' }} /><span style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626' }}>Obligatoire</span></> : <><CheckCircle size={20} style={{ color: '#0891b2' }} /><span style={{ fontSize: '14px', fontWeight: '700', color: '#0891b2' }}>Optionnel</span></>}
             </div>
           </div>
-          {viewingQuiz.mandatory && <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #fca5a5' }}><AlertCircle size={24} style={{ color: '#dc2626' }} /><p style={{ margin: 0, color: '#991b1b', fontSize: '15px', fontWeight: '600' }}>Attention : Ce quiz est obligatoire. Vous devez y répondre pour continuer.</p></div>}
-          {!viewingQuiz.mandatory && <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #cffafe 0%, #bae6fd 100%)', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #7dd3fc' }}><CheckCircle size={24} style={{ color: '#0891b2' }} /><p style={{ margin: 0, color: '#0e7490', fontSize: '15px', fontWeight: '600' }}>Ce quiz est optionnel. Vous pouvez choisir de ne pas y répondre.</p></div>}
-          {viewingQuiz.modalities.length > 0 && (
+          {viewingQuiz.mandatory && <div style={{ padding: '16px 20px', backgroundColor: '#fef2f2', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #fca5a5' }}><AlertCircle size={24} style={{ color: '#dc2626' }} /><p style={{ margin: 0, color: '#991b1b', fontSize: '15px', fontWeight: '600' }}>Attention : Ce quiz est obligatoire. Vous devez y répondre pour continuer.</p></div>}
+          {!viewingQuiz.mandatory && <div style={{ padding: '16px 20px', backgroundColor: '#f0f9ff', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #7dd3fc' }}><CheckCircle size={24} style={{ color: '#0891b2' }} /><p style={{ margin: 0, color: '#0e7490', fontSize: '15px', fontWeight: '600' }}>Ce quiz est optionnel. Vous pouvez choisir de ne pas y répondre.</p></div>}
+          {viewingQuiz.type !== 'free' && viewingQuiz.modalities.length > 0 && (
             <div style={{ marginBottom: '28px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937', marginBottom: '18px' }}>{viewingQuiz.type === 'qcu' ? '🎯 Sélectionnez une réponse' : '✅ Sélectionnez vos réponses'}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {viewingQuiz.modalities.map((modality, index) => (
-                  <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 20px', backgroundColor: userAnswers[modality] ? (viewingQuiz.mandatory ? '#fef2f2' : '#f0f9ff') : '#f9fafb', border: userAnswers[modality] ? (viewingQuiz.mandatory ? '3px solid #f5576c' : '3px solid #4facfe') : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer' }}>
+                  <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 20px', backgroundColor: userAnswers[modality] ? '#f0f9ff' : '#f9fafb', border: userAnswers[modality] ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer' }}>
                     <input type={viewingQuiz.type === 'qcu' ? 'radio' : 'checkbox'} name="quiz-answer" checked={userAnswers[modality] || false} onChange={(e) => handleAnswerChange(modality, e.target.checked)} style={{ width: '24px', height: '24px', cursor: 'pointer' }} />
                     <span style={{ fontSize: '17px', color: '#1f2937', fontWeight: userAnswers[modality] ? '600' : '500', flex: 1 }}>{modality}</span>
-                    {userAnswers[modality] && <Check size={22} style={{ color: viewingQuiz.mandatory ? '#f5576c' : '#4facfe' }} />}
+                    {userAnswers[modality] && <Check size={22} style={{ color: '#3b82f6' }} />}
                   </label>
                 ))}
               </div>
             </div>
           )}
+          {viewingQuiz.type === 'free' && (
+            <div style={{ marginBottom: '28px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937', marginBottom: '18px' }}>✍️ Votre réponse</h3>
+              <textarea placeholder="Écrivez votre réponse ici..." rows={8} style={{ width: '100%', padding: '16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }} />
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={handleSubmitAnswers} style={{ flex: 1, padding: '16px', background: viewingQuiz.mandatory ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '17px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: viewingQuiz.mandatory ? '0 4px 15px rgba(245, 87, 108, 0.4)' : '0 4px 15px rgba(79, 172, 254, 0.4)' }}><Check size={22} />Soumettre mes Réponses</button>
+            <button onClick={handleSubmitAnswers} style={{ flex: 1, padding: '16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '17px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}><Check size={22} />Soumettre mes Réponses</button>
             {!viewingQuiz.mandatory && <button onClick={() => setViewingQuiz(null)} style={{ padding: '16px 24px', backgroundColor: '#f3f4f6', color: '#6b7280', border: '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', whiteSpace: 'nowrap' }}>Passer</button>}
           </div>
         </div>
@@ -150,11 +156,11 @@ const QuizManager = () => {
   }
 
   return (
-    <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', minHeight: '100vh' }}>
-      <dialog ref={formDialogRef} style={{ padding: 0, border: 'none', borderRadius: '20px', maxWidth: '700px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', backgroundColor: 'transparent' }}>
+    <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
+      <dialog ref={formDialogRef} style={{ padding: 0, border: 'none', borderRadius: '20px', maxWidth: '700px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', backgroundColor: 'white' }}>
         <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: '800', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>{editingQuiz !== null ? 'Modifier le Quiz' : 'Nouveau Quiz'}</h2>
+            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#1f2937', margin: 0 }}>{editingQuiz !== null ? 'Modifier le Quiz' : 'Nouveau Quiz'}</h2>
             <button onClick={closeFormDialog} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center' }}><X size={24} color="#6b7280" /></button>
           </div>
           <p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '14px' }}>Formation: {CODE_FORMATION}</p>
@@ -165,33 +171,40 @@ const QuizManager = () => {
             </div>
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Type de Quiz</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcm' ? '#ede9fe' : '#f9fafb', border: formData.type === 'qcm' ? '2px solid #7c3aed' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <label style={{ padding: '16px', backgroundColor: formData.type === 'free' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'free' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
+                  <input type="radio" name="type" value="free" checked={formData.type === 'free'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
+                  <div style={{ fontWeight: '700', color: formData.type === 'free' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>FREE</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Réponse libre</div>
+                </label>
+                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcm' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'qcm' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
                   <input type="radio" name="type" value="qcm" checked={formData.type === 'qcm'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
-                  <div style={{ fontWeight: '700', color: formData.type === 'qcm' ? '#7c3aed' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCM</div>
+                  <div style={{ fontWeight: '700', color: formData.type === 'qcm' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCM</div>
                   <div style={{ fontSize: '12px', color: '#6b7280' }}>Choix multiple</div>
                 </label>
-                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcu' ? '#ede9fe' : '#f9fafb', border: formData.type === 'qcu' ? '2px solid #7c3aed' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
+                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcu' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'qcu' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
                   <input type="radio" name="type" value="qcu" checked={formData.type === 'qcu'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
-                  <div style={{ fontWeight: '700', color: formData.type === 'qcu' ? '#7c3aed' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCU</div>
+                  <div style={{ fontWeight: '700', color: formData.type === 'qcu' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCU</div>
                   <div style={{ fontSize: '12px', color: '#6b7280' }}>Choix unique</div>
                 </label>
               </div>
             </div>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Modalités (Appuyez sur Entrée)</label>
-              <input type="text" value={currentModality} onChange={(e) => setCurrentModality(e.target.value)} onKeyDown={handleAddModality} placeholder="Tapez une réponse et appuyez sur Entrée" style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' }} />
-              {formData.modalities.length > 0 && (
-                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
-                  {formData.modalities.map((mod, index) => (
-                    <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', borderRadius: '10px', fontSize: '15px', fontWeight: '500' }}>
-                      <span>{mod}</span>
-                      <button type="button" onClick={() => removeModality(index)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: '6px', color: 'white', display: 'flex', alignItems: 'center' }}><X size={16} /></button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {(formData.type === 'qcm' || formData.type === 'qcu') && (
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Modalités (Appuyez sur Entrée)</label>
+                <input type="text" value={currentModality} onChange={(e) => setCurrentModality(e.target.value)} onKeyDown={handleAddModality} placeholder="Tapez une réponse et appuyez sur Entrée" style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' }} />
+                {formData.modalities.length > 0 && (
+                  <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {formData.modalities.map((mod, index) => (
+                      <div key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#3b82f6', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: '500' }}>
+                        <span>{mod}</span>
+                        <button type="button" onClick={() => removeModality(index)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px', color: 'white', display: 'flex', alignItems: 'center' }}><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div style={{ marginBottom: '32px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Ce quiz est-il obligatoire ?</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -207,7 +220,7 @@ const QuizManager = () => {
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={closeFormDialog} style={{ flex: 1, padding: '14px', backgroundColor: '#f3f4f6', color: '#374151', border: '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '600' }}>Annuler</button>
-              <button onClick={handleSubmit} style={{ flex: 1, padding: '14px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)' }}>{editingQuiz !== null ? '✓ Mettre à Jour' : '+ Créer'}</button>
+              <button onClick={handleSubmit} style={{ flex: 1, padding: '14px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700' }}>{editingQuiz !== null ? '✓ Mettre à Jour' : '+ Créer'}</button>
             </div>
           </div>
         </div>
@@ -227,13 +240,13 @@ const QuizManager = () => {
       </dialog>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
         <div>
-          <h1 style={{ fontSize: '42px', fontWeight: '800', color: 'white', margin: '0 0 8px 0', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>Quiz Manager</h1>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.9)', margin: 0 }}>Formation: {CODE_FORMATION}</p>
+          <h1 style={{ fontSize: '42px', fontWeight: '800', color: '#1f2937', margin: '0 0 8px 0' }}>Quiz Manager</h1>
+          <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>Formation: {CODE_FORMATION}</p>
         </div>
-        <button onClick={() => openFormDialog()} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 28px', backgroundColor: 'white', color: '#667eea', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}><Plus size={22} />Créer un Quiz</button>
+        <button onClick={() => openFormDialog()} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 28px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}><Plus size={22} />Créer un Quiz</button>
       </div>
       {quizzes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
+        <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
           <div style={{ fontSize: '64px', marginBottom: '20px' }}>📝</div>
           <h3 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '12px' }}>Aucun quiz disponible</h3>
           <p style={{ fontSize: '16px', color: '#6b7280' }}>Commencez par créer votre premier quiz</p>
@@ -241,15 +254,15 @@ const QuizManager = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
           {quizzes.map((quiz, index) => (
-            <div key={quiz.id} style={{ padding: '0', backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transition: 'transform 0.2s' }}>
-              <div style={{ padding: '20px', background: quiz.mandatory ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
+            <div key={quiz.id} style={{ backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', transition: 'transform 0.2s' }}>
+              <div style={{ padding: '24px', borderBottom: '2px solid #e5e7eb' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: '700', margin: '0', flex: 1 }}>{quiz.quiz}</h3>
-                  {quiz.mandatory ? <AlertCircle size={24} /> : <CheckCircle size={24} />}
+                  <h3 style={{ fontSize: '22px', fontWeight: '700', margin: '0', flex: 1, color: '#1f2937' }}>{quiz.quiz}</h3>
+                  {quiz.mandatory ? <AlertCircle size={24} color="#dc2626" /> : <CheckCircle size={24} color="#0891b2" />}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ padding: '4px 10px', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '6px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase' }}>{quiz.type}</span>
-                  <span style={{ padding: '4px 10px', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>{quiz.modalities.length} questions</span>
+                  <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase' }}>{quiz.type}</span>
+                  {quiz.type !== 'free' && <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>{quiz.modalities.length} questions</span>}
                 </div>
               </div>
               <div style={{ padding: '20px' }}>
