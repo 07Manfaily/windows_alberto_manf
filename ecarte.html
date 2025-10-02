@@ -1,10 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Plus, Edit2, Trash2, Eye, X, Check, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, X, Check, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 
 const QuizManager = () => {
   const [quizzes, setQuizzes] = useState([]);
-  const [viewingQuiz, setViewingQuiz] = useState(null);
-  const [userAnswers, setUserAnswers] = useState({});
+  const [currentView, setCurrentView] = useState('list');
   const [editingQuiz, setEditingQuiz] = useState(null);
   const formDialogRef = useRef(null);
   const deleteDialogRef = useRef(null);
@@ -12,6 +11,7 @@ const QuizManager = () => {
   const CODE_FORMATION = 'FORM-2025-JS';
   const [formData, setFormData] = useState({ quiz: '', type: 'free', modalities: [], mandatory: true });
   const [currentModality, setCurrentModality] = useState('');
+  const [formAnswers, setFormAnswers] = useState({});
 
   const openFormDialog = (index = null) => {
     if (index !== null) {
@@ -82,74 +82,315 @@ const QuizManager = () => {
     setEditingQuiz(null);
   };
 
-  const handleView = (quiz) => {
-    setViewingQuiz(quiz);
-    setUserAnswers({});
+  const handleAnswerChange = (quizId, value) => {
+    setFormAnswers({ ...formAnswers, [quizId]: value });
   };
 
-  const handleAnswerChange = (modality, checked) => {
-    if (viewingQuiz.type === 'qcu') {
-      setUserAnswers({ [modality]: checked });
+  const handleModalityChange = (quizId, modality, checked, type) => {
+    if (type === 'qcu') {
+      setFormAnswers({ ...formAnswers, [quizId]: checked ? modality : null });
     } else {
-      setUserAnswers({ ...userAnswers, [modality]: checked });
-    }
-  };
-
-  const handleSubmitAnswers = () => {
-    if (viewingQuiz.mandatory) {
-      const selectedAnswers = Object.keys(userAnswers).filter(key => userAnswers[key]);
-      if (selectedAnswers.length === 0) {
-        alert('Ce quiz est obligatoire. Veuillez sélectionner au moins une réponse.');
-        return;
+      const current = formAnswers[quizId] || [];
+      if (checked) {
+        setFormAnswers({ ...formAnswers, [quizId]: [...current, modality] });
+      } else {
+        setFormAnswers({ ...formAnswers, [quizId]: current.filter(m => m !== modality) });
       }
     }
-    alert('✅ Réponses enregistrées avec succès!');
-    setViewingQuiz(null);
   };
 
-  if (viewingQuiz) {
+  const handleSubmitFormation = () => {
+    const mandatoryQuizzes = quizzes.filter(q => q.mandatory);
+    const unanswered = mandatoryQuizzes.filter(q => {
+      const answer = formAnswers[q.id];
+      return !answer || (Array.isArray(answer) && answer.length === 0);
+    });
+
+    if (unanswered.length > 0) {
+      alert(`Veuillez répondre aux quiz obligatoires: ${unanswered.map(q => q.quiz).join(', ')}`);
+      return;
+    }
+
+    alert('✅ Formation soumise avec succès!\n\nRéponses: ' + JSON.stringify(formAnswers, null, 2));
+  };
+
+  if (currentView === 'formation') {
     return (
-      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
-        <button onClick={() => setViewingQuiz(null)} style={{ marginBottom: '24px', padding: '10px 20px', backgroundColor: 'white', color: '#374151', border: '2px solid #e5e7eb', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>← Retour</button>
-        <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px', paddingBottom: '20px', borderBottom: '2px solid #e5e7eb' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+        <div style={{ 
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+          padding: '60px 20px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '30px' }}>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#1f2937', margin: '0 0 8px 0' }}>{viewingQuiz.quiz}</h2>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ padding: '4px 12px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '13px', fontWeight: '600' }}>{viewingQuiz.code_formation}</span>
-                <span style={{ padding: '4px 12px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase' }}>{viewingQuiz.type}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                <div style={{ width: '60px', height: '60px', backgroundColor: '#ef4444', borderRadius: '8px' }}></div>
+                <div>
+                  <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '600', letterSpacing: '1px' }}>
+                    SOCIÉTÉ GÉNÉRALE
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
+                    CÔTE D'IVOIRE
+                  </div>
+                </div>
               </div>
+              <h1 style={{ 
+                fontSize: '48px', 
+                fontWeight: '800', 
+                color: 'white', 
+                margin: '0',
+                letterSpacing: '-0.5px'
+              }}>
+                FORMATION DU QUIZ
+              </h1>
+              <div style={{ 
+                width: '120px', 
+                height: '4px', 
+                backgroundColor: '#ef4444', 
+                marginTop: '15px' 
+              }}></div>
             </div>
-            <div style={{ padding: '12px 18px', backgroundColor: viewingQuiz.mandatory ? '#fef2f2' : '#f0f9ff', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', border: viewingQuiz.mandatory ? '2px solid #fecaca' : '2px solid #bae6fd' }}>
-              {viewingQuiz.mandatory ? <><AlertCircle size={20} style={{ color: '#dc2626' }} /><span style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626' }}>Obligatoire</span></> : <><CheckCircle size={20} style={{ color: '#0891b2' }} /><span style={{ fontSize: '14px', fontWeight: '700', color: '#0891b2' }}>Optionnel</span></>}
+            <div style={{ 
+              width: '200px', 
+              height: '150px', 
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <FileText size={80} color="rgba(255,255,255,0.3)" />
             </div>
           </div>
-          {viewingQuiz.mandatory && <div style={{ padding: '16px 20px', backgroundColor: '#fef2f2', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #fca5a5' }}><AlertCircle size={24} style={{ color: '#dc2626' }} /><p style={{ margin: 0, color: '#991b1b', fontSize: '15px', fontWeight: '600' }}>Attention : Ce quiz est obligatoire. Vous devez y répondre pour continuer.</p></div>}
-          {!viewingQuiz.mandatory && <div style={{ padding: '16px 20px', backgroundColor: '#f0f9ff', borderRadius: '12px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #7dd3fc' }}><CheckCircle size={24} style={{ color: '#0891b2' }} /><p style={{ margin: 0, color: '#0e7490', fontSize: '15px', fontWeight: '600' }}>Ce quiz est optionnel. Vous pouvez choisir de ne pas y répondre.</p></div>}
-          {viewingQuiz.type !== 'free' && viewingQuiz.modalities.length > 0 && (
-            <div style={{ marginBottom: '28px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937', marginBottom: '18px' }}>{viewingQuiz.type === 'qcu' ? '🎯 Sélectionnez une réponse' : '✅ Sélectionnez vos réponses'}</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {viewingQuiz.modalities.map((modality, index) => (
-                  <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 20px', backgroundColor: userAnswers[modality] ? '#f0f9ff' : '#f9fafb', border: userAnswers[modality] ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer' }}>
-                    <input type={viewingQuiz.type === 'qcu' ? 'radio' : 'checkbox'} name="quiz-answer" checked={userAnswers[modality] || false} onChange={(e) => handleAnswerChange(modality, e.target.checked)} style={{ width: '24px', height: '24px', cursor: 'pointer' }} />
-                    <span style={{ fontSize: '17px', color: '#1f2937', fontWeight: userAnswers[modality] ? '600' : '500', flex: 1 }}>{modality}</span>
-                    {userAnswers[modality] && <Check size={22} style={{ color: '#3b82f6' }} />}
-                  </label>
+        </div>
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+          <button 
+            onClick={() => setCurrentView('list')} 
+            style={{ 
+              marginBottom: '30px', 
+              padding: '12px 24px', 
+              backgroundColor: 'white', 
+              color: '#1e3a8a', 
+              border: '2px solid #e5e7eb', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              fontSize: '15px', 
+              fontWeight: '600',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            ← Retour à la gestion
+          </button>
+
+          {quizzes.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '80px 20px', 
+              backgroundColor: 'white', 
+              borderRadius: '12px', 
+              border: '1px solid #e5e7eb' 
+            }}>
+              <div style={{ fontSize: '64px', marginBottom: '20px' }}>📝</div>
+              <h3 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '12px' }}>
+                Aucun quiz dans cette formation
+              </h3>
+              <p style={{ fontSize: '16px', color: '#6b7280' }}>
+                Retournez à la gestion pour créer des quiz
+              </p>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                {quizzes.map((quiz, quizIndex) => (
+                  <div 
+                    key={quiz.id} 
+                    style={{ 
+                      backgroundColor: 'white', 
+                      borderRadius: '12px', 
+                      border: '2px solid #e5e7eb',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }}
+                  >
+                    <div style={{ 
+                      padding: '24px 30px', 
+                      backgroundColor: '#f8f9fa',
+                      borderBottom: '2px solid #e5e7eb',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <div style={{ 
+                          fontSize: '28px', 
+                          fontWeight: '700', 
+                          color: '#1f2937',
+                          marginBottom: '8px'
+                        }}>
+                          {quiz.quiz}
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <span style={{ 
+                            padding: '4px 12px', 
+                            backgroundColor: '#e0e7ff', 
+                            color: '#3b82f6', 
+                            borderRadius: '6px', 
+                            fontSize: '12px', 
+                            fontWeight: '600',
+                            textTransform: 'uppercase'
+                          }}>
+                            {quiz.type}
+                          </span>
+                          {quiz.mandatory && (
+                            <span style={{ 
+                              padding: '4px 12px', 
+                              backgroundColor: '#fee2e2', 
+                              color: '#dc2626', 
+                              borderRadius: '6px', 
+                              fontSize: '12px', 
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <AlertCircle size={14} />
+                              OBLIGATOIRE
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '30px' }}>
+                      {quiz.type === 'free' && (
+                        <div>
+                          <label style={{ 
+                            display: 'block', 
+                            fontSize: '16px', 
+                            fontWeight: '600', 
+                            color: '#374151',
+                            marginBottom: '12px'
+                          }}>
+                            Votre réponse {quiz.mandatory && <span style={{ color: '#ef4444' }}>*</span>}
+                          </label>
+                          <textarea 
+                            value={formAnswers[quiz.id] || ''}
+                            onChange={(e) => handleAnswerChange(quiz.id, e.target.value)}
+                            placeholder="Écrivez votre réponse ici..."
+                            rows={6}
+                            style={{ 
+                              width: '100%', 
+                              padding: '16px', 
+                              border: '2px solid #e5e7eb', 
+                              borderRadius: '8px', 
+                              fontSize: '15px', 
+                              boxSizing: 'border-box', 
+                              outline: 'none', 
+                              fontFamily: 'inherit', 
+                              resize: 'vertical',
+                              backgroundColor: '#fafafa'
+                            }} 
+                          />
+                        </div>
+                      )}
+
+                      {(quiz.type === 'qcm' || quiz.type === 'qcu') && quiz.modalities.length > 0 && (
+                        <div>
+                          <div style={{ 
+                            fontSize: '16px', 
+                            fontWeight: '600', 
+                            color: '#374151',
+                            marginBottom: '16px'
+                          }}>
+                            {quiz.type === 'qcu' ? 'Choisissez une réponse' : 'Choisissez une ou plusieurs réponses'}
+                            {quiz.mandatory && <span style={{ color: '#ef4444' }}> *</span>}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {quiz.modalities.map((modality, idx) => {
+                              const isChecked = quiz.type === 'qcu' 
+                                ? formAnswers[quiz.id] === modality
+                                : (formAnswers[quiz.id] || []).includes(modality);
+                              
+                              return (
+                                <label 
+                                  key={idx}
+                                  style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '14px', 
+                                    padding: '16px 20px', 
+                                    backgroundColor: isChecked ? '#eff6ff' : '#fafafa',
+                                    border: isChecked ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                                    borderRadius: '8px', 
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  <input 
+                                    type={quiz.type === 'qcu' ? 'radio' : 'checkbox'}
+                                    name={`quiz-${quiz.id}`}
+                                    checked={isChecked}
+                                    onChange={(e) => handleModalityChange(quiz.id, modality, e.target.checked, quiz.type)}
+                                    style={{ 
+                                      width: '20px', 
+                                      height: '20px', 
+                                      cursor: 'pointer',
+                                      accentColor: '#3b82f6'
+                                    }} 
+                                  />
+                                  <span style={{ 
+                                    fontSize: '16px', 
+                                    color: '#1f2937',
+                                    fontWeight: isChecked ? '600' : '500',
+                                    flex: 1
+                                  }}>
+                                    {modality}
+                                  </span>
+                                  {isChecked && <Check size={20} color="#3b82f6" />}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
+
+              <div style={{ 
+                marginTop: '40px', 
+                padding: '30px', 
+                backgroundColor: 'white', 
+                borderRadius: '12px',
+                border: '2px solid #e5e7eb',
+                textAlign: 'center'
+              }}>
+                <button 
+                  onClick={handleSubmitFormation}
+                  style={{ 
+                    padding: '16px 48px', 
+                    backgroundColor: '#3b82f6', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '8px', 
+                    cursor: 'pointer', 
+                    fontSize: '18px', 
+                    fontWeight: '700',
+                    boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                >
+                  <Check size={24} />
+                  Soumettre la Formation
+                </button>
+              </div>
+            </>
           )}
-          {viewingQuiz.type === 'free' && (
-            <div style={{ marginBottom: '28px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937', marginBottom: '18px' }}>✍️ Votre réponse</h3>
-              <textarea placeholder="Écrivez votre réponse ici..." rows={8} style={{ width: '100%', padding: '16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }} />
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={handleSubmitAnswers} style={{ flex: 1, padding: '16px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '17px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}><Check size={22} />Soumettre mes Réponses</button>
-            {!viewingQuiz.mandatory && <button onClick={() => setViewingQuiz(null)} style={{ padding: '16px 24px', backgroundColor: '#f3f4f6', color: '#6b7280', border: '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', whiteSpace: 'nowrap' }}>Passer</button>}
-          </div>
         </div>
       </div>
     );
@@ -243,7 +484,29 @@ const QuizManager = () => {
           <h1 style={{ fontSize: '42px', fontWeight: '800', color: '#1f2937', margin: '0 0 8px 0' }}>Quiz Manager</h1>
           <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>Formation: {CODE_FORMATION}</p>
         </div>
-        <button onClick={() => openFormDialog()} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 28px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}><Plus size={22} />Créer un Quiz</button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={() => setCurrentView('formation')} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px', 
+              padding: '14px 28px', 
+              backgroundColor: '#10b981', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '12px', 
+              cursor: 'pointer', 
+              fontSize: '16px', 
+              fontWeight: '700', 
+              boxShadow: '0 2px 8px rgba(16,185,129,0.3)' 
+            }}
+          >
+            <FileText size={22} />
+            Voir la Formation
+          </button>
+          <button onClick={() => openFormDialog()} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 28px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}><Plus size={22} />Créer un Quiz</button>
+        </div>
       </div>
       {quizzes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
@@ -270,8 +533,7 @@ const QuizManager = () => {
                   {quiz.mandatory ? <><AlertCircle size={16} style={{ color: '#dc2626' }} /><span style={{ fontSize: '13px', fontWeight: '600', color: '#dc2626' }}>Quiz Obligatoire</span></> : <><CheckCircle size={16} style={{ color: '#0891b2' }} /><span style={{ fontSize: '13px', fontWeight: '600', color: '#0891b2' }}>Quiz Optionnel</span></>}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => handleView(quiz)} style={{ flex: 1, padding: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Eye size={16} />Voir</button>
-                  <button onClick={() => openFormDialog(index)} style={{ padding: '10px 14px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                  <button onClick={() => openFormDialog(index)} style={{ flex: 1, padding: '10px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Edit2 size={16} />Modifier</button>
                   <button onClick={() => openDeleteDialog(index)} style={{ padding: '10px 14px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Trash2 size={16} /></button>
                 </div>
               </div>
