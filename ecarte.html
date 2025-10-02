@@ -116,56 +116,72 @@ const QuizManager = () => {
 
   if (currentView === 'formation') {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ 
           background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-          padding: '60px 20px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          padding: '40px 20px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '900px',
+          borderRadius: '0 0 12px 12px'
         }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '30px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-                <div style={{ width: '60px', height: '60px', backgroundColor: '#ef4444', borderRadius: '8px' }}></div>
-                <div>
-                  <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '600', letterSpacing: '1px' }}>
-                    SOCIÉTÉ GÉNÉRALE
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
-                    CÔTE D'IVOIRE
-                  </div>
+          <div style={{ 
+            textAlign: 'center'
+          }}>
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '15px', 
+              marginBottom: '20px' 
+            }}>
+              <div style={{ 
+                width: '50px', 
+                height: '50px', 
+                backgroundColor: '#ef4444', 
+                borderRadius: '8px' 
+              }}></div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ 
+                  fontSize: '13px', 
+                  color: 'rgba(255,255,255,0.9)', 
+                  fontWeight: '600', 
+                  letterSpacing: '1px' 
+                }}>
+                  SOCIÉTÉ GÉNÉRALE
+                </div>
+                <div style={{ 
+                  fontSize: '12px', 
+                  color: 'rgba(255,255,255,0.8)' 
+                }}>
+                  CÔTE D'IVOIRE
                 </div>
               </div>
-              <h1 style={{ 
-                fontSize: '48px', 
-                fontWeight: '800', 
-                color: 'white', 
-                margin: '0',
-                letterSpacing: '-0.5px'
-              }}>
-                FORMATION DU QUIZ
-              </h1>
-              <div style={{ 
-                width: '120px', 
-                height: '4px', 
-                backgroundColor: '#ef4444', 
-                marginTop: '15px' 
-              }}></div>
             </div>
-            <div style={{ 
-              width: '200px', 
-              height: '150px', 
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+            <h1 style={{ 
+              fontSize: '42px', 
+              fontWeight: '800', 
+              color: 'white', 
+              margin: '0',
+              letterSpacing: '-0.5px'
             }}>
-              <FileText size={80} color="rgba(255,255,255,0.3)" />
-            </div>
+              FORMATION DU QUIZ
+            </h1>
+            <div style={{ 
+              width: '100px', 
+              height: '4px', 
+              backgroundColor: '#ef4444', 
+              marginTop: '15px',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}></div>
           </div>
         </div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+        <div style={{ 
+          maxWidth: '900px', 
+          width: '100%',
+          padding: '30px 20px' 
+        }}>
           <button 
             onClick={() => setCurrentView('list')} 
             style={{ 
@@ -202,7 +218,14 @@ const QuizManager = () => {
             </div>
           ) : (
             <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '25px',
+                maxHeight: '65vh',
+                overflowY: 'auto',
+                paddingRight: '10px'
+              }}>
                 {quizzes.map((quiz, quizIndex) => (
                   <div 
                     key={quiz.id} 
@@ -215,23 +238,23 @@ const QuizManager = () => {
                     }}
                   >
                     <div style={{ 
-                      padding: '24px 30px', 
+                      padding: '20px 25px', 
                       backgroundColor: '#f8f9fa',
                       borderBottom: '2px solid #e5e7eb',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}>
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div style={{ 
-                          fontSize: '28px', 
+                          fontSize: '24px', 
                           fontWeight: '700', 
                           color: '#1f2937',
                           marginBottom: '8px'
                         }}>
                           {quiz.quiz}
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span style={{ 
                             padding: '4px 12px', 
                             backgroundColor: '#e0e7ff', 
@@ -263,12 +286,12 @@ const QuizManager = () => {
                       </div>
                     </div>
 
-                    <div style={{ padding: '30px' }}>
+                    <div style={{ padding: '25px' }}>
                       {quiz.type === 'free' && (
                         <div>
                           <label style={{ 
                             display: 'block', 
-                            fontSize: '16px', 
+                            fontSize: '15px', 
                             fontWeight: '600', 
                             color: '#374151',
                             marginBottom: '12px'
@@ -279,10 +302,10 @@ const QuizManager = () => {
                             value={formAnswers[quiz.id] || ''}
                             onChange={(e) => handleAnswerChange(quiz.id, e.target.value)}
                             placeholder="Écrivez votre réponse ici..."
-                            rows={6}
+                            rows={5}
                             style={{ 
                               width: '100%', 
-                              padding: '16px', 
+                              padding: '14px', 
                               border: '2px solid #e5e7eb', 
                               borderRadius: '8px', 
                               fontSize: '15px', 
@@ -299,15 +322,15 @@ const QuizManager = () => {
                       {(quiz.type === 'qcm' || quiz.type === 'qcu') && quiz.modalities.length > 0 && (
                         <div>
                           <div style={{ 
-                            fontSize: '16px', 
+                            fontSize: '15px', 
                             fontWeight: '600', 
                             color: '#374151',
-                            marginBottom: '16px'
+                            marginBottom: '14px'
                           }}>
                             {quiz.type === 'qcu' ? 'Choisissez une réponse' : 'Choisissez une ou plusieurs réponses'}
                             {quiz.mandatory && <span style={{ color: '#ef4444' }}> *</span>}
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {quiz.modalities.map((modality, idx) => {
                               const isChecked = quiz.type === 'qcu' 
                                 ? formAnswers[quiz.id] === modality
@@ -319,8 +342,8 @@ const QuizManager = () => {
                                   style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
-                                    gap: '14px', 
-                                    padding: '16px 20px', 
+                                    gap: '12px', 
+                                    padding: '14px 18px', 
                                     backgroundColor: isChecked ? '#eff6ff' : '#fafafa',
                                     border: isChecked ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                                     borderRadius: '8px', 
@@ -334,21 +357,21 @@ const QuizManager = () => {
                                     checked={isChecked}
                                     onChange={(e) => handleModalityChange(quiz.id, modality, e.target.checked, quiz.type)}
                                     style={{ 
-                                      width: '20px', 
-                                      height: '20px', 
+                                      width: '18px', 
+                                      height: '18px', 
                                       cursor: 'pointer',
                                       accentColor: '#3b82f6'
                                     }} 
                                   />
                                   <span style={{ 
-                                    fontSize: '16px', 
+                                    fontSize: '15px', 
                                     color: '#1f2937',
                                     fontWeight: isChecked ? '600' : '500',
                                     flex: 1
                                   }}>
                                     {modality}
                                   </span>
-                                  {isChecked && <Check size={20} color="#3b82f6" />}
+                                  {isChecked && <Check size={18} color="#3b82f6" />}
                                 </label>
                               );
                             })}
@@ -361,8 +384,8 @@ const QuizManager = () => {
               </div>
 
               <div style={{ 
-                marginTop: '40px', 
-                padding: '30px', 
+                marginTop: '30px', 
+                padding: '25px', 
                 backgroundColor: 'white', 
                 borderRadius: '12px',
                 border: '2px solid #e5e7eb',
@@ -371,13 +394,13 @@ const QuizManager = () => {
                 <button 
                   onClick={handleSubmitFormation}
                   style={{ 
-                    padding: '16px 48px', 
+                    padding: '14px 40px', 
                     backgroundColor: '#3b82f6', 
                     color: 'white', 
                     border: 'none', 
                     borderRadius: '8px', 
                     cursor: 'pointer', 
-                    fontSize: '18px', 
+                    fontSize: '17px', 
                     fontWeight: '700',
                     boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
                     display: 'inline-flex',
@@ -385,7 +408,7 @@ const QuizManager = () => {
                     gap: '10px'
                   }}
                 >
-                  <Check size={24} />
+                  <Check size={22} />
                   Soumettre la Formation
                 </button>
               </div>
