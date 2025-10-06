@@ -1,421 +1,432 @@
-import React, { useState } from 'react';
-import { MessageCircle, Users, BookOpen, Facebook, Twitter, Linkedin, Heart, Bookmark, Lock, Camera } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, Calendar, Users, BookOpen, X, FileText, Award, UserCheck, Folder, CheckCircle, Sparkles } from 'lucide-react';
 
-const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('posts');
-  const [coverImage, setCoverImage] = useState("https://images.unsplash.com/photo-1464822759844-d150baec0494?w=800&h=180&fit=crop");
+export default function FormationForm() {
+  const [formData, setFormData] = useState({
+    intitule: '',
+    dateDebut: '',
+    dateFin: '',
+    participants: '',
+    fichiers: [null, null, null, null]
+  });
 
-  const handleCoverImageChange = (event) => {
-    const file = event.target.files[0];
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (index, e) => {
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCoverImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
+      const newFichiers = [...formData.fichiers];
+      newFichiers[index] = file;
+      setFormData(prev => ({ ...prev, fichiers: newFichiers }));
     }
   };
 
-  const tabs = [
-    { id: 'posts', label: 'Posts', count: 4, icon: MessageCircle },
-    { id: 'community', label: 'Community', count: 6, icon: Users },
-    { id: 'courses', label: 'Courses', count: 2, icon: BookOpen }
-  ];
-
-  const posts = [
-    {
-      id: 1,
-      title: "Long-awaited vacation",
-      description: "Today I'll tell you about my vacation in Mexico. We went with friends to chill on the...",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      likes: 12,
-      saved: 2,
-      isPremium: false
-    },
-    {
-      id: 2,
-      title: "A new single",
-      description: "Yesterday I've been in studio and recorded a new single, you'll be able to listen it on all music p...",
-      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
-      likes: 10,
-      saved: 4,
-      isPremium: true
-    }
-  ];
-
-  const renderTabContent = () => {
-    switch(activeTab) {
-      case 'posts':
-        return (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '20px',
-            padding: '20px 0'
-          }}>
-            {posts.map(post => (
-              <div key={post.id} style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                transition: 'transform 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-              >
-                <div style={{ position: 'relative' }}>
-                  <img 
-                    src={post.image} 
-                    alt={post.title}
-                    style={{
-                      width: '100%',
-                      height: '200px',
-                      objectFit: 'cover'
-                    }}
-                  />
-                  {post.isPremium && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      backgroundColor: 'rgba(0,0,0,0.7)',
-                      color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <Lock size={12} />
-                      Premium
-                    </div>
-                  )}
-                  {post.isPremium && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      backgroundColor: 'rgba(255,255,255,0.9)',
-                      padding: '8px 16px',
-                      borderRadius: '20px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <Lock size={14} />
-                      Unlock
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: '16px' }}>
-                  <h3 style={{
-                    margin: '0 0 8px 0',
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#1a1a1a'
-                  }}>
-                    {post.title}
-                  </h3>
-                  <p style={{
-                    margin: '0 0 16px 0',
-                    fontSize: '14px',
-                    color: '#666',
-                    lineHeight: '1.4'
-                  }}>
-                    {post.description}
-                  </p>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    fontSize: '14px',
-                    color: '#888'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <Heart size={16} />
-                      {post.likes} likes
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <Bookmark size={16} />
-                      {post.saved} saved
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      case 'community':
-        return (
-          <div style={{
-            padding: '40px 20px',
-            textAlign: 'center',
-            color: '#666'
-          }}>
-            <Users size={48} style={{ margin: '0 auto 16px', color: '#ccc' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#333' }}>Community Content</h3>
-            <p style={{ margin: 0 }}>Community posts and interactions will appear here.</p>
-          </div>
-        );
-      case 'courses':
-        return (
-          <div style={{
-            padding: '40px 20px',
-            textAlign: 'center',
-            color: '#666'
-          }}>
-            <BookOpen size={48} style={{ margin: '0 auto 16px', color: '#ccc' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#333' }}>Courses</h3>
-            <p style={{ margin: 0 }}>Available courses and learning materials will be displayed here.</p>
-          </div>
-        );
-      default:
-        return null;
-    }
+  const removeFile = (index) => {
+    const newFichiers = [...formData.fichiers];
+    newFichiers[index] = null;
+    setFormData(prev => ({ ...prev, fichiers: newFichiers }));
   };
+
+  const handleSubmit = () => {
+    console.log('Données du formulaire:', formData);
+    alert('Formulaire soumis avec succès!');
+  };
+
+  const fileConfigs = [
+    { label: 'Programme de formation', icon: FileText, color: 'from-blue-500 to-cyan-500' },
+    { label: 'Convention de formation', icon: Award, color: 'from-purple-500 to-pink-500' },
+    { label: 'Liste des participants', icon: UserCheck, color: 'from-green-500 to-emerald-500' },
+    { label: 'Document complémentaire', icon: Folder, color: 'from-orange-500 to-red-500' }
+  ];
 
   return (
     <div style={{
-      maxWidth: '800px',
-      margin: '0 auto',
-      backgroundColor: '#f8f9fa',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '3rem 1rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      {/* Header avec image de couverture */}
-      <div style={{
-        position: 'relative',
-        height: '180px',
-        background: `url("${coverImage}")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        borderRadius: '0 0 20px 20px',
-        overflow: 'hidden'
-      }}>
-        {/* Icône caméra pour changer l'image de couverture */}
-        <label style={{
-          position: 'absolute',
-          top: '16px',
-          left: '16px',
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '8px',
-          borderRadius: '50%',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.8)'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.6)'}
-        >
-          <Camera size={20} />
-          <input 
-            type="file" 
-            accept="image/*" 
-            onChange={handleCoverImageChange}
-            style={{ display: 'none' }}
-          />
-        </label>
-
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{
-          position: 'absolute',
-          top: '16px',
-          right: '16px',
-          display: 'flex',
-          gap: '20px',
-          color: 'white',
-          fontSize: '14px'
+          background: 'white',
+          borderRadius: '2rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden'
         }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>1289</div>
-            <div style={{ opacity: 0.8 }}>following</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>12</div>
-            <div style={{ opacity: 0.8 }}>followers</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>947</div>
-            <div style={{ opacity: 0.8 }}>likes</div>
-          </div>
-        </div>
-        
-        {/* Cercle avec initiales positionné sur l'image de couverture */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-50px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 3
-        }}>
+          
+          {/* Header */}
           <div style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '50%',
-            backgroundColor: 'white',
-            border: '4px solid white',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#333'
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '3rem 2rem',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            MP
-          </div>
-        </div>
-      </div>
-
-      {/* Profil utilisateur */}
-      <div style={{
-        padding: '60px 20px 0 20px',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            marginBottom: '16px',
-            marginTop: '12px'
-          }}>
-            <button style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              padding: '6px 16px',
-              borderRadius: '20px',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer'
+            <div style={{
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              opacity: 0.1
             }}>
-              ✓ Following
-            </button>
-            <button style={{
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}>
-              ✉
-            </button>
+              <Sparkles style={{ width: '200px', height: '200px', color: 'white' }} />
+            </div>
+            <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'inline-block', marginBottom: '1rem' }}>
+                <BookOpen style={{ width: '48px', height: '48px', color: 'white' }} />
+              </div>
+              <h1 style={{
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                color: 'white',
+                margin: 0,
+                marginBottom: '0.5rem'
+              }}>
+                Nouvelle Formation
+              </h1>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', margin: 0, fontSize: '1.1rem' }}>
+                Remplissez les informations de votre formation
+              </p>
+            </div>
           </div>
-          <h1 style={{
-            margin: '0 0 4px 0',
-            fontSize: '24px',
-            fontWeight: '600',
-            color: '#1a1a1a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}>
-            Mateo Petty 🥁
-          </h1>
-          <p style={{
-            margin: '0 0 16px 0',
-            color: '#666',
-            fontSize: '14px'
-          }}>
-            Drummer, Philadelphia (USA)
-          </p>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '12px'
-          }}>
-            <Facebook size={20} style={{ color: '#1877f2', cursor: 'pointer' }} />
-            <Twitter size={20} style={{ color: '#1da1f2', cursor: 'pointer' }} />
-            <Linkedin size={20} style={{ color: '#0077b5', cursor: 'pointer' }} />
-          </div>
-        </div>
 
-        {/* Navigation par onglets */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '4px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          display: 'flex',
-          gap: '4px'
-        }}>
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  border: 'none',
-                  borderRadius: '8px',
-                  backgroundColor: activeTab === tab.id ? '#007bff' : 'transparent',
-                  color: activeTab === tab.id ? 'white' : '#666',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+          {/* Form Content */}
+          <div style={{ padding: '2.5rem' }}>
+            
+            {/* Intitulé */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: '#374151',
+                fontWeight: '600',
+                marginBottom: '0.75rem',
+                fontSize: '1.1rem'
+              }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem',
+                  marginRight: '0.75rem',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                <Icon size={16} />
-                <span style={{ display: window.innerWidth > 480 ? 'inline' : 'none' }}>
-                  {tab.label}
-                </span>
-                <span style={{
-                  backgroundColor: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : '#e9ecef',
-                  color: activeTab === tab.id ? 'white' : '#666',
-                  padding: '2px 6px',
-                  borderRadius: '10px',
-                  fontSize: '12px',
-                  minWidth: '20px',
-                  height: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  alignItems: 'center'
                 }}>
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <BookOpen style={{ width: '20px', height: '20px', color: 'white' }} />
+                </div>
+                Intitulé de la formation
+              </label>
+              <input
+                type="text"
+                name="intitule"
+                value={formData.intitule}
+                onChange={handleInputChange}
+                placeholder="Ex: Formation en développement web"
+                style={{
+                  width: '100%',
+                  padding: '1rem 1.25rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '1rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
 
-        {/* Contenu des onglets */}
-        <div style={{ paddingBottom: '40px' }}>
-          {renderTabContent()}
+            {/* Dates */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#374151',
+                  fontWeight: '600',
+                  marginBottom: '0.75rem',
+                  fontSize: '1.1rem'
+                }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    borderRadius: '0.5rem',
+                    padding: '0.5rem',
+                    marginRight: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <Calendar style={{ width: '20px', height: '20px', color: 'white' }} />
+                  </div>
+                  Date de début
+                </label>
+                <input
+                  type="date"
+                  name="dateDebut"
+                  value={formData.dateDebut}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '1rem 1.25rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '1rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#374151',
+                  fontWeight: '600',
+                  marginBottom: '0.75rem',
+                  fontSize: '1.1rem'
+                }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    borderRadius: '0.5rem',
+                    padding: '0.5rem',
+                    marginRight: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <Calendar style={{ width: '20px', height: '20px', color: 'white' }} />
+                  </div>
+                  Date de fin
+                </label>
+                <input
+                  type="date"
+                  name="dateFin"
+                  value={formData.dateFin}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '1rem 1.25rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '1rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#f59e0b'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
+            </div>
+
+            {/* Participants */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: '#374151',
+                fontWeight: '600',
+                marginBottom: '0.75rem',
+                fontSize: '1.1rem'
+              }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #ec4899, #be185d)',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem',
+                  marginRight: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <Users style={{ width: '20px', height: '20px', color: 'white' }} />
+                </div>
+                Nombre de participants
+              </label>
+              <input
+                type="number"
+                name="participants"
+                value={formData.participants}
+                onChange={handleInputChange}
+                min="1"
+                placeholder="Ex: 25"
+                style={{
+                  width: '100%',
+                  padding: '1rem 1.25rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '1rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ec4899'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+
+            {/* Documents */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: '#374151',
+                fontWeight: '600',
+                marginBottom: '1.5rem',
+                fontSize: '1.1rem'
+              }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem',
+                  marginRight: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <Upload style={{ width: '20px', height: '20px', color: 'white' }} />
+                </div>
+                Documents à télécharger
+              </label>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                {fileConfigs.map((config, index) => {
+                  const IconComponent = config.icon;
+                  return (
+                    <div key={index}>
+                      <p style={{
+                        fontSize: '0.9rem',
+                        color: '#6b7280',
+                        fontWeight: '600',
+                        marginBottom: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <IconComponent style={{ width: '16px', height: '16px', marginRight: '0.5rem' }} />
+                        {config.label}
+                      </p>
+                      {formData.fichiers[index] ? (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '1rem',
+                          background: `linear-gradient(135deg, ${config.color.split(' ')[1]}, ${config.color.split(' ')[3]})`,
+                          borderRadius: '1rem',
+                          color: 'white'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                            <CheckCircle style={{ width: '20px', height: '20px', marginRight: '0.5rem', flexShrink: 0 }} />
+                            <span style={{
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {formData.fichiers[index].name}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            style={{
+                              marginLeft: '0.5rem',
+                              background: 'rgba(255, 255, 255, 0.3)',
+                              border: 'none',
+                              borderRadius: '0.5rem',
+                              padding: '0.5rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.5)'}
+                            onMouseLeave={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
+                          >
+                            <X style={{ width: '18px', height: '18px', color: 'white' }} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '1.25rem',
+                          border: '2px dashed #d1d5db',
+                          borderRadius: '1rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s',
+                          background: 'white'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = config.color.split(' ')[1].replace('from-', '').replace('to-', '');
+                          e.currentTarget.style.background = '#f9fafb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#d1d5db';
+                          e.currentTarget.style.background = 'white';
+                        }}>
+                          <Upload style={{ width: '20px', height: '20px', color: '#9ca3af', marginRight: '0.5rem' }} />
+                          <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>
+                            Choisir un fichier
+                          </span>
+                          <input
+                            type="file"
+                            onChange={(e) => handleFileChange(index, e)}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmit}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1.125rem',
+                padding: '1.25rem',
+                borderRadius: '1rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                boxShadow: '0 10px 25px -5px rgba(102, 126, 234, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 20px 35px -5px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 10px 25px -5px rgba(102, 126, 234, 0.5)';
+              }}
+            >
+              <CheckCircle style={{ width: '24px', height: '24px', marginRight: '0.5rem' }} />
+              Enregistrer la formation
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default ProfilePage;
+}
