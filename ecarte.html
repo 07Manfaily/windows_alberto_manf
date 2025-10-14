@@ -1,571 +1,203 @@
-import React, { useState, useRef } from 'react';
-import { Plus, Edit2, Trash2, Eye, X, Check, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+🎯 Entretien UX Designer – Direction Data Bancaire
 
-const QuizManager = () => {
-  const [quizzes, setQuizzes] = useState([]);
-  const [currentView, setCurrentView] = useState('list');
-  const [editingQuiz, setEditingQuiz] = useState(null);
-  const formDialogRef = useRef(null);
-  const deleteDialogRef = useRef(null);
-  const [deleteIndex, setDeleteIndex] = useState(null);
-  const CODE_FORMATION = 'FORM-2025-JS';
-  const [formData, setFormData] = useState({ quiz: '', type: 'free', modalities: [], mandatory: true });
-  const [currentModality, setCurrentModality] = useState('');
-  const [formAnswers, setFormAnswers] = useState({});
+🧩 1. Compréhension du rôle et du contexte
 
-  const openFormDialog = (index = null) => {
-    if (index !== null) {
-      setFormData(quizzes[index]);
-      setEditingQuiz(index);
-    } else {
-      resetForm();
-      setEditingQuiz(null);
-    }
-    formDialogRef.current?.showModal();
-  };
+1. Comment définissez-vous le rôle d’un UX Designer au sein d’une direction Data dans une banque ?
 
-  const closeFormDialog = () => {
-    formDialogRef.current?.close();
-    resetForm();
-  };
 
-  const openDeleteDialog = (index) => {
-    setDeleteIndex(index);
-    deleteDialogRef.current?.showModal();
-  };
+2. Quelle différence faites-vous entre UX et UI ?
 
-  const closeDeleteDialog = () => {
-    deleteDialogRef.current?.close();
-    setDeleteIndex(null);
-  };
 
-  const handleAddModality = (e) => {
-    if (e.key === 'Enter' && currentModality.trim()) {
-      e.preventDefault();
-      if (!formData.modalities.includes(currentModality.trim())) {
-        setFormData({ ...formData, modalities: [...formData.modalities, currentModality.trim()] });
-      }
-      setCurrentModality('');
-    }
-  };
+3. Comment l’UX Design peut-il contribuer à la performance d’une équipe data ?
 
-  const removeModality = (index) => {
-    setFormData({ ...formData, modalities: formData.modalities.filter((_, i) => i !== index) });
-  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.quiz) {
-      alert('Veuillez remplir le nom du quiz');
-      return;
-    }
-    if (editingQuiz !== null) {
-      const updatedQuizzes = [...quizzes];
-      updatedQuizzes[editingQuiz] = { ...formData, code_formation: CODE_FORMATION, id: Date.now() };
-      setQuizzes(updatedQuizzes);
-    } else {
-      setQuizzes([...quizzes, { ...formData, code_formation: CODE_FORMATION, id: Date.now() }]);
-    }
-    closeFormDialog();
-  };
+4. Selon vous, quels sont les principaux défis UX dans la visualisation de données financières ?
 
-  const confirmDelete = () => {
-    if (deleteIndex !== null) {
-      setQuizzes(quizzes.filter((_, i) => i !== deleteIndex));
-    }
-    closeDeleteDialog();
-  };
 
-  const resetForm = () => {
-    setFormData({ quiz: '', type: 'free', modalities: [], mandatory: true });
-    setCurrentModality('');
-    setEditingQuiz(null);
-  };
+5. Comment vous assurez-vous que vos designs respectent les contraintes de sécurité et de confidentialité propres au secteur bancaire ?
 
-  const handleAnswerChange = (quizId, value) => {
-    setFormAnswers({ ...formAnswers, [quizId]: value });
-  };
 
-  const handleModalityChange = (quizId, modality, checked, type) => {
-    if (type === 'qcu') {
-      setFormAnswers({ ...formAnswers, [quizId]: checked ? modality : null });
-    } else {
-      const current = formAnswers[quizId] || [];
-      if (checked) {
-        setFormAnswers({ ...formAnswers, [quizId]: [...current, modality] });
-      } else {
-        setFormAnswers({ ...formAnswers, [quizId]: current.filter(m => m !== modality) });
-      }
-    }
-  };
 
-  const handleSubmitFormation = () => {
-    const mandatoryQuizzes = quizzes.filter(q => q.mandatory);
-    const unanswered = mandatoryQuizzes.filter(q => {
-      const answer = formAnswers[q.id];
-      return !answer || (Array.isArray(answer) && answer.length === 0);
-    });
 
-    if (unanswered.length > 0) {
-      alert(`Veuillez répondre aux quiz obligatoires: ${unanswered.map(q => q.quiz).join(', ')}`);
-      return;
-    }
+---
 
-    alert('✅ Formation soumise avec succès!\n\nRéponses: ' + JSON.stringify(formAnswers, null, 2));
-  };
+📊 2. Design orienté Data / Dashboards & visualisation
 
-  if (currentView === 'formation') {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ 
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-          padding: '40px 20px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          width: '100%',
-          maxWidth: '900px',
-          borderRadius: '0 0 12px 12px'
-        }}>
-          <div style={{ 
-            textAlign: 'center'
-          }}>
-            <div style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '15px', 
-              marginBottom: '20px' 
-            }}>
-              <div style={{ 
-                width: '50px', 
-                height: '50px', 
-                backgroundColor: '#ef4444', 
-                borderRadius: '8px' 
-              }}></div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ 
-                  fontSize: '13px', 
-                  color: 'rgba(255,255,255,0.9)', 
-                  fontWeight: '600', 
-                  letterSpacing: '1px' 
-                }}>
-                  SOCIÉTÉ GÉNÉRALE
-                </div>
-                <div style={{ 
-                  fontSize: '12px', 
-                  color: 'rgba(255,255,255,0.8)' 
-                }}>
-                  CÔTE D'IVOIRE
-                </div>
-              </div>
-            </div>
-            <h1 style={{ 
-              fontSize: '42px', 
-              fontWeight: '800', 
-              color: 'white', 
-              margin: '0',
-              letterSpacing: '-0.5px'
-            }}>
-              FORMATION DU QUIZ
-            </h1>
-            <div style={{ 
-              width: '100px', 
-              height: '4px', 
-              backgroundColor: '#ef4444', 
-              marginTop: '15px',
-              marginLeft: 'auto',
-              marginRight: 'auto'
-            }}></div>
-          </div>
-        </div>
+6. Comment procédez-vous pour concevoir un tableau de bord clair et utile à des analystes ou décideurs ?
 
-        <div style={{ 
-          maxWidth: '900px', 
-          width: '100%',
-          padding: '30px 20px' 
-        }}>
-          <button 
-            onClick={() => setCurrentView('list')} 
-            style={{ 
-              marginBottom: '30px', 
-              padding: '12px 24px', 
-              backgroundColor: 'white', 
-              color: '#1e3a8a', 
-              border: '2px solid #e5e7eb', 
-              borderRadius: '8px', 
-              cursor: 'pointer', 
-              fontSize: '15px', 
-              fontWeight: '600',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-            }}
-          >
-            ← Retour à la gestion
-          </button>
 
-          {quizzes.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '80px 20px', 
-              backgroundColor: 'white', 
-              borderRadius: '12px', 
-              border: '1px solid #e5e7eb' 
-            }}>
-              <div style={{ fontSize: '64px', marginBottom: '20px' }}>📝</div>
-              <h3 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '12px' }}>
-                Aucun quiz dans cette formation
-              </h3>
-              <p style={{ fontSize: '16px', color: '#6b7280' }}>
-                Retournez à la gestion pour créer des quiz
-              </p>
-            </div>
-          ) : (
-            <>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '25px',
-                maxHeight: '65vh',
-                overflowY: 'auto',
-                paddingRight: '10px'
-              }}>
-                {quizzes.map((quiz, quizIndex) => (
-                  <div 
-                    key={quiz.id} 
-                    style={{ 
-                      backgroundColor: 'white', 
-                      borderRadius: '12px', 
-                      border: '2px solid #e5e7eb',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                    }}
-                  >
-                    <div style={{ 
-                      padding: '20px 25px', 
-                      backgroundColor: '#f8f9fa',
-                      borderBottom: '2px solid #e5e7eb',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ 
-                          fontSize: '24px', 
-                          fontWeight: '700', 
-                          color: '#1f2937',
-                          marginBottom: '8px'
-                        }}>
-                          {quiz.quiz}
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <span style={{ 
-                            padding: '4px 12px', 
-                            backgroundColor: '#e0e7ff', 
-                            color: '#3b82f6', 
-                            borderRadius: '6px', 
-                            fontSize: '12px', 
-                            fontWeight: '600',
-                            textTransform: 'uppercase'
-                          }}>
-                            {quiz.type}
-                          </span>
-                          {quiz.mandatory && (
-                            <span style={{ 
-                              padding: '4px 12px', 
-                              backgroundColor: '#fee2e2', 
-                              color: '#dc2626', 
-                              borderRadius: '6px', 
-                              fontSize: '12px', 
-                              fontWeight: '600',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
-                              <AlertCircle size={14} />
-                              OBLIGATOIRE
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+7. Donnez un exemple d’un projet où vous avez dû simplifier une visualisation complexe. Comment avez-vous procédé ?
 
-                    <div style={{ padding: '25px' }}>
-                      {quiz.type === 'free' && (
-                        <div>
-                          <label style={{ 
-                            display: 'block', 
-                            fontSize: '15px', 
-                            fontWeight: '600', 
-                            color: '#374151',
-                            marginBottom: '12px'
-                          }}>
-                            Votre réponse {quiz.mandatory && <span style={{ color: '#ef4444' }}>*</span>}
-                          </label>
-                          <textarea 
-                            value={formAnswers[quiz.id] || ''}
-                            onChange={(e) => handleAnswerChange(quiz.id, e.target.value)}
-                            placeholder="Écrivez votre réponse ici..."
-                            rows={5}
-                            style={{ 
-                              width: '100%', 
-                              padding: '14px', 
-                              border: '2px solid #e5e7eb', 
-                              borderRadius: '8px', 
-                              fontSize: '15px', 
-                              boxSizing: 'border-box', 
-                              outline: 'none', 
-                              fontFamily: 'inherit', 
-                              resize: 'vertical',
-                              backgroundColor: '#fafafa'
-                            }} 
-                          />
-                        </div>
-                      )}
 
-                      {(quiz.type === 'qcm' || quiz.type === 'qcu') && quiz.modalities.length > 0 && (
-                        <div>
-                          <div style={{ 
-                            fontSize: '15px', 
-                            fontWeight: '600', 
-                            color: '#374151',
-                            marginBottom: '14px'
-                          }}>
-                            {quiz.type === 'qcu' ? 'Choisissez une réponse' : 'Choisissez une ou plusieurs réponses'}
-                            {quiz.mandatory && <span style={{ color: '#ef4444' }}> *</span>}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {quiz.modalities.map((modality, idx) => {
-                              const isChecked = quiz.type === 'qcu' 
-                                ? formAnswers[quiz.id] === modality
-                                : (formAnswers[quiz.id] || []).includes(modality);
-                              
-                              return (
-                                <label 
-                                  key={idx}
-                                  style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '12px', 
-                                    padding: '14px 18px', 
-                                    backgroundColor: isChecked ? '#eff6ff' : '#fafafa',
-                                    border: isChecked ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                                    borderRadius: '8px', 
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  <input 
-                                    type={quiz.type === 'qcu' ? 'radio' : 'checkbox'}
-                                    name={`quiz-${quiz.id}`}
-                                    checked={isChecked}
-                                    onChange={(e) => handleModalityChange(quiz.id, modality, e.target.checked, quiz.type)}
-                                    style={{ 
-                                      width: '18px', 
-                                      height: '18px', 
-                                      cursor: 'pointer',
-                                      accentColor: '#3b82f6'
-                                    }} 
-                                  />
-                                  <span style={{ 
-                                    fontSize: '15px', 
-                                    color: '#1f2937',
-                                    fontWeight: isChecked ? '600' : '500',
-                                    flex: 1
-                                  }}>
-                                    {modality}
-                                  </span>
-                                  {isChecked && <Check size={18} color="#3b82f6" />}
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+8. Comment décidez-vous du type de graphique à utiliser pour représenter un jeu de données ?
 
-              <div style={{ 
-                marginTop: '30px', 
-                padding: '25px', 
-                backgroundColor: 'white', 
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                textAlign: 'center'
-              }}>
-                <button 
-                  onClick={handleSubmitFormation}
-                  style={{ 
-                    padding: '14px 40px', 
-                    backgroundColor: '#3b82f6', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    cursor: 'pointer', 
-                    fontSize: '17px', 
-                    fontWeight: '700',
-                    boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}
-                >
-                  <Check size={22} />
-                  Soumettre la Formation
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
 
-  return (
-    <div style={{ padding: '40px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh' }}>
-      <dialog ref={formDialogRef} style={{ padding: 0, border: 'none', borderRadius: '20px', maxWidth: '700px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', backgroundColor: 'white' }}>
-        <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#1f2937', margin: 0 }}>{editingQuiz !== null ? 'Modifier le Quiz' : 'Nouveau Quiz'}</h2>
-            <button onClick={closeFormDialog} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center' }}><X size={24} color="#6b7280" /></button>
-          </div>
-          <p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '14px' }}>Formation: {CODE_FORMATION}</p>
-          <div>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Nom du Quiz</label>
-              <input type="text" value={formData.quiz} onChange={(e) => setFormData({ ...formData, quiz: e.target.value })} placeholder="Ex: Quiz JavaScript - Les Bases" style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' }} />
-            </div>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Type de Quiz</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                <label style={{ padding: '16px', backgroundColor: formData.type === 'free' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'free' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
-                  <input type="radio" name="type" value="free" checked={formData.type === 'free'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
-                  <div style={{ fontWeight: '700', color: formData.type === 'free' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>FREE</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Réponse libre</div>
-                </label>
-                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcm' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'qcm' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
-                  <input type="radio" name="type" value="qcm" checked={formData.type === 'qcm'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
-                  <div style={{ fontWeight: '700', color: formData.type === 'qcm' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCM</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Choix multiple</div>
-                </label>
-                <label style={{ padding: '16px', backgroundColor: formData.type === 'qcu' ? '#e0e7ff' : '#f9fafb', border: formData.type === 'qcu' ? '2px solid #3b82f6' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}>
-                  <input type="radio" name="type" value="qcu" checked={formData.type === 'qcu'} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ display: 'none' }} />
-                  <div style={{ fontWeight: '700', color: formData.type === 'qcu' ? '#3b82f6' : '#6b7280', fontSize: '16px', marginBottom: '4px' }}>QCU</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Choix unique</div>
-                </label>
-              </div>
-            </div>
-            {(formData.type === 'qcm' || formData.type === 'qcu') && (
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Modalités (Appuyez sur Entrée)</label>
-                <input type="text" value={currentModality} onChange={(e) => setCurrentModality(e.target.value)} onKeyDown={handleAddModality} placeholder="Tapez une réponse et appuyez sur Entrée" style={{ width: '100%', padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '16px', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' }} />
-                {formData.modalities.length > 0 && (
-                  <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    {formData.modalities.map((mod, index) => (
-                      <div key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#3b82f6', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: '500' }}>
-                        <span>{mod}</span>
-                        <button type="button" onClick={() => removeModality(index)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px', color: 'white', display: 'flex', alignItems: 'center' }}><X size={14} /></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <div style={{ marginBottom: '32px' }}>
-              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '700', color: '#1f2937', fontSize: '15px' }}>Ce quiz est-il obligatoire ?</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <label style={{ padding: '18px', backgroundColor: formData.mandatory ? '#fef2f2' : '#f9fafb', border: formData.mandatory ? '2px solid #ef4444' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <input type="radio" name="mandatory" checked={formData.mandatory === true} onChange={() => setFormData({ ...formData, mandatory: true })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
-                  <div><div style={{ fontWeight: '700', color: '#dc2626', fontSize: '15px' }}>Obligatoire</div><div style={{ fontSize: '12px', color: '#6b7280' }}>Réponse requise</div></div>
-                </label>
-                <label style={{ padding: '18px', backgroundColor: formData.mandatory === false ? '#f0f9ff' : '#f9fafb', border: formData.mandatory === false ? '2px solid #0891b2' : '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <input type="radio" name="mandatory" checked={formData.mandatory === false} onChange={() => setFormData({ ...formData, mandatory: false })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
-                  <div><div style={{ fontWeight: '700', color: '#0891b2', fontSize: '15px' }}>Optionnel</div><div style={{ fontSize: '12px', color: '#6b7280' }}>Peut ignorer</div></div>
-                </label>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={closeFormDialog} style={{ flex: 1, padding: '14px', backgroundColor: '#f3f4f6', color: '#374151', border: '2px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '600' }}>Annuler</button>
-              <button onClick={handleSubmit} style={{ flex: 1, padding: '14px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700' }}>{editingQuiz !== null ? '✓ Mettre à Jour' : '+ Créer'}</button>
-            </div>
-          </div>
-        </div>
-      </dialog>
-      <dialog ref={deleteDialogRef} style={{ padding: 0, border: 'none', borderRadius: '16px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-        <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Confirmer la suppression</h3>
-            <p style={{ fontSize: '16px', color: '#6b7280' }}>Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action est irréversible.</p>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={closeDeleteDialog} style={{ flex: 1, padding: '12px', backgroundColor: '#f3f4f6', color: '#374151', border: '2px solid #e5e7eb', borderRadius: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: '600' }}>Annuler</button>
-            <button onClick={confirmDelete} style={{ flex: 1, padding: '12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: '600' }}>Supprimer</button>
-          </div>
-        </div>
-      </dialog>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
-        <div>
-          <h1 style={{ fontSize: '42px', fontWeight: '800', color: '#1f2937', margin: '0 0 8px 0' }}>Quiz Manager</h1>
-          <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>Formation: {CODE_FORMATION}</p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button 
-            onClick={() => setCurrentView('formation')} 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              padding: '14px 28px', 
-              backgroundColor: '#10b981', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '12px', 
-              cursor: 'pointer', 
-              fontSize: '16px', 
-              fontWeight: '700', 
-              boxShadow: '0 2px 8px rgba(16,185,129,0.3)' 
-            }}
-          >
-            <FileText size={22} />
-            Voir la Formation
-          </button>
-          <button onClick={() => openFormDialog()} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 28px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}><Plus size={22} />Créer un Quiz</button>
-        </div>
-      </div>
-      {quizzes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>📝</div>
-          <h3 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '12px' }}>Aucun quiz disponible</h3>
-          <p style={{ fontSize: '16px', color: '#6b7280' }}>Commencez par créer votre premier quiz</p>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
-          {quizzes.map((quiz, index) => (
-            <div key={quiz.id} style={{ backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', transition: 'transform 0.2s' }}>
-              <div style={{ padding: '24px', borderBottom: '2px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: '700', margin: '0', flex: 1, color: '#1f2937' }}>{quiz.quiz}</h3>
-                  {quiz.mandatory ? <AlertCircle size={24} color="#dc2626" /> : <CheckCircle size={24} color="#0891b2" />}
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase' }}>{quiz.type}</span>
-                  {quiz.type !== 'free' && <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#6b7280', borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>{quiz.modalities.length} questions</span>}
-                </div>
-              </div>
-              <div style={{ padding: '20px' }}>
-                <div style={{ padding: '12px', backgroundColor: quiz.mandatory ? '#fef2f2' : '#f0f9ff', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {quiz.mandatory ? <><AlertCircle size={16} style={{ color: '#dc2626' }} /><span style={{ fontSize: '13px', fontWeight: '600', color: '#dc2626' }}>Quiz Obligatoire</span></> : <><CheckCircle size={16} style={{ color: '#0891b2' }} /><span style={{ fontSize: '13px', fontWeight: '600', color: '#0891b2' }}>Quiz Optionnel</span></>}
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => openFormDialog(index)} style={{ flex: 1, padding: '10px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Edit2 size={16} />Modifier</button>
-                  <button onClick={() => openDeleteDialog(index)} style={{ padding: '10px 14px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+9. Que pensez-vous de l’équilibre entre esthétique et lisibilité dans un environnement de data visualisation ?
 
-export default QuizManager;
+
+10. Comment gérez-vous les cas où les données sont incomplètes, ambiguës ou peu compréhensibles pour les utilisateurs ?
+
+
+
+
+---
+
+👥 3. Recherche utilisateur & conception centrée sur l’humain
+
+11. Quelles méthodes de recherche UX utilisez-vous le plus souvent (interviews, observation, test utilisateur, etc.) ?
+
+
+12. Comment identifiez-vous les “pain points” d’un utilisateur métier dans un outil interne ?
+
+
+13. Dans une banque, les utilisateurs peuvent être très variés (analystes, contrôleurs, managers, direction…). Comment adaptez-vous vos personas ?
+
+
+14. Comment intégrez-vous la voix de l’utilisateur dans un projet data déjà en cours ?
+
+
+15. Pouvez-vous décrire une situation où les retours utilisateurs ont profondément modifié votre design initial ?
+
+
+
+
+---
+
+🎨 4. Ergonomie, accessibilité et design system
+
+16. Quels sont les grands principes ergonomiques que vous appliquez dans vos designs ?
+
+
+17. Comment prenez-vous en compte l’accessibilité (vision, motricité, contraste, etc.) dans vos maquettes ?
+
+
+18. Comment travaillez-vous avec un design system ou une charte graphique déjà existante ?
+
+
+19. Comment gérez-vous les contraintes de responsive design sur des dashboards complexes ?
+
+
+20. Quel est selon vous le juste niveau d’interactivité dans un outil interne (ex : survols, animations, transitions) ?
+
+
+
+
+---
+
+🔧 5. Outils et collaboration
+
+21. Quels outils utilisez-vous pour la conception et le prototypage (Figma, Adobe XD, Miro, etc.) ?
+
+
+22. Comment collaborez-vous avec les data analysts ou développeurs pour assurer la cohérence entre le design et les données réelles ?
+
+
+23. Comment documentez-vous vos choix UX pour les équipes techniques ?
+
+
+24. Comment gérez-vous les tests et itérations sur des projets où les données changent en continu ?
+
+
+25. Quelles métriques UX suivez-vous après la mise en production d’un outil interne (taux d’erreur, temps de tâche, satisfaction, etc.) ?
+
+
+
+
+---
+
+⚖️ 6. Stratégie, data et éthique
+
+26. Comment assurez-vous que la visualisation de données reste objective et ne manipule pas l’interprétation ?
+
+
+27. Comment conciliez-vous les besoins métiers (rapidité, performance) et l’expérience utilisateur (clarté, compréhension) ?
+
+
+28. Quelle est votre approche du “data storytelling” ? Donnez un exemple.
+
+
+29. Comment garantissez-vous la cohérence des données affichées par rapport à celles fournies par la DSI ou les équipes Data ?
+
+
+30. Quelle place accordez-vous à l’éthique et à la transparence dans la conception d’interfaces liées à la donnée financière ?
+
+
+
+
+---
+
+💬 7. Comportemental & savoir-être
+
+31. Décrivez une situation où vous avez dû convaincre une équipe technique ou métier d’adopter vos recommandations UX.
+
+
+32. Comment réagissez-vous quand un client interne ou un manager rejette vos propositions de design ?
+
+
+33. Comment gérez-vous la pression des délais tout en maintenant une bonne qualité UX ?
+
+
+34. Quel est votre plus grand apprentissage issu d’un échec UX ?
+
+
+35. Qu’est-ce qui vous motive le plus dans un environnement bancaire orienté data ?
+
+
+
+
+---
+
+🧠 8. Quelques QCM de validation technique rapide
+
+36. Dans une interface de visualisation, quelle couleur représente souvent une baisse ?
+A. Vert
+✅ B. Rouge
+C. Bleu
+D. Orange
+
+
+
+
+---
+
+37. Lequel de ces principes n’appartient pas à l’UX Design ?
+A. Cohérence
+B. Lisibilité
+✅ C. Sécurisation du serveur
+D. Simplicité
+
+
+
+
+---
+
+38. Quelle méthode est la plus utile pour tester la compréhension d’un dashboard ?
+A. Test A/B
+✅ B. Test de tâches (scénarios d’usage)
+C. Test de performance du code
+D. Test de charge
+
+
+
+
+---
+
+39. Le but principal d’un persona est de :
+✅ A. Représenter un profil utilisateur type avec ses besoins et frustrations
+B. Représenter l’équipe design
+C. Lister les fonctionnalités
+D. Créer un profil marketing
+
+
+
+
+---
+
+40. Un bon design UX pour la data doit avant tout :
+✅ A. Aider à la prise de décision rapide et fiable
+B. Être artistique
+C. Être dense en graphiques
+D. Être mobile-first uniquement
+
+
+
