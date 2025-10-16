@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Download, User, Calendar, FileText, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, User, Calendar, ChevronRight, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react';
 
 const QuizApp = () => {
   const [currentSection, setCurrentSection] = useState(0);
@@ -7,10 +7,76 @@ const QuizApp = () => {
   const [candidateInfo, setCandidateInfo] = useState({
     nom: '',
     prenom: '',
+    email: '',
     date: new Date().toISOString().split('T')[0]
   });
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState(null);
+
+  // Désactiver clic droit, F12, Ctrl+Shift+I, Ctrl+U
+  useEffect(() => {
+    const disableRightClick = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    const disableDevTools = (e) => {
+      // F12
+      if (e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+I
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+J
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+U
+      if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+C
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const disableSelection = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    document.addEventListener('contextmenu', disableRightClick);
+    document.addEventListener('keydown', disableDevTools);
+    document.addEventListener('selectstart', disableSelection);
+
+    // Détection de DevTools ouvert
+    const detectDevTools = () => {
+      const threshold = 160;
+      if (window.outerWidth - window.innerWidth > threshold || 
+          window.outerHeight - window.innerHeight > threshold) {
+        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:24px;color:#e53e3e;">Accès non autorisé détecté</div>';
+      }
+    };
+
+    const devToolsInterval = setInterval(detectDevTools, 1000);
+
+    return () => {
+      document.removeEventListener('contextmenu', disableRightClick);
+      document.removeEventListener('keydown', disableDevTools);
+      document.removeEventListener('selectstart', disableSelection);
+      clearInterval(devToolsInterval);
+    };
+  }, []);
 
   const sections = [
     {
@@ -168,42 +234,39 @@ const QuizApp = () => {
     return { correct, total: mcqSection.questions.length };
   };
 
-  const downloadResults = () => {
+  const sendResultsByEmail = async () => {
+    setIsSending(true);
+    setSendStatus(null);
+
     const score = calculateScore();
-    let content = `RÉSULTATS DU QUIZ UX DESIGNER - DIRECTION DATA BANCAIRE\n`;
-    content += `${'='.repeat(60)}\n\n`;
-    content += `Candidat: ${candidateInfo.prenom} ${candidateInfo.nom}\n`;
-    content += `Date: ${candidateInfo.date}\n`;
-    content += `Score QCM: ${score.correct}/${score.total}\n\n`;
-    content += `${'='.repeat(60)}\n\n`;
 
-    sections.forEach((section, sIdx) => {
-      content += `\n${section.icon} ${section.title}\n`;
-      content += `${'-'.repeat(60)}\n\n`;
-
-      section.questions.forEach((q, qIdx) => {
-        const key = getQuestionKey(sIdx, qIdx);
-        const answer = answers[key];
-
-        if (typeof q === 'string') {
-          content += `Q${qIdx + 1}: ${q}\n`;
-          content += `Réponse: ${answer || '(Non répondu)'}\n\n`;
-        } else {
-          content += `Q${qIdx + 1}: ${q.question}\n`;
-          content += `Options: ${q.options.join(' | ')}\n`;
-          content += `Réponse: ${answer !== undefined ? q.options[answer] : '(Non répondu)'}`;
-          content += answer === q.correct ? ' ✓\n\n' : ' ✗\n\n';
-        }
+    try {
+      const response = await fetch('http://localhost:5000/api/submit-quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          candidateInfo: candidateInfo,
+          answers: answers,
+          score: score
+        })
       });
-    });
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Quiz_UX_${candidateInfo.prenom}_${candidateInfo.nom}_${candidateInfo.date}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        setSendStatus('success');
+      } else {
+        setSendStatus('error');
+        console.error('Erreur:', data.message);
+      }
+    } catch (error) {
+      setSendStatus('error');
+      console.error('Erreur de connexion:', error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const getTotalProgress = () => {
@@ -222,9 +285,9 @@ const QuizApp = () => {
     return (currentPos / totalQuestions) * 100;
   };
 
-  if (!candidateInfo.nom || !candidateInfo.prenom) {
+  if (!candidateInfo.nom || !candidateInfo.prenom || !candidateInfo.email) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', userSelect: 'none' }}>
         <div style={{ background: 'white', borderRadius: '20px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <h1 style={{ fontSize: '28px', color: '#2d3748', marginBottom: '10px', fontWeight: '700' }}>🎯 Quiz UX Designer</h1>
@@ -234,7 +297,7 @@ const QuizApp = () => {
           <div style={{ marginBottom: '25px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
               <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Prénom
+              Prénom *
             </label>
             <input
               type="text"
@@ -249,7 +312,7 @@ const QuizApp = () => {
           <div style={{ marginBottom: '25px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
               <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Nom
+              Nom *
             </label>
             <input
               type="text"
@@ -258,6 +321,22 @@ const QuizApp = () => {
               style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px', transition: 'border 0.3s' }}
               onFocus={(e) => e.target.style.borderColor = '#667eea'}
               onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
+          <div style={{ marginBottom: '25px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
+              <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
+              Email *
+            </label>
+            <input
+              type="email"
+              value={candidateInfo.email}
+              onChange={(e) => setCandidateInfo({ ...candidateInfo, email: e.target.value })}
+              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px', transition: 'border 0.3s' }}
+              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              placeholder="votre.email@exemple.com"
             />
           </div>
 
@@ -275,10 +354,10 @@ const QuizApp = () => {
           </div>
 
           <button
-            onClick={() => candidateInfo.prenom && candidateInfo.nom && setCurrentSection(0)}
-            disabled={!candidateInfo.prenom || !candidateInfo.nom}
-            style={{ width: '100%', padding: '14px', background: candidateInfo.prenom && candidateInfo.nom ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#cbd5e0', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: candidateInfo.prenom && candidateInfo.nom ? 'pointer' : 'not-allowed', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => candidateInfo.prenom && candidateInfo.nom && (e.target.style.transform = 'scale(1.02)')}
+            onClick={() => candidateInfo.prenom && candidateInfo.nom && candidateInfo.email && setCurrentSection(0)}
+            disabled={!candidateInfo.prenom || !candidateInfo.nom || !candidateInfo.email}
+            style={{ width: '100%', padding: '14px', background: candidateInfo.prenom && candidateInfo.nom && candidateInfo.email ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#cbd5e0', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: candidateInfo.prenom && candidateInfo.nom && candidateInfo.email ? 'pointer' : 'not-allowed', transition: 'transform 0.2s' }}
+            onMouseEnter={(e) => candidateInfo.prenom && candidateInfo.nom && candidateInfo.email && (e.target.style.transform = 'scale(1.02)')}
             onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
             Commencer le Quiz
@@ -291,7 +370,7 @@ const QuizApp = () => {
   if (showResults) {
     const score = calculateScore();
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', userSelect: 'none' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <CheckCircle size={80} style={{ color: '#48bb78', marginBottom: '20px' }} />
@@ -300,32 +379,52 @@ const QuizApp = () => {
           </div>
 
           <div style={{ background: '#f7fafc', borderRadius: '15px', padding: '30px', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '20px', color: '#2d3748', marginBottom: '20px' }}>📊 Résumé</h2>
+            <h2 style={{ fontSize: '20px', color: '#2d3748', marginBottom: '20px' }}>📊 Votre Score</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
               <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#667eea' }}>40</div>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: '#667eea' }}>{score.correct}/{score.total}</div>
+                <div style={{ color: '#718096', fontSize: '14px' }}>Questions correctes</div>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: '#48bb78' }}>{Math.round(score.correct/score.total*100)}%</div>
+                <div style={{ color: '#718096', fontSize: '14px' }}>Taux de réussite</div>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: '#ed8936' }}>40</div>
                 <div style={{ color: '#718096', fontSize: '14px' }}>Questions totales</div>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#48bb78' }}>{score.correct}/{score.total}</div>
-                <div style={{ color: '#718096', fontSize: '14px' }}>Score QCM</div>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#ed8936' }}>{Object.keys(answers).length}</div>
-                <div style={{ color: '#718096', fontSize: '14px' }}>Réponses données</div>
               </div>
             </div>
           </div>
 
+          <div style={{ background: '#edf2f7', borderRadius: '15px', padding: '20px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <AlertCircle size={24} style={{ color: '#667eea', flexShrink: 0 }} />
+            <p style={{ margin: 0, color: '#4a5568', fontSize: '14px', lineHeight: '1.6' }}>
+              Vos résultats complets ont été enregistrés et seront envoyés à l'équipe de recrutement pour évaluation. Vous serez contacté prochainement.
+            </p>
+          </div>
+
           <button
-            onClick={downloadResults}
-            style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+            onClick={sendResultsByEmail}
+            disabled={isSending}
+            style={{ width: '100%', padding: '16px', background: isSending ? '#cbd5e0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: isSending ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'transform 0.2s' }}
+            onMouseEnter={(e) => !isSending && (e.target.style.transform = 'scale(1.02)')}
             onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
-            <Download size={20} />
-            Télécharger les Résultats
+            <Send size={20} />
+            {isSending ? 'Envoi en cours...' : sendStatus === 'success' ? 'Résultats envoyés !' : 'Envoyer mes résultats'}
           </button>
+
+          {sendStatus === 'success' && (
+            <div style={{ marginTop: '20px', padding: '15px', background: '#c6f6d5', borderRadius: '10px', textAlign: 'center', color: '#22543d' }}>
+              ✓ Vos résultats ont été envoyés avec succès !
+            </div>
+          )}
+
+          {sendStatus === 'error' && (
+            <div style={{ marginTop: '20px', padding: '15px', background: '#fed7d7', borderRadius: '10px', textAlign: 'center', color: '#742a2a' }}>
+              ✗ Erreur lors de l'envoi. Veuillez réessayer.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -337,9 +436,8 @@ const QuizApp = () => {
   const questionKey = getQuestionKey(currentSection, currentQuestion);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', userSelect: 'none' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        {/* Header */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '20px 30px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <div>
@@ -356,13 +454,11 @@ const QuizApp = () => {
             </div>
           </div>
           
-          {/* Progress bar */}
           <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
             <div style={{ width: `${getTotalProgress()}%`, height: '100%', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', transition: 'width 0.3s' }} />
           </div>
         </div>
 
-        {/* Question Card */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '40px', marginBottom: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
           <div style={{ background: '#f7fafc', padding: '15px 20px', borderRadius: '10px', marginBottom: '30px' }}>
             <div style={{ fontSize: '14px', color: '#667eea', fontWeight: '600', marginBottom: '5px' }}>
@@ -437,7 +533,6 @@ const QuizApp = () => {
           )}
         </div>
 
-        {/* Navigation */}
         <div style={{ display: 'flex', gap: '15px' }}>
           <button
             onClick={prevQuestion}
