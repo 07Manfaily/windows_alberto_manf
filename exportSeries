@@ -1,599 +1,266 @@
-import React, { useState, useEffect } from 'react';
-import { Send, User, Calendar, ChevronRight, ChevronLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
-const QuizApp = () => {
-  const [currentSection, setCurrentSection] = useState(0);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [candidateInfo, setCandidateInfo] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    date: new Date().toISOString().split('T')[0]
-  });
-  const [answers, setAnswers] = useState({});
-  const [showResults, setShowResults] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [sendStatus, setSendStatus] = useState(null);
+export default function YearSelector() {
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 50 }, (_, i) => currentYear - 25 + i);
+  
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Désactiver clic droit, F12, Ctrl+Shift+I, Ctrl+U
-  useEffect(() => {
-    const disableRightClick = (e) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const disableDevTools = (e) => {
-      // F12
-      if (e.keyCode === 123) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+I
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+J
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+U
-      if (e.ctrlKey && e.keyCode === 85) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+C
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    const disableSelection = (e) => {
-      e.preventDefault();
-      return false;
-    };
-
-    document.addEventListener('contextmenu', disableRightClick);
-    document.addEventListener('keydown', disableDevTools);
-    document.addEventListener('selectstart', disableSelection);
-
-    // Détection de DevTools ouvert
-    const detectDevTools = () => {
-      const threshold = 160;
-      if (window.outerWidth - window.innerWidth > threshold || 
-          window.outerHeight - window.innerHeight > threshold) {
-        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:24px;color:#e53e3e;">Accès non autorisé détecté</div>';
-      }
-    };
-
-    const devToolsInterval = setInterval(detectDevTools, 1000);
-
-    return () => {
-      document.removeEventListener('contextmenu', disableRightClick);
-      document.removeEventListener('keydown', disableDevTools);
-      document.removeEventListener('selectstart', disableSelection);
-      clearInterval(devToolsInterval);
-    };
-  }, []);
-
-  const sections = [
-    {
-      title: "Compréhension du rôle et du contexte",
-      icon: "🧩",
-      questions: [
-        "Comment définissez-vous le rôle d'un UX Designer au sein d'une direction Data dans une banque ?",
-        "Quelle différence faites-vous entre UX et UI ?",
-        "Comment l'UX Design peut-il contribuer à la performance d'une équipe data ?",
-        "Selon vous, quels sont les principaux défis UX dans la visualisation de données financières ?",
-        "Comment vous assurez-vous que vos designs respectent les contraintes de sécurité et de confidentialité propres au secteur bancaire ?"
-      ]
-    },
-    {
-      title: "Design orienté Data / Dashboards & visualisation",
-      icon: "📊",
-      questions: [
-        "Comment procédez-vous pour concevoir un tableau de bord clair et utile à des analystes ou décideurs ?",
-        "Donnez un exemple d'un projet où vous avez dû simplifier une visualisation complexe. Comment avez-vous procédé ?",
-        "Comment décidez-vous du type de graphique à utiliser pour représenter un jeu de données ?",
-        "Que pensez-vous de l'équilibre entre esthétique et lisibilité dans un environnement de data visualisation ?",
-        "Comment gérez-vous les cas où les données sont incomplètes, ambiguës ou peu compréhensibles pour les utilisateurs ?"
-      ]
-    },
-    {
-      title: "Recherche utilisateur & conception centrée sur l'humain",
-      icon: "👥",
-      questions: [
-        "Quelles méthodes de recherche UX utilisez-vous le plus souvent (interviews, observation, test utilisateur, etc.) ?",
-        "Comment identifiez-vous les \"pain points\" d'un utilisateur métier dans un outil interne ?",
-        "Dans une banque, les utilisateurs peuvent être très variés (analystes, contrôleurs, managers, direction…). Comment adaptez-vous vos personas ?",
-        "Comment intégrez-vous la voix de l'utilisateur dans un projet data déjà en cours ?",
-        "Pouvez-vous décrire une situation où les retours utilisateurs ont profondément modifié votre design initial ?"
-      ]
-    },
-    {
-      title: "Ergonomie, accessibilité et design system",
-      icon: "🎨",
-      questions: [
-        "Quels sont les grands principes ergonomiques que vous appliquez dans vos designs ?",
-        "Comment prenez-vous en compte l'accessibilité (vision, motricité, contraste, etc.) dans vos maquettes ?",
-        "Comment travaillez-vous avec un design system ou une charte graphique déjà existante ?",
-        "Comment gérez-vous les contraintes de responsive design sur des dashboards complexes ?",
-        "Quel est selon vous le juste niveau d'interactivité dans un outil interne (ex : survols, animations, transitions) ?"
-      ]
-    },
-    {
-      title: "Outils et collaboration",
-      icon: "🔧",
-      questions: [
-        "Quels outils utilisez-vous pour la conception et le prototypage (Figma, Adobe XD, Miro, etc.) ?",
-        "Comment collaborez-vous avec les data analysts ou développeurs pour assurer la cohérence entre le design et les données réelles ?",
-        "Comment documentez-vous vos choix UX pour les équipes techniques ?",
-        "Comment gérez-vous les tests et itérations sur des projets où les données changent en continu ?",
-        "Quelles métriques UX suivez-vous après la mise en production d'un outil interne (taux d'erreur, temps de tâche, satisfaction, etc.) ?"
-      ]
-    },
-    {
-      title: "Stratégie, data et éthique",
-      icon: "⚖️",
-      questions: [
-        "Comment assurez-vous que la visualisation de données reste objective et ne manipule pas l'interprétation ?",
-        "Comment conciliez-vous les besoins métiers (rapidité, performance) et l'expérience utilisateur (clarté, compréhension) ?",
-        "Quelle est votre approche du \"data storytelling\" ? Donnez un exemple.",
-        "Comment garantissez-vous la cohérence des données affichées par rapport à celles fournies par la DSI ou les équipes Data ?",
-        "Quelle place accordez-vous à l'éthique et à la transparence dans la conception d'interfaces liées à la donnée financière ?"
-      ]
-    },
-    {
-      title: "Comportemental & savoir-être",
-      icon: "💬",
-      questions: [
-        "Décrivez une situation où vous avez dû convaincre une équipe technique ou métier d'adopter vos recommandations UX.",
-        "Comment réagissez-vous quand un client interne ou un manager rejette vos propositions de design ?",
-        "Comment gérez-vous la pression des délais tout en maintenant une bonne qualité UX ?",
-        "Quel est votre plus grand apprentissage issu d'un échec UX ?",
-        "Qu'est-ce qui vous motive le plus dans un environnement bancaire orienté data ?"
-      ]
-    },
-    {
-      title: "QCM de validation technique",
-      icon: "🧠",
-      questions: [
-        {
-          question: "Dans une interface de visualisation, quelle couleur représente souvent une baisse ?",
-          options: ["Vert", "Rouge", "Bleu", "Orange"],
-          correct: 1
-        },
-        {
-          question: "Lequel de ces principes n'appartient pas à l'UX Design ?",
-          options: ["Cohérence", "Lisibilité", "Sécurisation du serveur", "Simplicité"],
-          correct: 2
-        },
-        {
-          question: "Quelle méthode est la plus utile pour tester la compréhension d'un dashboard ?",
-          options: ["Test A/B", "Test de tâches (scénarios d'usage)", "Test de performance du code", "Test de charge"],
-          correct: 1
-        },
-        {
-          question: "Le but principal d'un persona est de :",
-          options: ["Représenter un profil utilisateur type avec ses besoins et frustrations", "Représenter l'équipe design", "Lister les fonctionnalités", "Créer un profil marketing"],
-          correct: 0
-        },
-        {
-          question: "Un bon design UX pour la data doit avant tout :",
-          options: ["Aider à la prise de décision rapide et fiable", "Être artistique", "Être dense en graphiques", "Être mobile-first uniquement"],
-          correct: 0
-        }
-      ]
-    }
-  ];
-
-  const getQuestionKey = (sectionIdx, questionIdx) => `s${sectionIdx}_q${questionIdx}`;
-
-  const handleAnswerChange = (value) => {
-    const key = getQuestionKey(currentSection, currentQuestion);
-    setAnswers({ ...answers, [key]: value });
+  const handlePrevious = () => {
+    setSelectedYear(prev => Math.max(prev - 1, years[0]));
   };
 
-  const handleMCQAnswer = (optionIdx) => {
-    const key = getQuestionKey(currentSection, currentQuestion);
-    setAnswers({ ...answers, [key]: optionIdx });
+  const handleNext = () => {
+    setSelectedYear(prev => Math.min(prev + 1, years[years.length - 1]));
   };
 
-  const nextQuestion = () => {
-    const currentSectionQuestions = sections[currentSection].questions;
-    if (currentQuestion < currentSectionQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
-      setCurrentQuestion(0);
-    } else {
-      setShowResults(true);
-    }
+  const handleYearSelect = (year) => {
+    setSelectedYear(year);
+    setShowDropdown(false);
   };
-
-  const prevQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    } else if (currentSection > 0) {
-      setCurrentSection(currentSection - 1);
-      setCurrentQuestion(sections[currentSection - 1].questions.length - 1);
-    }
-  };
-
-  const calculateScore = () => {
-    let correct = 0;
-    const mcqSection = sections[7];
-    mcqSection.questions.forEach((q, idx) => {
-      const key = getQuestionKey(7, idx);
-      if (answers[key] === q.correct) {
-        correct++;
-      }
-    });
-    return { correct, total: mcqSection.questions.length };
-  };
-
-  const sendResultsByEmail = async () => {
-    setIsSending(true);
-    setSendStatus(null);
-
-    const score = calculateScore();
-
-    try {
-      const response = await fetch('http://localhost:5000/api/submit-quiz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          candidateInfo: candidateInfo,
-          answers: answers,
-          score: score
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        setSendStatus('success');
-      } else {
-        setSendStatus('error');
-        console.error('Erreur:', data.message);
-      }
-    } catch (error) {
-      setSendStatus('error');
-      console.error('Erreur de connexion:', error);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const getTotalProgress = () => {
-    let totalQuestions = 0;
-    let currentPos = 0;
-    
-    sections.forEach((section, sIdx) => {
-      totalQuestions += section.questions.length;
-      if (sIdx < currentSection) {
-        currentPos += section.questions.length;
-      } else if (sIdx === currentSection) {
-        currentPos += currentQuestion;
-      }
-    });
-    
-    return (currentPos / totalQuestions) * 100;
-  };
-
-  if (!candidateInfo.nom || !candidateInfo.prenom || !candidateInfo.email) {
-    return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', userSelect: 'none' }}>
-        <div style={{ background: 'white', borderRadius: '20px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h1 style={{ fontSize: '28px', color: '#2d3748', marginBottom: '10px', fontWeight: '700' }}>🎯 Quiz UX Designer</h1>
-            <p style={{ color: '#718096', fontSize: '16px' }}>Direction Data Bancaire</p>
-          </div>
-          
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
-              <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Prénom *
-            </label>
-            <input
-              type="text"
-              value={candidateInfo.prenom}
-              onChange={(e) => setCandidateInfo({ ...candidateInfo, prenom: e.target.value })}
-              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px', transition: 'border 0.3s' }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-            />
-          </div>
-
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
-              <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Nom *
-            </label>
-            <input
-              type="text"
-              value={candidateInfo.nom}
-              onChange={(e) => setCandidateInfo({ ...candidateInfo, nom: e.target.value })}
-              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px', transition: 'border 0.3s' }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-            />
-          </div>
-
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
-              <User size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Email *
-            </label>
-            <input
-              type="email"
-              value={candidateInfo.email}
-              onChange={(e) => setCandidateInfo({ ...candidateInfo, email: e.target.value })}
-              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px', transition: 'border 0.3s' }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-              placeholder="votre.email@exemple.com"
-            />
-          </div>
-
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '600', fontSize: '14px' }}>
-              <Calendar size={16} style={{ display: 'inline', marginRight: '8px' }} />
-              Date
-            </label>
-            <input
-              type="date"
-              value={candidateInfo.date}
-              onChange={(e) => setCandidateInfo({ ...candidateInfo, date: e.target.value })}
-              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '10px', fontSize: '16px' }}
-            />
-          </div>
-
-          <button
-            onClick={() => candidateInfo.prenom && candidateInfo.nom && candidateInfo.email && setCurrentSection(0)}
-            disabled={!candidateInfo.prenom || !candidateInfo.nom || !candidateInfo.email}
-            style={{ width: '100%', padding: '14px', background: candidateInfo.prenom && candidateInfo.nom && candidateInfo.email ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#cbd5e0', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: candidateInfo.prenom && candidateInfo.nom && candidateInfo.email ? 'pointer' : 'not-allowed', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => candidateInfo.prenom && candidateInfo.nom && candidateInfo.email && (e.target.style.transform = 'scale(1.02)')}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            Commencer le Quiz
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (showResults) {
-    const score = calculateScore();
-    return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', userSelect: 'none' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <CheckCircle size={80} style={{ color: '#48bb78', marginBottom: '20px' }} />
-            <h1 style={{ fontSize: '32px', color: '#2d3748', marginBottom: '10px' }}>Quiz Terminé !</h1>
-            <p style={{ color: '#718096', fontSize: '18px' }}>Merci {candidateInfo.prenom} {candidateInfo.nom}</p>
-          </div>
-
-          <div style={{ background: '#f7fafc', borderRadius: '15px', padding: '30px', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '20px', color: '#2d3748', marginBottom: '20px' }}>📊 Votre Score</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#667eea' }}>{score.correct}/{score.total}</div>
-                <div style={{ color: '#718096', fontSize: '14px' }}>Questions correctes</div>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#48bb78' }}>{Math.round(score.correct/score.total*100)}%</div>
-                <div style={{ color: '#718096', fontSize: '14px' }}>Taux de réussite</div>
-              </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: '#ed8936' }}>40</div>
-                <div style={{ color: '#718096', fontSize: '14px' }}>Questions totales</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ background: '#edf2f7', borderRadius: '15px', padding: '20px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <AlertCircle size={24} style={{ color: '#667eea', flexShrink: 0 }} />
-            <p style={{ margin: 0, color: '#4a5568', fontSize: '14px', lineHeight: '1.6' }}>
-              Vos résultats complets ont été enregistrés et seront envoyés à l'équipe de recrutement pour évaluation. Vous serez contacté prochainement.
-            </p>
-          </div>
-
-          <button
-            onClick={sendResultsByEmail}
-            disabled={isSending}
-            style={{ width: '100%', padding: '16px', background: isSending ? '#cbd5e0' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: isSending ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => !isSending && (e.target.style.transform = 'scale(1.02)')}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            <Send size={20} />
-            {isSending ? 'Envoi en cours...' : sendStatus === 'success' ? 'Résultats envoyés !' : 'Envoyer mes résultats'}
-          </button>
-
-          {sendStatus === 'success' && (
-            <div style={{ marginTop: '20px', padding: '15px', background: '#c6f6d5', borderRadius: '10px', textAlign: 'center', color: '#22543d' }}>
-              ✓ Vos résultats ont été envoyés avec succès !
-            </div>
-          )}
-
-          {sendStatus === 'error' && (
-            <div style={{ marginTop: '20px', padding: '15px', background: '#fed7d7', borderRadius: '10px', textAlign: 'center', color: '#742a2a' }}>
-              ✗ Erreur lors de l'envoi. Veuillez réessayer.
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const currentSectionData = sections[currentSection];
-  const currentQuestionData = currentSectionData.questions[currentQuestion];
-  const isMCQ = typeof currentQuestionData === 'object';
-  const questionKey = getQuestionKey(currentSection, currentQuestion);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', userSelect: 'none' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ background: 'white', borderRadius: '20px', padding: '20px 30px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', color: '#2d3748', margin: '0' }}>{candidateInfo.prenom} {candidateInfo.nom}</h2>
-              <p style={{ color: '#718096', fontSize: '14px', margin: '5px 0 0 0' }}>{candidateInfo.date}</p>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '14px', color: '#718096', marginBottom: '5px' }}>
-                Section {currentSection + 1}/{sections.length}
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: '#667eea' }}>
-                Question {currentQuestion + 1}/{currentSectionData.questions.length}
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-            <div style={{ width: `${getTotalProgress()}%`, height: '100%', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', transition: 'width 0.3s' }} />
-          </div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{
+        position: 'relative'
+      }}>
+        {/* Composant principal */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          padding: '40px 60px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '30px',
+          minWidth: '400px',
+          position: 'relative'
+        }}>
+          {/* Bouton Précédent */}
+          <button
+            onClick={handlePrevious}
+            disabled={selectedYear === years[0]}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              background: selectedYear === years[0] 
+                ? 'linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%)'
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              cursor: selectedYear === years[0] ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              opacity: selectedYear === years[0] ? 0.5 : 1
+            }}
+            onMouseEnter={(e) => {
+              if (selectedYear !== years[0]) {
+                e.currentTarget.style.transform = 'scale(1.1) translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1) translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            <ChevronLeft size={24} />
+          </button>
+
+          {/* Année centrale cliquable */}
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '16px',
+              padding: '20px 40px',
+              fontSize: '42px',
+              fontWeight: '700',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.5)',
+              minWidth: '180px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 12px 35px rgba(102, 126, 234, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.5)';
+            }}
+          >
+            {selectedYear}
+            <Calendar size={28} />
+          </button>
+
+          {/* Bouton Suivant */}
+          <button
+            onClick={handleNext}
+            disabled={selectedYear === years[years.length - 1]}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              background: selectedYear === years[years.length - 1]
+                ? 'linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%)'
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              cursor: selectedYear === years[years.length - 1] ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              opacity: selectedYear === years[years.length - 1] ? 0.5 : 1
+            }}
+            onMouseEnter={(e) => {
+              if (selectedYear !== years[years.length - 1]) {
+                e.currentTarget.style.transform = 'scale(1.1) translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1) translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '40px', marginBottom: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-          <div style={{ background: '#f7fafc', padding: '15px 20px', borderRadius: '10px', marginBottom: '30px' }}>
-            <div style={{ fontSize: '14px', color: '#667eea', fontWeight: '600', marginBottom: '5px' }}>
-              {currentSectionData.icon} {currentSectionData.title}
-            </div>
-          </div>
-
-          <h3 style={{ fontSize: '20px', color: '#2d3748', marginBottom: '30px', lineHeight: '1.6' }}>
-            {isMCQ ? currentQuestionData.question : currentQuestionData}
-          </h3>
-
-          {isMCQ ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {currentQuestionData.options.map((option, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleMCQAnswer(idx)}
+        {/* Liste déroulante */}
+        {showDropdown && (
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 20px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            maxHeight: '400px',
+            overflowY: 'auto',
+            minWidth: '300px',
+            animation: 'slideDown 0.3s ease',
+            zIndex: 1000
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px'
+            }}>
+              {years.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => handleYearSelect(year)}
                   style={{
-                    padding: '18px 20px',
-                    border: answers[questionKey] === idx ? '2px solid #667eea' : '2px solid #e2e8f0',
+                    padding: '14px 20px',
+                    border: 'none',
                     borderRadius: '12px',
+                    background: year === selectedYear
+                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      : 'linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%)',
+                    color: year === selectedYear ? 'white' : '#333',
                     cursor: 'pointer',
-                    background: answers[questionKey] === idx ? '#f0f4ff' : 'white',
-                    transition: 'all 0.3s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px'
+                    fontSize: '16px',
+                    fontWeight: year === selectedYear ? '700' : '500',
+                    transition: 'all 0.2s ease',
+                    boxShadow: year === selectedYear 
+                      ? '0 4px 12px rgba(102, 126, 234, 0.4)'
+                      : 'none'
                   }}
                   onMouseEnter={(e) => {
-                    if (answers[questionKey] !== idx) {
-                      e.currentTarget.style.borderColor = '#cbd5e0';
-                      e.currentTarget.style.background = '#f7fafc';
+                    if (year !== selectedYear) {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)';
+                      e.currentTarget.style.transform = 'scale(1.05)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (answers[questionKey] !== idx) {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.background = 'white';
+                    if (year !== selectedYear) {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%)';
+                      e.currentTarget.style.transform = 'scale(1)';
                     }
                   }}
                 >
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    border: answers[questionKey] === idx ? '6px solid #667eea' : '2px solid #cbd5e0',
-                    flexShrink: 0
-                  }} />
-                  <span style={{ fontSize: '16px', color: '#2d3748' }}>{option}</span>
-                </div>
+                  {year}
+                </button>
               ))}
             </div>
-          ) : (
-            <textarea
-              value={answers[questionKey] || ''}
-              onChange={(e) => handleAnswerChange(e.target.value)}
-              placeholder="Écrivez votre réponse ici..."
-              style={{
-                width: '100%',
-                minHeight: '200px',
-                padding: '16px',
-                border: '2px solid #e2e8f0',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                resize: 'vertical',
-                transition: 'border 0.3s'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-            />
-          )}
-        </div>
+          </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <button
-            onClick={prevQuestion}
-            disabled={currentSection === 0 && currentQuestion === 0}
-            style={{
-              flex: 1,
-              padding: '16px',
-              background: currentSection === 0 && currentQuestion === 0 ? '#e2e8f0' : 'white',
-              color: currentSection === 0 && currentQuestion === 0 ? '#a0aec0' : '#667eea',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: currentSection === 0 && currentQuestion === 0 ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!(currentSection === 0 && currentQuestion === 0)) {
-                e.target.style.transform = 'scale(1.02)';
-              }
-            }}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            <ChevronLeft size={20} />
-            Précédent
-          </button>
+        {/* Animation CSS */}
+        <style>{`
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(-50%) translateY(0);
+            }
+          }
+          
+          div::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          div::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          div::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+          }
+        `}</style>
+      </div>
 
-          <button
-            onClick={nextQuestion}
-            style={{
-              flex: 1,
-              padding: '16px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            {currentSection === sections.length - 1 && currentQuestion === currentSectionData.questions.length - 1 ? 'Terminer' : 'Suivant'}
-            <ChevronRight size={20} />
-          </button>
-        </div>
+      {/* Affichage de l'année sélectionnée */}
+      <div style={{
+        position: 'fixed',
+        top: '40px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(255, 255, 255, 0.9)',
+        padding: '16px 32px',
+        borderRadius: '50px',
+        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#333'
+      }}>
+        Année sélectionnée : <span style={{ 
+          color: '#667eea',
+          fontWeight: '700'
+        }}>{selectedYear}</span>
       </div>
     </div>
   );
-};
-
-export default QuizApp;
+}
