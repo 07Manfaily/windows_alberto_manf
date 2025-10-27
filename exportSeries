@@ -7,124 +7,108 @@ export default function EmailTable() {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const dialogRef = useRef(null);
   const observerRef = useRef(null);
   const lastEmailRef = useRef(null);
+  const tableBodyRef = useRef(null);
 
   const LIMIT = 10;
+  const API_BASE_URL = 'YOUR_API_BASE_URL'; // Remplacez par l'URL de votre API
 
-  // Fonction pour générer des données fake basées sur votre schéma API
-  const generateFakeEmails = (start, limit) => {
-    const fakeEmails = [];
-    const subjects = [
-      "Réunion importante ce vendredi",
-      "Mise à jour du projet Q4",
-      "Invitation - Webinaire Tech 2025",
-      "Votre facture est disponible",
-      "Nouveau message de l'équipe",
-      "Rapport mensuel - Octobre",
-      "Confirmation de votre commande",
-      "Newsletter hebdomadaire",
-      "Demande de feedback",
-      "Nouvelle fonctionnalité disponible"
-    ];
-
-    const domains = ["example.com", "company.fr", "tech.io", "startup.com", "business.net"];
-    const names = ["Sophie Martin", "Thomas Dubois", "Marie Laurent", "Julien Petit", "Emma Rousseau", 
-                   "Lucas Bernard", "Camille Moreau", "Antoine Simon", "Léa Durand", "Nicolas Lefebvre"];
-
-    for (let i = start; i < start + limit; i++) {
-      const name = names[i % names.length];
-      const email = `${name.toLowerCase().replace(' ', '.')}@${domains[i % domains.length]}`;
-      const subject = subjects[i % subjects.length];
-      
-      // Générer des URLs de fichiers fake ou des données base64
-      const attachments = i % 3 === 0 ? [
-        {
-          name: "document.pdf",
-          url: "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0NvdW50IDEvS2lkc1szIDAgUl0+PgplbmRvYmoKMyAwIG9iago8PC9UeXBlL1BhZ2UvTWVkaWFCb3hbMCAwIDYxMiA3OTJdL1BhcmVudCAyIDAgUi9SZXNvdXJjZXM8PD4+Pj4KZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY0IDAwMDAwIG4gCjAwMDAwMDAxMjEgMDAwMDAgbiAKdHJhaWxlcgo8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoyMDIKJSVFT0Y=",
-          size: "245 KB"
-        },
-        {
-          name: "image.jpg",
-          url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA8A/9k=",
-          size: "12 KB"
-        }
-      ] : [];
-      
-      fakeEmails.push({
-        id: `email-${i}`,
-        data: {
-          Bcc: ["bcc@example.com"],
-          Cc: ["cc@example.com"],
-          Subject: subject,
-          "X-Priority": 1,
-          attached_files: attachments.map(a => a.name),
-          attachments: attachments,
-          datetime: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-              <h2 style="color: #0ea5e9;">Bonjour,</h2>
-              <p>Ceci est le contenu HTML de l'email <strong>${subject}</strong>.</p>
-              <p>Nous vous contactons concernant ${subject.toLowerCase()}. Voici les détails importants :</p>
-              <ul>
-                <li>Point important numéro 1</li>
-                <li>Information cruciale numéro 2</li>
-                <li>Action à effectuer numéro 3</li>
-              </ul>
-              <p>N'hésitez pas à nous contacter pour plus d'informations.</p>
-              <p style="margin-top: 30px;">Cordialement,<br><strong>${name}</strong></p>
-            </div>
-          `,
-          receivers: [email]
-        },
-        result: {},
-        text: `Bonjour, ceci est le contenu texte de l'email "${subject}". Nous vous contactons concernant des informations importantes. Cordialement, ${name}`,
-        ok: true,
-        username: email,
-        displayName: name
-      });
-    }
-    
-    return fakeEmails;
-  };
-
-  // Charger les emails initiaux
-  useEffect(() => {
-    loadMoreEmails();
-  }, []);
-
-  // Charger plus d'emails (simulation API)
-  const loadMoreEmails = async () => {
+  // Charger les emails depuis l'API
+  const fetchEmails = async (searchQuery = '') => {
     if (loading || !hasMore) return;
     
     setLoading(true);
     
-    // Simulation d'un appel API avec délai
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const newEmails = generateFakeEmails(page * LIMIT, LIMIT);
-    
-    if (newEmails.length < LIMIT) {
-      setHasMore(false);
+    try {
+      const params = new URLSearchParams({
+        limit: LIMIT.toString(),
+        ...(searchQuery && { q: searchQuery })
+      });
+
+      // Si vous avez besoin de pagination avec offset
+      // params.append('offset', offset.toString());
+      
+      const response = await fetch(`${API_BASE_URL}/emails?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des emails');
+      }
+      
+      const data = await response.json();
+      
+      // Adapter selon la structure exacte de votre réponse API
+      const newEmails = data.data || data; // Ajustez selon votre structure
+      
+      if (newEmails.length < LIMIT) {
+        setHasMore(false);
+      }
+      
+      setEmails(prev => searchQuery ? newEmails : [...prev, ...newEmails]);
+      setOffset(prev => prev + LIMIT);
+    } catch (error) {
+      console.error('Erreur:', error);
+      // Gérer l'erreur (afficher un message, etc.)
+    } finally {
+      setLoading(false);
     }
-    
-    setEmails(prev => [...prev, ...newEmails]);
-    setPage(prev => prev + 1);
-    setLoading(false);
   };
+
+  // Charger les emails initiaux
+  useEffect(() => {
+    fetchEmails();
+  }, []);
+
+  // Gérer la recherche
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm) {
+        setEmails([]);
+        setOffset(0);
+        setHasMore(true);
+        fetchEmails(searchTerm);
+      } else {
+        // Recharger tout si la recherche est vide
+        setEmails([]);
+        setOffset(0);
+        setHasMore(true);
+        fetchEmails();
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  // Filtrer les emails localement selon le type de recherche
+  const filteredEmails = emails.filter(email => {
+    if (!searchTerm) return true;
+    
+    const search = searchTerm.toLowerCase();
+    
+    if (searchBy === 'objet') {
+      return email.data?.Subject?.toLowerCase().includes(search);
+    } else if (searchBy === 'participant') {
+      return email.username?.toLowerCase().includes(search) || 
+             email.displayName?.toLowerCase().includes(search);
+    } else {
+      return email.data?.Subject?.toLowerCase().includes(search) || 
+             email.username?.toLowerCase().includes(search) ||
+             email.displayName?.toLowerCase().includes(search);
+    }
+  });
 
   // Infinite scroll observer
   useEffect(() => {
-    if (loading) return;
+    if (loading || searchTerm) return; // Pas d'infinite scroll pendant la recherche
     
     if (observerRef.current) observerRef.current.disconnect();
     
     observerRef.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        loadMoreEmails();
+        fetchEmails();
       }
     });
     
@@ -135,24 +119,7 @@ export default function EmailTable() {
     return () => {
       if (observerRef.current) observerRef.current.disconnect();
     };
-  }, [loading, hasMore, emails]);
-
-  // Filtrer les emails
-  const filteredEmails = emails.filter(email => {
-    const search = searchTerm.toLowerCase();
-    if (!search) return true;
-    
-    if (searchBy === 'objet') {
-      return email.data.Subject.toLowerCase().includes(search);
-    } else if (searchBy === 'participant') {
-      return email.username.toLowerCase().includes(search) || 
-             email.displayName.toLowerCase().includes(search);
-    } else {
-      return email.data.Subject.toLowerCase().includes(search) || 
-             email.username.toLowerCase().includes(search) ||
-             email.displayName.toLowerCase().includes(search);
-    }
-  });
+  }, [loading, hasMore, emails, searchTerm]);
 
   useEffect(() => {
     if (selectedEmail && dialogRef.current) {
@@ -179,19 +146,19 @@ export default function EmailTable() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
+      background: '#ffffff',
       padding: '40px 20px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         margin: '0 auto'
       }}>
         {/* Header */}
         <div style={{
           textAlign: 'center',
           marginBottom: '40px',
-          color: 'white'
+          color: '#1e293b'
         }}>
           <div style={{
             display: 'inline-flex',
@@ -199,28 +166,31 @@ export default function EmailTable() {
             gap: '12px',
             marginBottom: '12px'
           }}>
-            <Mail size={40} />
+            <Mail size={40} style={{ color: '#0ea5e9' }} />
             <h1 style={{
               fontSize: '2.5rem',
               fontWeight: '700',
-              margin: '0'
+              margin: '0',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #10b981 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
             }}>Boîte de Réception</h1>
           </div>
           <p style={{
             fontSize: '1.1rem',
-            opacity: '0.9',
+            color: '#64748b',
             margin: '0'
           }}>Gérez vos emails en toute simplicité</p>
         </div>
 
         {/* Search Bar */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '20px',
+          background: 'white',
+          borderRadius: '16px',
           padding: '25px',
           marginBottom: '25px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-          backdropFilter: 'blur(10px)'
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0'
         }}>
           <div style={{
             display: 'flex',
@@ -330,17 +300,17 @@ export default function EmailTable() {
 
         {/* Table Container */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '20px',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          background: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
-          backdropFilter: 'blur(10px)',
-          maxHeight: '70vh',
-          overflowY: 'auto'
+          border: '1px solid #e2e8f0'
         }}>
           <div style={{
-            overflowX: 'auto'
-          }}>
+            overflowX: 'auto',
+            maxHeight: '70vh',
+            overflowY: 'auto'
+          }} ref={tableBodyRef}>
             <table style={{
               width: '100%',
               borderCollapse: 'collapse'
@@ -348,7 +318,8 @@ export default function EmailTable() {
               <thead style={{
                 position: 'sticky',
                 top: 0,
-                zIndex: 10
+                zIndex: 10,
+                background: 'white'
               }}>
                 <tr style={{
                   background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
@@ -433,37 +404,37 @@ export default function EmailTable() {
                       ref={index === filteredEmails.length - 1 ? lastEmailRef : null}
                       onClick={() => setSelectedEmail(email)}
                       style={{
-                        background: index % 2 === 0 ? 'white' : 'rgba(14, 165, 233, 0.03)',
+                        background: index % 2 === 0 ? 'white' : '#f8fafc',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        borderBottom: '1px solid rgba(14, 165, 233, 0.1)'
+                        borderBottom: '1px solid #e2e8f0'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)';
-                        e.currentTarget.style.transform = 'scale(1.01)';
+                        e.currentTarget.style.background = 'rgba(14, 165, 233, 0.05)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = index % 2 === 0 ? 'white' : 'rgba(14, 165, 233, 0.03)';
-                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.background = index % 2 === 0 ? 'white' : '#f8fafc';
                       }}
                     >
                       <td style={{
                         padding: '18px 20px'
                       }}>
                         <div style={{ color: '#0ea5e9', fontWeight: '600', fontSize: '0.95rem' }}>
-                          {email.displayName}
+                          {email.displayName || email.username}
                         </div>
-                        <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '2px' }}>
-                          {email.username}
-                        </div>
+                        {email.displayName && (
+                          <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '2px' }}>
+                            {email.username}
+                          </div>
+                        )}
                       </td>
                       <td style={{
                         padding: '18px 20px'
                       }}>
                         <div style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.95rem', marginBottom: '4px' }}>
-                          {email.data.Subject}
+                          {email.data?.Subject || 'Sans objet'}
                         </div>
-                        {email.data.attached_files.length > 0 && (
+                        {email.data?.attached_files?.length > 0 && (
                           <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -490,7 +461,7 @@ export default function EmailTable() {
                           WebkitLineClamp: '2',
                           WebkitBoxOrient: 'vertical'
                         }}>
-                          {email.text}
+                          {email.text || 'Pas de contenu'}
                         </div>
                       </td>
                     </tr>
@@ -586,7 +557,7 @@ export default function EmailTable() {
                 margin: '0 0 15px 0',
                 lineHeight: '1.3'
               }}>
-                {selectedEmail.data.Subject}
+                {selectedEmail.data?.Subject || 'Sans objet'}
               </h2>
               <div style={{
                 display: 'flex',
@@ -597,12 +568,14 @@ export default function EmailTable() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <User size={18} style={{ color: '#0ea5e9' }} />
-                  <span>De : <strong style={{ color: '#0ea5e9' }}>{selectedEmail.displayName}</strong> ({selectedEmail.username})</span>
+                  <span>De : <strong style={{ color: '#0ea5e9' }}>{selectedEmail.displayName || selectedEmail.username}</strong> {selectedEmail.displayName && `(${selectedEmail.username})`}</span>
                 </div>
-                <div style={{ paddingLeft: '28px', fontSize: '0.85rem' }}>
-                  {new Date(selectedEmail.data.datetime).toLocaleString('fr-FR')}
-                </div>
-                {selectedEmail.data.attached_files.length > 0 && (
+                {selectedEmail.data?.datetime && (
+                  <div style={{ paddingLeft: '28px', fontSize: '0.85rem' }}>
+                    {new Date(selectedEmail.data.datetime).toLocaleString('fr-FR')}
+                  </div>
+                )}
+                {selectedEmail.data?.attachments?.length > 0 && (
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -648,7 +621,7 @@ export default function EmailTable() {
                         >
                           <Paperclip size={14} />
                           <span>{file.name}</span>
-                          <span style={{ fontSize: '0.75rem', opacity: '0.7' }}>({file.size})</span>
+                          {file.size && <span style={{ fontSize: '0.75rem', opacity: '0.7' }}>({file.size})</span>}
                         </button>
                       ))}
                     </div>
@@ -665,7 +638,13 @@ export default function EmailTable() {
               padding: '25px',
               minHeight: '200px'
             }}>
-              <div dangerouslySetInnerHTML={{ __html: selectedEmail.data.html }} />
+              {selectedEmail.data?.html ? (
+                <div dangerouslySetInnerHTML={{ __html: selectedEmail.data.html }} />
+              ) : (
+                <div style={{ color: '#4a5568', lineHeight: '1.7' }}>
+                  {selectedEmail.text || 'Pas de contenu'}
+                </div>
+              )}
             </div>
           </div>
         )}
