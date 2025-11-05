@@ -76,9 +76,9 @@ const HomePage = () => {
         
         <div style={{ marginTop: '40px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
           <p style={{ fontSize: '14px', color: '#888' }}>
-            💡 <strong>Quiz adaptatif :</strong> Les questions sont sélectionnées aléatoirement parmi un pool de 40 questions.
-            Chaque candidat a un quiz unique ! Focus sur les compétences UX/UI pratiques pour profil intermédiaire.
-            Vous avez 47 minutes pour naviguer librement entre les questions.
+            🔒 <strong>Examen surveillé :</strong> Questions aléatoires, 17 minutes chrono, surveillance anti-triche active.
+            Système de détection automatique des violations avec pénalités. Quiz sécurisé pour profil UX intermédiaire.
+            Une question bonus data pour évaluation avancée.
           </p>
         </div>
       </div>

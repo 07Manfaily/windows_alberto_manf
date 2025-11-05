@@ -52,7 +52,7 @@ def get_questions():
 
 @app.route('/api/submit', methods=['POST'])
 def submit_quiz():
-    """Soumet les réponses du quiz et calcule le score"""
+    """Soumet les réponses du quiz et calcule le score avec gestion des pénalités"""
     data = request.get_json()
 
     if not data or 'nom' not in data or 'reponses' not in data:
@@ -62,41 +62,84 @@ def submit_quiz():
     email = data.get('email', '')
     reponses = data['reponses']
     temps_total = data.get('temps_total', 0)
+    penalites = data.get('penalites', 0)
+    penalite_pourcentage = data.get('penalite_pourcentage', 0)
+    changements_onglet = data.get('changements_onglet', 0)
 
-    # Récupérer toutes les questions
-    questions = Question.query.filter_by(active=True).all()
-    questions_dict = {str(q.id): q for q in questions}
+    # Récupérer toutes les questions actives
+    all_questions = Question.query.filter_by(active=True).all()
+    questions_dict = {str(q.id): q for q in all_questions}
 
-    # Calculer le score
-    score = 0
-    score_max = len(questions)
+    # Séparer les questions normales, bonus et pièges
+    questions_normales = []
+    questions_bonus = []
+    questions_pieges = []
 
     for question_id, reponse_utilisateur in reponses.items():
         if question_id in questions_dict:
             question = questions_dict[question_id]
-            reponses_correctes = json.loads(question.reponses_correctes)
 
-            # Vérifier si la réponse est correcte
-            if isinstance(reponse_utilisateur, list):
-                # QCM - comparer les listes
-                if sorted(reponse_utilisateur) == sorted(reponses_correctes):
-                    score += 1
+            # Vérifier le type de question
+            if hasattr(question, 'categorie') and question.categorie == 'Bonus Data':
+                questions_bonus.append((question, reponse_utilisateur))
+            elif hasattr(question, 'piege') and getattr(question, 'piege', False):
+                questions_pieges.append((question, reponse_utilisateur))
             else:
-                # QCU - comparer la valeur unique
-                if reponse_utilisateur in reponses_correctes:
-                    score += 1
+                questions_normales.append((question, reponse_utilisateur))
 
-    pourcentage = (score / score_max) * 100 if score_max > 0 else 0
+    # Calculer le score sur les questions normales uniquement
+    score = 0
+    score_max = len(questions_normales)
 
-    # Sauvegarder dans la base de données
+    for question, reponse_utilisateur in questions_normales:
+        reponses_correctes = json.loads(question.reponses_correctes)
+
+        # Vérifier si la réponse est correcte
+        if isinstance(reponse_utilisateur, list):
+            # QCM - comparer les listes
+            if sorted(reponse_utilisateur) == sorted(reponses_correctes):
+                score += 1
+        else:
+            # QCU - comparer la valeur unique
+            if reponse_utilisateur in reponses_correctes:
+                score += 1
+
+    pourcentage_base = (score / score_max) * 100 if score_max > 0 else 0
+
+    # Analyser les questions bonus (pour évaluation qualitative)
+    bonus_correct = 0
+    for question, reponse_utilisateur in questions_bonus:
+        reponses_correctes = json.loads(question.reponses_correctes)
+        if isinstance(reponse_utilisateur, list):
+            if sorted(reponse_utilisateur) == sorted(reponses_correctes):
+                bonus_correct += 1
+        else:
+            if reponse_utilisateur in reponses_correctes:
+                bonus_correct += 1
+
+    # Analyser les questions pièges (détection de sur-confiance)
+    pieges_evites = 0
+    for question, reponse_utilisateur in questions_pieges:
+        # Si aucune réponse donnée ou réponse vide, c'est bien (piège évité)
+        if not reponse_utilisateur or reponse_utilisateur == [] or reponse_utilisateur == "":
+            pieges_evites += 1
+
+    # Appliquer les pénalités de surveillance
+    pourcentage_final = max(0, pourcentage_base - penalite_pourcentage)
+
+    # Sauvegarder dans la base de données avec informations de surveillance
     participant = Participant(
         nom=nom,
         email=email,
         score=score,
         score_max=score_max,
-        pourcentage=pourcentage,
+        pourcentage=pourcentage_final,  # Score final avec pénalités
         reponses=json.dumps(reponses),
-        temps_total=temps_total
+        temps_total=temps_total,
+        penalites=penalites,
+        penalite_pourcentage=penalite_pourcentage,
+        changements_onglet=changements_onglet,
+        surveillance_active=True
     )
 
     try:
@@ -107,8 +150,22 @@ def submit_quiz():
             'success': True,
             'score': score,
             'score_max': score_max,
-            'pourcentage': pourcentage,
-            'participant_id': participant.id
+            'pourcentage_base': round(pourcentage_base, 2),
+            'penalites_surveillance': penalites,
+            'penalite_pourcentage': penalite_pourcentage,
+            'pourcentage': round(pourcentage_final, 2),
+            'participant_id': participant.id,
+            # Informations bonus pour évaluation qualitative
+            'bonus_info': {
+                'questions_bonus': len(questions_bonus),
+                'bonus_correct': bonus_correct,
+                'questions_pieges': len(questions_pieges),
+                'pieges_evites': pieges_evites
+            },
+            'surveillance_info': {
+                'changements_onglet': changements_onglet,
+                'violations_totales': penalites
+            }
         })
     except Exception as e:
         db.session.rollback()
@@ -167,6 +224,7 @@ def init_db():
 
     # POOL DE 40 QUESTIONS MODÉRÉES pour UX Designer Intermédiaire
     # 20 questions seront sélectionnées aléatoirement par participant
+    # + Questions pièges (sans bonne réponse) + 1 Question bonus Data
     questions_pool = [
         # OUTILS UX/UI (Questions 1-10)
         {
@@ -738,6 +796,110 @@ def init_db():
             'reponses_correctes': [0],
             'categorie': 'Conversion',
             'difficulte': 'moyen'
+        },
+
+        # QUESTIONS PIÈGES (sans bonne réponse) - Questions 41-45
+        {
+            'texte': 'Quel est le meilleur outil de design pour tous les projets ?',
+            'type': 'QCU',
+            'options': [
+                'Figma est toujours le meilleur choix',
+                'Sketch surpasse tous les autres outils',
+                'Adobe XD est supérieur dans tous les cas',
+                'Photoshop suffit pour tout type de design'
+            ],
+            'reponses_correctes': [],  # Aucune bonne réponse - piège
+            'categorie': 'Outils Design',
+            'difficulte': 'moyen',
+            'piege': True
+        },
+        {
+            'texte': 'Combien de temps faut-il EXACTEMENT pour terminer un projet UX ?',
+            'type': 'QCU',
+            'options': [
+                'Toujours 2 semaines',
+                'Exactement 1 mois',
+                'Précisément 6 semaines',
+                'Invariablement 3 mois'
+            ],
+            'reponses_correctes': [],  # Aucune bonne réponse - dépend du projet
+            'categorie': 'Processus UX',
+            'difficulte': 'moyen',
+            'piege': True
+        },
+        {
+            'texte': 'Quelle couleur garantit toujours le meilleur taux de conversion ?',
+            'type': 'QCU',
+            'options': [
+                'Le rouge augmente toujours les conversions',
+                'Le bleu est universellement performant',
+                'Le vert garantit le succès commercial',
+                'L\'orange optimise automatiquement les ventes'
+            ],
+            'reponses_correctes': [],  # Aucune bonne réponse - dépend du contexte
+            'categorie': 'UI Design',
+            'difficulte': 'moyen',
+            'piege': True
+        },
+        {
+            'texte': 'Quel pourcentage d\'utilisateurs permet d\'avoir des résultats parfaits en test UX ?',
+            'type': 'QCU',
+            'options': [
+                'Exactement 47% d\'utilisateurs',
+                'Précisément 73% d\'utilisateurs',
+                'Toujours 89% d\'utilisateurs',
+                'Invariablement 92% d\'utilisateurs'
+            ],
+            'reponses_correctes': [],  # Aucune bonne réponse - pourcentages inventés
+            'categorie': 'Tests UX',
+            'difficulte': 'moyen',
+            'piege': True
+        },
+        {
+            'texte': 'Quelle police de caractère doit être utilisée dans TOUS les projets web ?',
+            'type': 'QCU',
+            'options': [
+                'Arial est obligatoire pour tous les sites',
+                'Comic Sans MS optimise toujours l\'expérience',
+                'Times New Roman est universellement efficace',
+                'Helvetica garantit le succès de tout projet'
+            ],
+            'reponses_correctes': [],  # Aucune bonne réponse - dépend du projet
+            'categorie': 'UI Design',
+            'difficulte': 'moyen',
+            'piege': True
+        },
+
+        # QUESTION BONUS DATA (Question 46) - Non comptée dans le score
+        {
+            'texte': 'Dans une analyse de cohorte avancée, comment interpréter une "retention curve" qui montre une chute de 73% la première semaine, suivie d\'une stabilisation à 12% après 6 mois, avec un coefficient de variation de 0.34 sur les segments premium ?',
+            'type': 'QCU',
+            'options': [
+                'Problème d\'onboarding critique avec segment premium résilient nécessitant optimisation UX',
+                'Pattern normal avec opportunité de ré-engagement ciblé sur la première semaine',
+                'Courbe d\'adoption standard pour produits freemium avec stabilisation acceptable',
+                'Défaillance du product-market fit nécessitant une refonte complète de l\'expérience'
+            ],
+            'reponses_correctes': [0],
+            'categorie': 'Bonus Data',
+            'difficulte': 'difficile',
+            'bonus': True
+        },
+
+        # QUESTION SÉLECTIVE DATA (Question 47) - Évaluation qualitative
+        {
+            'texte': 'Vous analysez des données d\'un dashboard e-commerce : CTR emails 2.3%, taux conversion 1.8%, LTV $250, CAC $45. Le funnel montre 65% d\'abandon au checkout. Quelle action prioriser pour maximiser le ROI ?',
+            'type': 'QCU',
+            'options': [
+                'Optimiser le processus de checkout pour réduire l\'abandon',
+                'Augmenter le budget marketing pour améliorer le CTR',
+                'Développer un programme de fidélisation pour augmenter la LTV',
+                'Implémenter un système de recommandations personnalisées'
+            ],
+            'reponses_correctes': [0],
+            'categorie': 'Selective Data',
+            'difficulte': 'difficile',
+            'selective': True
         }
     ]
 
