@@ -60,10 +60,10 @@ const AdminPage = () => {
     return '#f44336';
   };
 
-  const getPenaltyBadge = (penalties) => {
-    if (penalties === 0) return { color: '#4caf50', text: 'Aucune', icon: '✅' };
-    if (penalties <= 2) return { color: '#ff9800', text: `${penalties}`, icon: '⚠️' };
-    return { color: '#f44336', text: `${penalties}`, icon: '🚨' };
+  const getWarningBadge = (warnings) => {
+    if (warnings === 0) return { color: '#4caf50', text: 'Aucun', icon: '✅' };
+    if (warnings <= 2) return { color: '#ff9800', text: `${warnings}`, icon: '⚠️' };
+    return { color: '#f44336', text: `${warnings}`, icon: '🚨' };
   };
 
   const getTabSwitchBadge = (switches) => {
@@ -232,10 +232,7 @@ const AdminPage = () => {
                     ⏱️ Temps
                   </th>
                   <th style={{ padding: '20px 15px', textAlign: 'center', borderBottom: '2px solid #dee2e6', fontWeight: 'bold' }}>
-                    🚨 Nb Pénalités
-                  </th>
-                  <th style={{ padding: '20px 15px', textAlign: 'center', borderBottom: '2px solid #dee2e6', fontWeight: 'bold' }}>
-                    💥 % Déduit
+                    ⚠️ Avertissements
                   </th>
                   <th style={{ padding: '20px 15px', textAlign: 'center', borderBottom: '2px solid #dee2e6', fontWeight: 'bold' }}>
                     🔄 Changements Onglet
@@ -247,9 +244,8 @@ const AdminPage = () => {
               </thead>
               <tbody>
                 {participants.map((participant, index) => {
-                  const penaltyBadge = getPenaltyBadge(participant.penalites || 0);
+                  const warningBadge = getWarningBadge(participant.avertissements || 0);
                   const tabBadge = getTabSwitchBadge(participant.changements_onglet || 0);
-                  const scoreBase = participant.score_max > 0 ? ((participant.score / participant.score_max) * 100) : 0;
                   
                   return (
                     <tr 
@@ -292,11 +288,6 @@ const AdminPage = () => {
                         <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
                           {participant.score}/{participant.score_max} bonnes réponses
                         </div>
-                        {participant.penalite_pourcentage > 0 && (
-                          <div style={{ fontSize: '11px', color: '#f44336', marginTop: '3px' }}>
-                            (Score base: {scoreBase.toFixed(1)}%)
-                          </div>
-                        )}
                       </td>
 
                       {/* Temps */}
@@ -309,7 +300,7 @@ const AdminPage = () => {
                         </div>
                       </td>
 
-                      {/* Nombre de Pénalités */}
+                      {/* Nombre d'Avertissements */}
                       <td style={{ padding: '20px 15px', textAlign: 'center' }}>
                         <div style={{
                           display: 'inline-flex',
@@ -317,33 +308,23 @@ const AdminPage = () => {
                           justifyContent: 'center',
                           padding: '8px 12px',
                           borderRadius: '20px',
-                          background: penaltyBadge.color,
+                          background: warningBadge.color,
                           color: 'white',
                           fontSize: '14px',
                           fontWeight: 'bold',
                           minWidth: '50px'
                         }}>
-                          {penaltyBadge.icon} {penaltyBadge.text}
+                          {warningBadge.icon} {warningBadge.text}
                         </div>
                         <div style={{ fontSize: '11px', color: '#666', marginTop: '5px' }}>
-                          {participant.penalites === 0 ? 'violations' : 
-                           participant.penalites === 1 ? 'violation' : 'violations'}
+                          {participant.avertissements === 0 ? 'avertissements' : 
+                           participant.avertissements === 1 ? 'avertissement' : 'avertissements'}
                         </div>
-                      </td>
-
-                      {/* Pourcentage Déduit */}
-                      <td style={{ padding: '20px 15px', textAlign: 'center' }}>
-                        <div style={{ 
-                          color: participant.penalite_pourcentage > 0 ? '#f44336' : '#4caf50',
-                          fontWeight: 'bold',
-                          fontSize: '18px'
-                        }}>
-                          -{participant.penalite_pourcentage || 0}%
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#666', marginTop: '3px' }}>
-                          {participant.penalites > 0 ? 
-                            `${participant.penalites} × 10%` : 'aucune pénalité'}
-                        </div>
+                        {participant.avertissements > 2 && (
+                          <div style={{ fontSize: '10px', color: '#f44336', marginTop: '2px', fontWeight: 'bold' }}>
+                            RISQUE ÉLEVÉ
+                          </div>
+                        )}
                       </td>
 
                       {/* Changements d'Onglet */}
@@ -395,7 +376,7 @@ const AdminPage = () => {
         border: '1px solid #dee2e6'
       }}>
         <h4 style={{ color: '#333', marginBottom: '20px', fontSize: '18px' }}>
-          🔍 Légende du Système de Surveillance Anti-Triche
+          🔍 Légende du Système d'Avertissement Anti-Triche
         </h4>
         <div style={{ 
           display: 'grid', 
@@ -404,25 +385,25 @@ const AdminPage = () => {
           fontSize: '14px'
         }}>
           <div style={{ padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-            <strong>🚨 Nb Pénalités :</strong> Nombre total de violations détectées (captures d'écran, raccourcis interdits, etc.)
-          </div>
-          <div style={{ padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-            <strong>💥 % Déduit :</strong> Pourcentage soustrait du score final (10% par violation)
+            <strong>⚠️ Avertissements :</strong> Nombre d'infractions détectées (captures d'écran, raccourcis interdits, etc.)
           </div>
           <div style={{ padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
             <strong>🔄 Changements Onglet :</strong> Nombre de fois où le candidat a changé d'onglet/fenêtre
           </div>
           <div style={{ padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-            <strong>📊 Score Final :</strong> Score après déduction des pénalités (affiché avec score de base si différent)
+            <strong>📊 Score Final :</strong> Score non modifié automatiquement - les avertissements sont transmis à l'équipe
+          </div>
+          <div style={{ padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+            <strong>🚨 Risque :</strong> 3+ avertissements = risque élevé de disqualification
           </div>
         </div>
         
         {/* Codes couleur */}
         <div style={{ marginTop: '20px', fontSize: '13px' }}>
           <strong>🎨 Codes Couleur :</strong>
-          <span style={{ marginLeft: '15px', color: '#4caf50' }}>✅ Vert = Aucune violation</span>
-          <span style={{ marginLeft: '15px', color: '#ff9800' }}>⚠️ Orange = 1-2 violations</span>
-          <span style={{ marginLeft: '15px', color: '#f44336' }}>🚨 Rouge = 3+ violations</span>
+          <span style={{ marginLeft: '15px', color: '#4caf50' }}>✅ Vert = Aucun avertissement</span>
+          <span style={{ marginLeft: '15px', color: '#ff9800' }}>⚠️ Orange = 1-2 avertissements</span>
+          <span style={{ marginLeft: '15px', color: '#f44336' }}>🚨 Rouge = 3+ avertissements (risque élevé)</span>
         </div>
       </div>
 

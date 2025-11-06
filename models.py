@@ -16,9 +16,8 @@ class Participant(db.Model):
     reponses = db.Column(db.Text, nullable=False)  # JSON string des réponses
     temps_total = db.Column(db.Integer, nullable=True)  # en secondes
 
-    # Nouveaux champs pour la surveillance
-    penalites = db.Column(db.Integer, default=0)  # Nombre de violations
-    penalite_pourcentage = db.Column(db.Float, default=0.0)  # Pourcentage de pénalité
+    # Nouveaux champs pour la surveillance (avertissements au lieu de pénalités)
+    avertissements = db.Column(db.Integer, default=0)  # Nombre d'avertissements
     changements_onglet = db.Column(db.Integer, default=0)  # Nombre de changements d'onglet
     surveillance_active = db.Column(db.Boolean, default=True)  # Si surveillance était active
 
@@ -36,8 +35,7 @@ class Participant(db.Model):
             'pourcentage': self.pourcentage,
             'reponses': json.loads(self.reponses),
             'temps_total': self.temps_total,
-            'penalites': self.penalites,
-            'penalite_pourcentage': self.penalite_pourcentage,
+            'avertissements': self.avertissements,
             'changements_onglet': self.changements_onglet,
             'surveillance_active': self.surveillance_active
         }

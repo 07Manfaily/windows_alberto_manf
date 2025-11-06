@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import db, Participant, Question
 import json
+import random
 from datetime import datetime
 import os
 
@@ -28,31 +29,45 @@ CORS(app, resources={
 
 @app.route('/api/questions', methods=['GET'])
 def get_questions():
-    """Récupère 20 questions aléatoirement sélectionnées pour le quiz"""
-    import random
+    """Récupère 20 questions aléatoirement + 1 question sélective obligatoire"""
 
     # Récupérer toutes les questions actives
     all_questions = Question.query.filter_by(active=True).all()
 
-    # Si moins de 20 questions disponibles, retourner toutes
-    if len(all_questions) <= 20:
-        selected_questions = all_questions
-    else:
-        # Sélectionner aléatoirement 20 questions parmi toutes
-        selected_questions = random.sample(all_questions, 20)
+    # Séparer les questions par type
+    questions_normales = []
+    question_selective = None
 
-    # Mélanger l'ordre des questions sélectionnées
+    for q in all_questions:
+        if hasattr(q, 'categorie') and q.categorie == 'Selective Data':
+            question_selective = q
+        else:
+            questions_normales.append(q)
+
+    # Sélectionner 20 questions aléatoirement parmi les questions normales
+    if len(questions_normales) >= 20:
+        selected_questions = random.sample(questions_normales, 20)
+    else:
+        # Si moins de 20 questions normales, prendre toutes celles disponibles
+        selected_questions = questions_normales
+
+    # Ajouter la question sélective obligatoire (si elle existe)
+    if question_selective:
+        selected_questions.append(question_selective)
+
+    # Mélanger l'ordre pour que la question sélective ne soit pas toujours en dernier
     random.shuffle(selected_questions)
 
-    print(f"📝 Quiz généré: {len(selected_questions)} questions sélectionnées aléatoirement")
-    print(f"📊 Categories: {[q.categorie for q in selected_questions]}")
+    print(
+        f"📝 Quiz généré: {len(selected_questions)} questions ({len(selected_questions) - 1 if question_selective else len(selected_questions)} normales + {1 if question_selective else 0} sélective)")
+    print(f"📊 Catégories: {[q.categorie for q in selected_questions]}")
 
     return jsonify([q.to_dict() for q in selected_questions])
 
 
 @app.route('/api/submit', methods=['POST'])
 def submit_quiz():
-    """Soumet les réponses du quiz et calcule le score avec gestion des pénalités"""
+    """Soumet les réponses du quiz et calcule le score avec gestion des avertissements"""
     data = request.get_json()
 
     if not data or 'nom' not in data or 'reponses' not in data:
@@ -62,17 +77,16 @@ def submit_quiz():
     email = data.get('email', '')
     reponses = data['reponses']
     temps_total = data.get('temps_total', 0)
-    penalites = data.get('penalites', 0)
-    penalite_pourcentage = data.get('penalite_pourcentage', 0)
+    avertissements = data.get('avertissements', 0)
     changements_onglet = data.get('changements_onglet', 0)
 
     # Récupérer toutes les questions actives
     all_questions = Question.query.filter_by(active=True).all()
     questions_dict = {str(q.id): q for q in all_questions}
 
-    # Séparer les questions normales, bonus et pièges
+    # Séparer les questions normales, sélectives et pièges
     questions_normales = []
-    questions_bonus = []
+    questions_selectives = []
     questions_pieges = []
 
     for question_id, reponse_utilisateur in reponses.items():
@@ -80,8 +94,8 @@ def submit_quiz():
             question = questions_dict[question_id]
 
             # Vérifier le type de question
-            if hasattr(question, 'categorie') and question.categorie == 'Bonus Data':
-                questions_bonus.append((question, reponse_utilisateur))
+            if hasattr(question, 'categorie') and question.categorie == 'Selective Data':
+                questions_selectives.append((question, reponse_utilisateur))
             elif hasattr(question, 'piege') and getattr(question, 'piege', False):
                 questions_pieges.append((question, reponse_utilisateur))
             else:
@@ -104,18 +118,19 @@ def submit_quiz():
             if reponse_utilisateur in reponses_correctes:
                 score += 1
 
-    pourcentage_base = (score / score_max) * 100 if score_max > 0 else 0
+    # Le pourcentage final n'est plus modifié automatiquement (pas de pénalités automatiques)
+    pourcentage_final = (score / score_max) * 100 if score_max > 0 else 0
 
-    # Analyser les questions bonus (pour évaluation qualitative)
-    bonus_correct = 0
-    for question, reponse_utilisateur in questions_bonus:
+    # Analyser les questions sélectives (pour évaluation qualitative)
+    selective_correct = 0
+    for question, reponse_utilisateur in questions_selectives:
         reponses_correctes = json.loads(question.reponses_correctes)
         if isinstance(reponse_utilisateur, list):
             if sorted(reponse_utilisateur) == sorted(reponses_correctes):
-                bonus_correct += 1
+                selective_correct += 1
         else:
             if reponse_utilisateur in reponses_correctes:
-                bonus_correct += 1
+                selective_correct += 1
 
     # Analyser les questions pièges (détection de sur-confiance)
     pieges_evites = 0
@@ -124,20 +139,16 @@ def submit_quiz():
         if not reponse_utilisateur or reponse_utilisateur == [] or reponse_utilisateur == "":
             pieges_evites += 1
 
-    # Appliquer les pénalités de surveillance
-    pourcentage_final = max(0, pourcentage_base - penalite_pourcentage)
-
     # Sauvegarder dans la base de données avec informations de surveillance
     participant = Participant(
         nom=nom,
         email=email,
         score=score,
         score_max=score_max,
-        pourcentage=pourcentage_final,  # Score final avec pénalités
+        pourcentage=pourcentage_final,  # Score final SANS déduction automatique
         reponses=json.dumps(reponses),
         temps_total=temps_total,
-        penalites=penalites,
-        penalite_pourcentage=penalite_pourcentage,
+        avertissements=avertissements,
         changements_onglet=changements_onglet,
         surveillance_active=True
     )
@@ -150,21 +161,19 @@ def submit_quiz():
             'success': True,
             'score': score,
             'score_max': score_max,
-            'pourcentage_base': round(pourcentage_base, 2),
-            'penalites_surveillance': penalites,
-            'penalite_pourcentage': penalite_pourcentage,
             'pourcentage': round(pourcentage_final, 2),
             'participant_id': participant.id,
-            # Informations bonus pour évaluation qualitative
-            'bonus_info': {
-                'questions_bonus': len(questions_bonus),
-                'bonus_correct': bonus_correct,
+            # Informations sélectives pour évaluation qualitative
+            'selective_info': {
+                'questions_selectives': len(questions_selectives),
+                'selective_correct': selective_correct,
                 'questions_pieges': len(questions_pieges),
                 'pieges_evites': pieges_evites
             },
             'surveillance_info': {
+                'avertissements': avertissements,
                 'changements_onglet': changements_onglet,
-                'violations_totales': penalites
+                'disqualification_risk': avertissements > 2  # Indicateur de risque
             }
         })
     except Exception as e:
@@ -870,23 +879,7 @@ def init_db():
             'piege': True
         },
 
-        # QUESTION BONUS DATA (Question 46) - Non comptée dans le score
-        {
-            'texte': 'Dans une analyse de cohorte avancée, comment interpréter une "retention curve" qui montre une chute de 73% la première semaine, suivie d\'une stabilisation à 12% après 6 mois, avec un coefficient de variation de 0.34 sur les segments premium ?',
-            'type': 'QCU',
-            'options': [
-                'Problème d\'onboarding critique avec segment premium résilient nécessitant optimisation UX',
-                'Pattern normal avec opportunité de ré-engagement ciblé sur la première semaine',
-                'Courbe d\'adoption standard pour produits freemium avec stabilisation acceptable',
-                'Défaillance du product-market fit nécessitant une refonte complète de l\'expérience'
-            ],
-            'reponses_correctes': [0],
-            'categorie': 'Bonus Data',
-            'difficulte': 'difficile',
-            'bonus': True
-        },
-
-        # QUESTION SÉLECTIVE DATA (Question 47) - Évaluation qualitative
+        # QUESTION SÉLECTIVE DATA (Question 47) - Évaluation qualitative OBLIGATOIRE
         {
             'texte': 'Vous analysez des données d\'un dashboard e-commerce : CTR emails 2.3%, taux conversion 1.8%, LTV $250, CAC $45. Le funnel montre 65% d\'abandon au checkout. Quelle action prioriser pour maximiser le ROI ?',
             'type': 'QCU',
@@ -899,7 +892,8 @@ def init_db():
             'reponses_correctes': [0],
             'categorie': 'Selective Data',
             'difficulte': 'difficile',
-            'selective': True
+            'selective': True,
+            'obligatoire': True
         }
     ]
 
@@ -915,7 +909,8 @@ def init_db():
         db.session.add(question)
 
     db.session.commit()
-    print("Base de données initialisée avec 40 questions modérées UX/UI pour niveau intermédiaire")
+    print(
+        f"Base de données initialisée avec {len(questions_pool)} questions UX/UI (45 normales + 1 sélective obligatoire)")
 
 
 if __name__ == '__main__':

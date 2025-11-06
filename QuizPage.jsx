@@ -10,19 +10,18 @@ const QuizPage = () => {
   const [startTime, setStartTime] = useState(null);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [timeLeft, setTimeLeft] = useState(17 * 60); // 17 minutes en secondes
-  const [penalties, setPenalties] = useState(0); // Nombre de pénalités
+  const [warnings, setWarnings] = useState(0); // Nombre d'avertissements
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   
   // États pour les popups
   const [showRulesModal, setShowRulesModal] = useState(true);
-  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
-  const [penaltyInfo, setPenaltyInfo] = useState({ reason: '', count: 0 });
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningInfo, setWarningInfo] = useState({ reason: '', count: 0 });
   
   const navigate = useNavigate();
 
   const TOTAL_TIME_LIMIT = 17 * 60; // 17 minutes en secondes
-  const PENALTY_PERCENTAGE = 10; // -10% par violation
 
   // Composant Modal Personnalisé
   const CustomModal = ({ isOpen, onClose, title, children, type = 'info' }) => {
@@ -125,7 +124,7 @@ const QuizPage = () => {
     // Bloquer le menu contextuel
     const handleContextMenu = (e) => {
       e.preventDefault();
-      showPenaltyPopup('Tentative d\'accès au menu contextuel');
+      showDisqualificationWarning('Tentative d\'accès au menu contextuel');
       return false;
     };
 
@@ -143,7 +142,7 @@ const QuizPage = () => {
         (e.key === 'PrintScreen')
       ) {
         e.preventDefault();
-        showPenaltyPopup('Tentative d\'utilisation de raccourci interdit');
+        showDisqualificationWarning('Tentative d\'utilisation de raccourci interdit');
         return false;
       }
     };
@@ -151,7 +150,7 @@ const QuizPage = () => {
     // Détecter les tentatives de capture d'écran
     const handleKeyUp = (e) => {
       if (e.key === 'PrintScreen') {
-        showPenaltyPopup('Tentative de capture d\'écran');
+        showDisqualificationWarning('Tentative de capture d\'écran');
       }
     };
 
@@ -192,7 +191,7 @@ const QuizPage = () => {
         if (!isVisible) {
           // Retour sur l'onglet après l'avoir quitté
           setTabSwitchCount(prev => prev + 1);
-          showPenaltyPopup('Changement d\'onglet/fenêtre détecté');
+          showDisqualificationWarning('Changement d\'onglet/fenêtre détecté');
           setIsVisible(true);
         }
       }
@@ -217,12 +216,12 @@ const QuizPage = () => {
     };
   }, [isVisible]);
 
-  const showPenaltyPopup = (reason) => {
-    const newPenaltyCount = penalties + 1;
-    setPenalties(newPenaltyCount);
-    setPenaltyInfo({ reason, count: newPenaltyCount });
-    setShowPenaltyModal(true);
-    console.log(`🚨 PÉNALITÉ ${newPenaltyCount}: ${reason}`);
+  const showDisqualificationWarning = (reason) => {
+    const newWarningCount = warnings + 1;
+    setWarnings(newWarningCount);
+    setWarningInfo({ reason, count: newWarningCount });
+    setShowWarningModal(true);
+    console.log(`⚠️ AVERTISSEMENT ${newWarningCount}: ${reason} - RISQUE DE DISQUALIFICATION`);
   };
 
   const startQuiz = () => {
@@ -277,28 +276,24 @@ const QuizPage = () => {
     const nom = localStorage.getItem('participantNom');
     const email = localStorage.getItem('participantEmail') || '';
     
-    // Calculer la pénalité totale
-    const penaltyPercentage = penalties * PENALTY_PERCENTAGE;
-    
     const quizData = {
       nom,
       email,
       reponses: answers,
       temps_total: timeElapsed,
-      penalites: penalties,
-      penalite_pourcentage: penaltyPercentage,
+      avertissements: warnings,
       changements_onglet: tabSwitchCount
     };
 
     try {
       const result = await quizAPI.submitQuiz(quizData);
       
-      // Ajouter les informations de pénalité au résultat
+      // Ajouter les informations d'avertissement au résultat  
       const finalResult = {
         ...result,
-        penalites: penalties,
-        penalite_pourcentage: penaltyPercentage,
-        score_final: Math.max(0, result.pourcentage - penaltyPercentage)
+        avertissements: warnings,
+        changements_onglet: tabSwitchCount,
+        score_final: result.pourcentage // Score non modifié automatiquement
       };
       
       localStorage.setItem('quizResult', JSON.stringify(finalResult));
@@ -403,10 +398,13 @@ const QuizPage = () => {
             </ul>
           </div>
 
-          <div style={{ marginBottom: '20px', background: '#ffcdd2', padding: '15px', borderRadius: '10px' }}>
-            <h3 style={{ color: '#d32f2f', margin: '0 0 10px 0' }}>⚠️ SYSTÈME DE PÉNALITÉS :</h3>
+          <div style={{ marginBottom: '20px', background: '#fff3e0', padding: '15px', borderRadius: '10px' }}>
+            <h3 style={{ color: '#f57c00', margin: '0 0 10px 0' }}>⚠️ SYSTÈME D'AVERTISSEMENT :</h3>
             <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
-              Chaque violation = <span style={{ color: '#d32f2f' }}>-10% sur votre score final</span>
+              Toute violation peut entraîner une <span style={{ color: '#f57c00' }}>DISQUALIFICATION</span>
+            </p>
+            <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>
+              Les avertissements sont transmis à l'équipe de recrutement
             </p>
           </div>
 
@@ -414,8 +412,8 @@ const QuizPage = () => {
             <h3 style={{ color: '#2e7d2e', margin: '0 0 10px 0' }}>📊 INFORMATIONS QUIZ :</h3>
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
               <li>20 questions sélectionnées aléatoirement</li>
+              <li>1 question sélective obligatoire (évaluation qualitative)</li>
               <li>Questions à choix unique (QCU) et multiples (QCM)</li>
-              <li>1 question bonus (non comptée)</li>
               <li>Navigation libre entre questions</li>
             </ul>
           </div>
@@ -483,35 +481,44 @@ const QuizPage = () => {
         KhtmlUserSelect: 'none'
       }}
     >
-      {/* Modal de pénalité */}
+      {/* Modal d'avertissement de disqualification */}
       <CustomModal
-        isOpen={showPenaltyModal}
-        onClose={() => setShowPenaltyModal(false)}
-        title={`🚨 VIOLATION DÉTECTÉE #${penaltyInfo.count}`}
-        type="danger"
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        title={`⚠️ AVERTISSEMENT #${warningInfo.count}`}
+        type="warning"
       >
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '20px', marginBottom: '20px', color: '#d32f2f' }}>
-            <strong>Raison :</strong> {penaltyInfo.reason}
+          <div style={{ fontSize: '20px', marginBottom: '20px', color: '#f57c00' }}>
+            <strong>Violation détectée :</strong> {warningInfo.reason}
           </div>
           
-          <div style={{ background: '#ffcdd2', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#d32f2f' }}>
-              Pénalité : -10% sur le score final
+          <div style={{ background: '#fff3e0', border: '2px solid #ff9800', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f57c00', marginBottom: '10px' }}>
+              ⚠️ RISQUE DE DISQUALIFICATION
             </div>
-            <div style={{ fontSize: '16px', marginTop: '5px' }}>
-              Total des pénalités : -{penalties * PENALTY_PERCENTAGE}%
+            <div style={{ fontSize: '16px', color: '#e65100' }}>
+              Cette violation a été enregistrée et transmise à l'équipe de recrutement
+            </div>
+          </div>
+
+          <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
+              <strong>Avertissements totaux :</strong> {warningInfo.count}
+            </div>
+            <div style={{ fontSize: '14px', color: '#666' }}>
+              L'accumulation d'avertissements peut entraîner l'exclusion du processus de recrutement
             </div>
           </div>
 
           <div style={{ fontSize: '16px', color: '#666', marginBottom: '20px' }}>
-            ⚠️ <strong>Attention :</strong> Continuez à respecter les règles de l'examen.
+            <strong>Attention :</strong> Respectez scrupuleusement les règles de l'examen pour éviter la disqualification.
           </div>
 
           <button
-            onClick={() => setShowPenaltyModal(false)}
+            onClick={() => setShowWarningModal(false)}
             style={{
-              background: '#f44336',
+              background: '#ff9800',
               color: 'white',
               border: 'none',
               padding: '12px 25px',
@@ -528,17 +535,17 @@ const QuizPage = () => {
 
       {/* Avertissement de surveillance */}
       <div style={{
-        background: '#ffebee',
-        border: '2px solid #f44336',
+        background: '#fff3e0',
+        border: '2px solid #ff9800',
         borderRadius: '10px',
         padding: '10px',
         marginBottom: '20px',
         textAlign: 'center',
         fontSize: '14px',
         fontWeight: 'bold',
-        color: '#d32f2f'
+        color: '#f57c00'
       }}>
-        🔒 EXAMEN SURVEILLÉ | Violations: {penalties} | Pénalités: -{penalties * PENALTY_PERCENTAGE}%
+        🔒 EXAMEN SURVEILLÉ | Avertissements: {warnings} | Changements d'onglet: {tabSwitchCount}
       </div>
 
       <div className="quiz-header">
@@ -740,7 +747,7 @@ const QuizPage = () => {
         <p style={{ fontSize: '14px', opacity: 0.8 }}>
           🔒 <strong>Examen surveillé</strong> - Temps restant: <strong>{formatTime(timeLeft)}</strong>
           <br />
-          ⚠️ Violations détectées: {penalties} | Changements d'onglet: {tabSwitchCount}
+          ⚠️ Avertissements: {warnings} | Changements d'onglet: {tabSwitchCount}
         </p>
       </div>
 
