@@ -1,695 +1,687 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Mail, User, FileText, X, Search, Loader, Paperclip } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 
-export default function EmailTable() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchBy, setSearchBy] = useState('all');
-  const [emails, setEmails] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
-  const [selectedEmail, setSelectedEmail] = useState(null);
+const FormulaireDialog = () => {
   const dialogRef = useRef(null);
-  const observerRef = useRef(null);
-  const lastEmailRef = useRef(null);
-  const tableBodyRef = useRef(null);
-
-  const LIMIT = 10;
-  const API_BASE_URL = 'YOUR_API_BASE_URL'; // Remplacez par l'URL de votre API
-
-  // Charger les emails depuis l'API
-  const fetchEmails = async (searchQuery = '') => {
-    if (loading || !hasMore) return;
-    
-    setLoading(true);
-    
-    try {
-      const params = new URLSearchParams({
-        limit: LIMIT.toString(),
-        ...(searchQuery && { q: searchQuery })
-      });
-
-      // Si vous avez besoin de pagination avec offset
-      // params.append('offset', offset.toString());
-      
-      const response = await fetch(`${API_BASE_URL}/emails?${params}`);
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des emails');
-      }
-      
-      const data = await response.json();
-      
-      // Adapter selon la structure exacte de votre réponse API
-      const newEmails = data.data || data; // Ajustez selon votre structure
-      
-      if (newEmails.length < LIMIT) {
-        setHasMore(false);
-      }
-      
-      setEmails(prev => searchQuery ? newEmails : [...prev, ...newEmails]);
-      setOffset(prev => prev + LIMIT);
-    } catch (error) {
-      console.error('Erreur:', error);
-      // Gérer l'erreur (afficher un message, etc.)
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Charger les emails initiaux
-  useEffect(() => {
-    fetchEmails();
-  }, []);
-
-  // Gérer la recherche
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchTerm) {
-        setEmails([]);
-        setOffset(0);
-        setHasMore(true);
-        fetchEmails(searchTerm);
-      } else {
-        // Recharger tout si la recherche est vide
-        setEmails([]);
-        setOffset(0);
-        setHasMore(true);
-        fetchEmails();
-      }
-    }, 500); // Debounce de 500ms
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
-
-  // Filtrer les emails localement selon le type de recherche
-  const filteredEmails = emails.filter(email => {
-    if (!searchTerm) return true;
-    
-    const search = searchTerm.toLowerCase();
-    
-    if (searchBy === 'objet') {
-      return email.data?.Subject?.toLowerCase().includes(search);
-    } else if (searchBy === 'participant') {
-      return email.username?.toLowerCase().includes(search) || 
-             email.displayName?.toLowerCase().includes(search);
-    } else {
-      return email.data?.Subject?.toLowerCase().includes(search) || 
-             email.username?.toLowerCase().includes(search) ||
-             email.displayName?.toLowerCase().includes(search);
-    }
+  
+  const [formData, setFormData] = useState({
+    annee_execution: '',
+    note_orientation: '',
+    cotisation_fdtp: '',
+    intitule_compte: '',
+    numero_compte: '',
+    budget_compte: '',
+    ogfs: [{ intitule_ogf: '', description_ogf: '' }]
   });
 
-  // Infinite scroll observer
-  useEffect(() => {
-    if (loading || searchTerm) return; // Pas d'infinite scroll pendant la recherche
-    
-    if (observerRef.current) observerRef.current.disconnect();
-    
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        fetchEmails();
-      }
-    });
-    
-    if (lastEmailRef.current) {
-      observerRef.current.observe(lastEmailRef.current);
-    }
-    
-    return () => {
-      if (observerRef.current) observerRef.current.disconnect();
-    };
-  }, [loading, hasMore, emails, searchTerm]);
-
-  useEffect(() => {
-    if (selectedEmail && dialogRef.current) {
-      dialogRef.current.showModal();
-    }
-  }, [selectedEmail]);
-
-  const closeDialog = () => {
-    if (dialogRef.current) {
-      dialogRef.current.close();
-    }
-    setSelectedEmail(null);
+  const ouvrirDialog = () => {
+    dialogRef.current?.showModal();
   };
 
-  const downloadAttachment = (attachment) => {
-    const link = document.createElement('a');
-    link.href = attachment.url;
-    link.download = attachment.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const fermerDialog = () => {
+    dialogRef.current?.close();
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleOgfChange = (index, field, value) => {
+    const nouveauxOgfs = [...formData.ogfs];
+    nouveauxOgfs[index][field] = value;
+    setFormData({ ...formData, ogfs: nouveauxOgfs });
+  };
+
+  const ajouterOgf = () => {
+    setFormData({
+      ...formData,
+      ogfs: [...formData.ogfs, { intitule_ogf: '', description_ogf: '' }]
+    });
+  };
+
+  const supprimerOgf = (index) => {
+    const nouveauxOgfs = formData.ogfs.filter((_, i) => i !== index);
+    setFormData({ ...formData, ogfs: nouveauxOgfs });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Données du formulaire:', formData);
+    // Traitement des données ici
+    alert('Formulaire soumis avec succès !');
+    fermerDialog();
   };
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: '#ffffff',
-      padding: '40px 20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      padding: '20px',
+      fontFamily: 'Arial, sans-serif'
     }}>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto'
-      }}>
-        {/* Header */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '40px',
-          color: '#1e293b'
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '12px'
-          }}>
-            <Mail size={40} style={{ color: '#0ea5e9' }} />
-            <h1 style={{
-              fontSize: '2.5rem',
-              fontWeight: '700',
-              margin: '0',
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #10b981 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>Boîte de Réception</h1>
-          </div>
-          <p style={{
-            fontSize: '1.1rem',
-            color: '#64748b',
-            margin: '0'
-          }}>Gérez vos emails en toute simplicité</p>
-        </div>
+      <button
+        onClick={ouvrirDialog}
+        style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          border: 'none',
+          padding: '15px 40px',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+          transition: 'all 0.3s ease',
+          ':hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)'
+          }
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+        }}
+      >
+        ✨ Créer un nouveau formulaire
+      </button>
 
-        {/* Search Bar */}
-        <div style={{
-          background: 'white',
+      <dialog
+        ref={dialogRef}
+        style={{
+          border: 'none',
           borderRadius: '16px',
-          padding: '25px',
-          marginBottom: '25px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e2e8f0'
+          padding: '0',
+          maxWidth: '900px',
+          width: '90%',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          backgroundColor: 'transparent'
+        }}
+      >
+        <div style={{
+          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          padding: '30px',
+          maxHeight: '90vh',
+          overflowY: 'auto'
         }}>
           <div style={{
             display: 'flex',
-            gap: '15px',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            flexWrap: 'wrap'
+            marginBottom: '25px'
           }}>
-            <div style={{
-              flex: '1',
-              minWidth: '250px',
-              position: 'relative'
+            <h2 style={{
+              margin: '0',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontSize: '28px',
+              fontWeight: 'bold'
             }}>
-              <Search 
-                size={20} 
-                style={{
-                  position: 'absolute',
-                  left: '15px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#0ea5e9',
-                  pointerEvents: 'none'
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Rechercher un email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px 14px 45px',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  outline: 'none',
-                  transition: 'all 0.3s ease',
-                  fontFamily: 'inherit'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#0ea5e9';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(14, 165, 233, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              gap: '10px',
-              flexWrap: 'wrap'
-            }}>
-              {['all', 'objet', 'participant'].map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setSearchBy(filter)}
-                  style={{
-                    padding: '12px 24px',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: searchBy === filter 
-                      ? 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)'
-                      : '#f1f5f9',
-                    color: searchBy === filter ? 'white' : '#475569',
-                    boxShadow: searchBy === filter 
-                      ? '0 4px 15px rgba(14, 165, 233, 0.3)'
-                      : 'none',
-                    textTransform: 'capitalize'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (searchBy !== filter) {
-                      e.currentTarget.style.background = '#e2e8f0';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (searchBy !== filter) {
-                      e.currentTarget.style.background = '#f1f5f9';
-                    }
-                  }}
-                >
-                  {filter === 'all' ? 'Tout' : filter === 'objet' ? 'Objet' : 'Participant'}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {searchTerm && (
-            <div style={{
-              marginTop: '15px',
-              padding: '10px 15px',
-              background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%)',
-              borderRadius: '8px',
-              color: '#0369a1',
-              fontSize: '0.9rem',
-              fontWeight: '500'
-            }}>
-              {filteredEmails.length} résultat{filteredEmails.length !== 1 ? 's' : ''} trouvé{filteredEmails.length !== 1 ? 's' : ''}
-            </div>
-          )}
-        </div>
-
-        {/* Table Container */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-          border: '1px solid #e2e8f0'
-        }}>
-          <div style={{
-            overflowX: 'auto',
-            maxHeight: '70vh',
-            overflowY: 'auto'
-          }} ref={tableBodyRef}>
-            <table style={{
-              width: '100%',
-              borderCollapse: 'collapse'
-            }}>
-              <thead style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 10,
-                background: 'white'
-              }}>
-                <tr style={{
-                  background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
-                  color: 'white'
-                }}>
-                  <th style={{
-                    padding: '20px',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    fontSize: '0.95rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                    width: '25%'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <User size={18} />
-                      <span>Destinataire</span>
-                    </div>
-                  </th>
-                  <th style={{
-                    padding: '20px',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    fontSize: '0.95rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                    width: '30%'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <Mail size={18} />
-                      <span>Objet</span>
-                    </div>
-                  </th>
-                  <th style={{
-                    padding: '20px',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    fontSize: '0.95rem',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                    width: '45%'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <FileText size={18} />
-                      <span>Contenu</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEmails.length === 0 && !loading ? (
-                  <tr>
-                    <td 
-                      colSpan="3" 
-                      style={{
-                        padding: '40px',
-                        textAlign: 'center',
-                        color: '#64748b',
-                        fontSize: '1.1rem'
-                      }}
-                    >
-                      <Mail size={48} style={{ opacity: 0.3, marginBottom: '10px' }} />
-                      <div>Aucun email trouvé</div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredEmails.map((email, index) => (
-                    <tr 
-                      key={email.id}
-                      ref={index === filteredEmails.length - 1 ? lastEmailRef : null}
-                      onClick={() => setSelectedEmail(email)}
-                      style={{
-                        background: index % 2 === 0 ? 'white' : '#f8fafc',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        borderBottom: '1px solid #e2e8f0'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(14, 165, 233, 0.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = index % 2 === 0 ? 'white' : '#f8fafc';
-                      }}
-                    >
-                      <td style={{
-                        padding: '18px 20px'
-                      }}>
-                        <div style={{ color: '#0ea5e9', fontWeight: '600', fontSize: '0.95rem' }}>
-                          {email.displayName || email.username}
-                        </div>
-                        {email.displayName && (
-                          <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '2px' }}>
-                            {email.username}
-                          </div>
-                        )}
-                      </td>
-                      <td style={{
-                        padding: '18px 20px'
-                      }}>
-                        <div style={{ color: '#2d3748', fontWeight: '600', fontSize: '0.95rem', marginBottom: '4px' }}>
-                          {email.data?.Subject || 'Sans objet'}
-                        </div>
-                        {email.data?.attached_files?.length > 0 && (
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            color: '#64748b',
-                            fontSize: '0.8rem'
-                          }}>
-                            <Paperclip size={14} />
-                            <span>{email.data.attached_files.length} pièce{email.data.attached_files.length > 1 ? 's' : ''} jointe{email.data.attached_files.length > 1 ? 's' : ''}</span>
-                          </div>
-                        )}
-                      </td>
-                      <td style={{
-                        padding: '18px 20px',
-                        color: '#4a5568',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.5'
-                      }}>
-                        <div style={{
-                          maxHeight: '60px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: '2',
-                          WebkitBoxOrient: 'vertical'
-                        }}>
-                          {email.text || 'Pas de contenu'}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-                {loading && (
-                  <tr>
-                    <td colSpan="3" style={{ padding: '30px', textAlign: 'center' }}>
-                      <Loader size={32} style={{ 
-                        color: '#0ea5e9',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      <div style={{ marginTop: '10px', color: '#64748b' }}>Chargement...</div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Dialog HTML5 */}
-      <dialog 
-        ref={dialogRef}
-        onClick={(e) => {
-          if (e.target === dialogRef.current) {
-            closeDialog();
-          }
-        }}
-        style={{
-          border: 'none',
-          borderRadius: '20px',
-          padding: '0',
-          maxWidth: '800px',
-          width: '90%',
-          maxHeight: '85vh',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
-          background: 'white',
-          overflow: 'visible'
-        }}
-      >
-        {selectedEmail && (
-          <div style={{
-            padding: '30px',
-            position: 'relative',
-            maxHeight: '85vh',
-            overflowY: 'auto'
-          }}>
-            {/* Close Button */}
+              Formulaire de Gestion Budgétaire
+            </h2>
             <button
-              onClick={closeDialog}
+              onClick={fermerDialog}
               style={{
-                position: 'sticky',
-                top: '10px',
-                float: 'right',
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
+                background: 'rgba(255, 255, 255, 0.8)',
                 border: 'none',
+                width: '35px',
+                height: '35px',
                 borderRadius: '50%',
-                width: '40px',
-                height: '40px',
+                fontSize: '20px',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'white',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
-                zIndex: 10
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(14, 165, 233, 0.4)';
+                e.target.style.background = 'rgba(255, 59, 48, 0.8)';
+                e.target.style.color = 'white';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(14, 165, 233, 0.3)';
+                e.target.style.background = 'rgba(255, 255, 255, 0.8)';
+                e.target.style.color = 'black';
               }}
             >
-              <X size={20} />
+              ✕
             </button>
+          </div>
 
-            {/* Email Header */}
+          <form onSubmit={handleSubmit}>
+            {/* Section Informations générales */}
             <div style={{
-              marginBottom: '25px'
+              background: 'white',
+              padding: '25px',
+              borderRadius: '12px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
             }}>
-              <h2 style={{
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #10b981 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: '1.8rem',
-                fontWeight: '700',
-                margin: '0 0 15px 0',
-                lineHeight: '1.3'
+              <h3 style={{
+                marginTop: '0',
+                marginBottom: '20px',
+                color: '#667eea',
+                fontSize: '20px',
+                fontWeight: '600'
               }}>
-                {selectedEmail.data?.Subject || 'Sans objet'}
-              </h2>
+                📋 Informations Générales
+              </h3>
+
               <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                color: '#718096',
-                fontSize: '0.9rem'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <User size={18} style={{ color: '#0ea5e9' }} />
-                  <span>De : <strong style={{ color: '#0ea5e9' }}>{selectedEmail.displayName || selectedEmail.username}</strong> {selectedEmail.displayName && `(${selectedEmail.username})`}</span>
-                </div>
-                {selectedEmail.data?.datetime && (
-                  <div style={{ paddingLeft: '28px', fontSize: '0.85rem' }}>
-                    {new Date(selectedEmail.data.datetime).toLocaleString('fr-FR')}
-                  </div>
-                )}
-                {selectedEmail.data?.attachments?.length > 0 && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    paddingLeft: '28px',
-                    marginTop: '10px'
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
                   }}>
-                    <Paperclip size={16} style={{ color: '#0ea5e9' }} />
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {selectedEmail.data.attachments.map((file, idx) => (
-                        <button
-                          key={idx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            downloadAttachment(file);
-                          }}
-                          style={{
-                            background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            color: '#475569',
-                            border: '1px solid #cbd5e1',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: '500'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)';
-                            e.currentTarget.style.color = 'white';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(14, 165, 233, 0.3)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)';
-                            e.currentTarget.style.color = '#475569';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <Paperclip size={14} />
-                          <span>{file.name}</span>
-                          {file.size && <span style={{ fontSize: '0.75rem', opacity: '0.7' }}>({file.size})</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    Année d'exécution *
+                  </label>
+                  <input
+                    type="number"
+                    name="annee_execution"
+                    value={formData.annee_execution}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ex: 2024"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Note d'orientation
+                  </label>
+                  <input
+                    type="text"
+                    name="note_orientation"
+                    value={formData.note_orientation}
+                    onChange={handleChange}
+                    placeholder="Note d'orientation"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Cotisation FDTP
+                  </label>
+                  <input
+                    type="text"
+                    name="cotisation_fdtp"
+                    value={formData.cotisation_fdtp}
+                    onChange={handleChange}
+                    placeholder="Cotisation FDTP"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Email HTML Content */}
+            {/* Section Compte */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)',
-              borderLeft: '4px solid #0ea5e9',
-              borderRadius: '12px',
+              background: 'white',
               padding: '25px',
-              minHeight: '200px'
+              borderRadius: '12px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
             }}>
-              {selectedEmail.data?.html ? (
-                <div dangerouslySetInnerHTML={{ __html: selectedEmail.data.html }} />
-              ) : (
-                <div style={{ color: '#4a5568', lineHeight: '1.7' }}>
-                  {selectedEmail.text || 'Pas de contenu'}
+              <h3 style={{
+                marginTop: '0',
+                marginBottom: '20px',
+                color: '#667eea',
+                fontSize: '20px',
+                fontWeight: '600'
+              }}>
+                💼 Informations du Compte
+              </h3>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px'
+              }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Intitulé du compte *
+                  </label>
+                  <input
+                    type="text"
+                    name="intitule_compte"
+                    value={formData.intitule_compte}
+                    onChange={handleChange}
+                    required
+                    placeholder="Intitulé du compte"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
                 </div>
-              )}
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Numéro de compte *
+                  </label>
+                  <input
+                    type="text"
+                    name="numero_compte"
+                    value={formData.numero_compte}
+                    onChange={handleChange}
+                    required
+                    placeholder="Numéro de compte"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Budget du compte *
+                  </label>
+                  <input
+                    type="number"
+                    name="budget_compte"
+                    value={formData.budget_compte}
+                    onChange={handleChange}
+                    required
+                    placeholder="Budget"
+                    step="0.01"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+
+            {/* Section OGF */}
+            <div style={{
+              background: 'white',
+              padding: '25px',
+              borderRadius: '12px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  margin: '0',
+                  color: '#667eea',
+                  fontSize: '20px',
+                  fontWeight: '600'
+                }}>
+                  📊 OGF (Objectifs Globaux de Formation)
+                </h3>
+                <button
+                  type="button"
+                  onClick={ajouterOgf}
+                  style={{
+                    background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(17, 153, 142, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(17, 153, 142, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                    e.target.style.boxShadow = '0 2px 8px rgba(17, 153, 142, 0.3)';
+                  }}
+                >
+                  ➕ Ajouter un OGF
+                </button>
+              </div>
+
+              {formData.ogfs.map((ogf, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                    padding: '20px',
+                    borderRadius: '10px',
+                    marginBottom: '15px',
+                    border: '2px solid rgba(252, 182, 159, 0.5)'
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '15px'
+                  }}>
+                    <h4 style={{
+                      margin: '0',
+                      color: '#d35400',
+                      fontSize: '16px',
+                      fontWeight: '600'
+                    }}>
+                      OGF #{index + 1}
+                    </h4>
+                    {formData.ogfs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => supprimerOgf(index)}
+                        style={{
+                          background: 'rgba(231, 76, 60, 0.8)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(231, 76, 60, 1)'}
+                        onMouseLeave={(e) => e.target.style.background = 'rgba(231, 76, 60, 0.8)'}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gap: '15px'
+                  }}>
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#d35400',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Intitulé de l'OGF *
+                      </label>
+                      <input
+                        type="text"
+                        value={ogf.intitule_ogf}
+                        onChange={(e) => handleOgfChange(index, 'intitule_ogf', e.target.value)}
+                        required
+                        placeholder="Intitulé de l'OGF"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#d35400'}
+                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#d35400',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Description de l'OGF *
+                      </label>
+                      <textarea
+                        value={ogf.description_ogf}
+                        onChange={(e) => handleOgfChange(index, 'description_ogf', e.target.value)}
+                        required
+                        placeholder="Description détaillée de l'OGF"
+                        rows="3"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: 'white',
+                          resize: 'vertical',
+                          fontFamily: 'Arial, sans-serif'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#d35400'}
+                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Boutons d'action */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '15px',
+              marginTop: '30px'
+            }}>
+              <button
+                type="button"
+                onClick={fermerDialog}
+                style={{
+                  background: 'linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '14px 30px',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.2)';
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '14px 40px',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 3px 10px rgba(102, 126, 234, 0.4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 5px 15px rgba(102, 126, 234, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 3px 10px rgba(102, 126, 234, 0.4)';
+                }}
+              >
+                💾 Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
       </dialog>
 
-      <style>{`
-        dialog::backdrop {
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(5px);
-          animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
+      {/* Backdrop style pour dialog */}
+      <style>
+        {`
+          dialog::backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
           }
-          to {
-            opacity: 1;
-          }
-        }
-        
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        dialog[open] {
-          animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9) translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
+        `}
+      </style>
+    </div>
+  );
+};
+
+export default FormulaireDialog;
+import React from 'react';
+import FormulaireDialog from './FormulaireDialog';
+
+function App() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'white',
+        padding: '40px',
+        borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        textAlign: 'center',
+        maxWidth: '600px'
+      }}>
+        <h1 style={{
+          color: '#667eea',
+          marginBottom: '10px',
+          fontSize: '32px'
+        }}>
+          🏦 Gestion Budgétaire
+        </h1>
+        <p style={{
+          color: '#666',
+          marginBottom: '30px',
+          fontSize: '16px'
+        }}>
+          Créez et gérez vos objectifs globaux de formation avec facilité
+        </p>
+        <FormulaireDialog />
+      </div>
     </div>
   );
 }
+
+export default App;
