@@ -1,16 +1,14 @@
 import React, { useState, useRef } from 'react';
 
-const FormulaireDialog = () => {
+const FormulaireVisualization = () => {
   const dialogRef = useRef(null);
   
   const [formData, setFormData] = useState({
-    annee_execution: '',
-    note_orientation: '',
-    cotisation_fdtp: '',
-    intitule_compte: '',
-    numero_compte: '',
-    budget_compte: '',
-    ogfs: [{ intitule_ogf: '', description_ogf: '' }]
+    année: '',
+    cotisation: '',
+    note: null,
+    budget: [{ intitule: '', compte: '', budget: '' }],
+    ogf: [{ intitule: '', description: '' }]
   });
 
   const ouvrirDialog = () => {
@@ -28,66 +26,135 @@ const FormulaireDialog = () => {
     });
   };
 
+  const handleFileChange = (e) => {
+    setFormData({
+      ...formData,
+      note: e.target.files[0]
+    });
+  };
+
+  const handleBudgetChange = (index, field, value) => {
+    const nouveauxBudgets = [...formData.budget];
+    nouveauxBudgets[index][field] = value;
+    setFormData({ ...formData, budget: nouveauxBudgets });
+  };
+
+  const ajouterBudget = () => {
+    setFormData({
+      ...formData,
+      budget: [...formData.budget, { intitule: '', compte: '', budget: '' }]
+    });
+  };
+
+  const supprimerBudget = (index) => {
+    const nouveauxBudgets = formData.budget.filter((_, i) => i !== index);
+    setFormData({ ...formData, budget: nouveauxBudgets });
+  };
+
   const handleOgfChange = (index, field, value) => {
-    const nouveauxOgfs = [...formData.ogfs];
+    const nouveauxOgfs = [...formData.ogf];
     nouveauxOgfs[index][field] = value;
-    setFormData({ ...formData, ogfs: nouveauxOgfs });
+    setFormData({ ...formData, ogf: nouveauxOgfs });
   };
 
   const ajouterOgf = () => {
     setFormData({
       ...formData,
-      ogfs: [...formData.ogfs, { intitule_ogf: '', description_ogf: '' }]
+      ogf: [...formData.ogf, { intitule: '', description: '' }]
     });
   };
 
   const supprimerOgf = (index) => {
-    const nouveauxOgfs = formData.ogfs.filter((_, i) => i !== index);
-    setFormData({ ...formData, ogfs: nouveauxOgfs });
+    const nouveauxOgfs = formData.ogf.filter((_, i) => i !== index);
+    setFormData({ ...formData, ogf: nouveauxOgfs });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Créer un FormData pour l'envoi avec fichier
+    const apiData = new FormData();
+    apiData.append('année', formData.année);
+    apiData.append('cotisation', formData.cotisation);
+    if (formData.note) {
+      apiData.append('note', formData.note);
+    }
+    apiData.append('budget', JSON.stringify(formData.budget));
+    apiData.append('ogf', JSON.stringify(formData.ogf));
+    
     console.log('Données du formulaire:', formData);
-    // Traitement des données ici
-    alert('Formulaire soumis avec succès !');
+    console.log('FormData pour API:', {
+      année: formData.année,
+      cotisation: formData.cotisation,
+      note: formData.note ? formData.note.name : null,
+      budget: formData.budget,
+      ogf: formData.ogf
+    });
+    
+    alert('✅ Formulaire soumis avec succès !\n\nVoir la console pour les données.');
     fermerDialog();
   };
 
   return (
     <div style={{
       padding: '20px',
-      fontFamily: 'Arial, sans-serif'
+      fontFamily: 'Arial, sans-serif',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
-      <button
-        onClick={ouvrirDialog}
-        style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          border: 'none',
-          padding: '15px 40px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-          transition: 'all 0.3s ease',
-          ':hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)'
-          }
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.transform = 'translateY(-2px)';
-          e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.transform = 'translateY(0)';
-          e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-        }}
-      >
-        ✨ Créer un nouveau formulaire
-      </button>
+      <div style={{
+        background: 'white',
+        padding: '40px',
+        borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        textAlign: 'center',
+        maxWidth: '600px'
+      }}>
+        <h1 style={{
+          color: '#667eea',
+          marginBottom: '10px',
+          fontSize: '32px',
+          marginTop: 0
+        }}>
+          🏦 Gestion Budgétaire
+        </h1>
+        <p style={{
+          color: '#666',
+          marginBottom: '30px',
+          fontSize: '16px'
+        }}>
+          Créez et gérez vos objectifs globaux de formation
+        </p>
+        
+        <button
+          onClick={ouvrirDialog}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            border: 'none',
+            padding: '15px 40px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          }}
+        >
+          ✨ Créer un nouveau formulaire
+        </button>
+      </div>
 
       <dialog
         ref={dialogRef}
@@ -190,8 +257,8 @@ const FormulaireDialog = () => {
                   </label>
                   <input
                     type="number"
-                    name="annee_execution"
-                    value={formData.annee_execution}
+                    name="année"
+                    value={formData.année}
                     onChange={handleChange}
                     required
                     placeholder="Ex: 2024"
@@ -218,44 +285,14 @@ const FormulaireDialog = () => {
                     fontWeight: '500',
                     fontSize: '14px'
                   }}>
-                    Note d'orientation
+                    Cotisation FDTP *
                   </label>
                   <input
                     type="text"
-                    name="note_orientation"
-                    value={formData.note_orientation}
+                    name="cotisation"
+                    value={formData.cotisation}
                     onChange={handleChange}
-                    placeholder="Note d'orientation"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Cotisation FDTP
-                  </label>
-                  <input
-                    type="text"
-                    name="cotisation_fdtp"
-                    value={formData.cotisation_fdtp}
-                    onChange={handleChange}
+                    required
                     placeholder="Cotisation FDTP"
                     style={{
                       width: '100%',
@@ -271,10 +308,53 @@ const FormulaireDialog = () => {
                     onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
                   />
                 </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    Note d'orientation (fichier) *
+                  </label>
+                  <input
+                    type="file"
+                    name="note"
+                    onChange={handleFileChange}
+                    required
+                    accept=".pdf,.doc,.docx,.txt"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      backgroundColor: 'white'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  />
+                  {formData.note && (
+                    <p style={{
+                      marginTop: '8px',
+                      fontSize: '12px',
+                      color: '#667eea',
+                      fontWeight: '500'
+                    }}>
+                      📎 Fichier sélectionné: {formData.note.name}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Section Compte */}
+            {/* Section Budget */}
             <div style={{
               background: 'white',
               padding: '25px',
@@ -282,118 +362,197 @@ const FormulaireDialog = () => {
               marginBottom: '20px',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
             }}>
-              <h3 style={{
-                marginTop: '0',
-                marginBottom: '20px',
-                color: '#667eea',
-                fontSize: '20px',
-                fontWeight: '600'
-              }}>
-                💼 Informations du Compte
-              </h3>
-
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '15px'
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px'
               }}>
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Intitulé du compte *
-                  </label>
-                  <input
-                    type="text"
-                    name="intitule_compte"
-                    value={formData.intitule_compte}
-                    onChange={handleChange}
-                    required
-                    placeholder="Intitulé du compte"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Numéro de compte *
-                  </label>
-                  <input
-                    type="text"
-                    name="numero_compte"
-                    value={formData.numero_compte}
-                    onChange={handleChange}
-                    required
-                    placeholder="Numéro de compte"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Budget du compte *
-                  </label>
-                  <input
-                    type="number"
-                    name="budget_compte"
-                    value={formData.budget_compte}
-                    onChange={handleChange}
-                    required
-                    placeholder="Budget"
-                    step="0.01"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
+                <h3 style={{
+                  margin: '0',
+                  color: '#667eea',
+                  fontSize: '20px',
+                  fontWeight: '600'
+                }}>
+                  💼 Budget(s)
+                </h3>
+                <button
+                  type="button"
+                  onClick={ajouterBudget}
+                  style={{
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(79, 172, 254, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(79, 172, 254, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                    e.target.style.boxShadow = '0 2px 8px rgba(79, 172, 254, 0.3)';
+                  }}
+                >
+                  ➕ Ajouter un Budget
+                </button>
               </div>
+
+              {formData.budget.map((budgetItem, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                    padding: '20px',
+                    borderRadius: '10px',
+                    marginBottom: '15px',
+                    border: '2px solid rgba(168, 237, 234, 0.5)'
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '15px'
+                  }}>
+                    <h4 style={{
+                      margin: '0',
+                      color: '#2980b9',
+                      fontSize: '16px',
+                      fontWeight: '600'
+                    }}>
+                      Budget #{index + 1}
+                    </h4>
+                    {formData.budget.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => supprimerBudget(index)}
+                        style={{
+                          background: 'rgba(231, 76, 60, 0.8)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = 'rgba(231, 76, 60, 1)'}
+                        onMouseLeave={(e) => e.target.style.background = 'rgba(231, 76, 60, 0.8)'}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '15px'
+                  }}>
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#2980b9',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Intitulé *
+                      </label>
+                      <input
+                        type="text"
+                        value={budgetItem.intitule}
+                        onChange={(e) => handleBudgetChange(index, 'intitule', e.target.value)}
+                        required
+                        placeholder="Intitulé du compte"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
+                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#2980b9',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Compte *
+                      </label>
+                      <input
+                        type="text"
+                        value={budgetItem.compte}
+                        onChange={(e) => handleBudgetChange(index, 'compte', e.target.value)}
+                        required
+                        placeholder="Numéro de compte"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
+                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#2980b9',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Budget *
+                      </label>
+                      <input
+                        type="number"
+                        value={budgetItem.budget}
+                        onChange={(e) => handleBudgetChange(index, 'budget', e.target.value)}
+                        required
+                        placeholder="Montant du budget"
+                        step="0.01"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '2px solid rgba(255, 255, 255, 0.8)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
+                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Section OGF */}
@@ -446,7 +605,7 @@ const FormulaireDialog = () => {
                 </button>
               </div>
 
-              {formData.ogfs.map((ogf, index) => (
+              {formData.ogf.map((ogfItem, index) => (
                 <div
                   key={index}
                   style={{
@@ -471,7 +630,7 @@ const FormulaireDialog = () => {
                     }}>
                       OGF #{index + 1}
                     </h4>
-                    {formData.ogfs.length > 1 && (
+                    {formData.ogf.length > 1 && (
                       <button
                         type="button"
                         onClick={() => supprimerOgf(index)}
@@ -510,8 +669,8 @@ const FormulaireDialog = () => {
                       </label>
                       <input
                         type="text"
-                        value={ogf.intitule_ogf}
-                        onChange={(e) => handleOgfChange(index, 'intitule_ogf', e.target.value)}
+                        value={ogfItem.intitule}
+                        onChange={(e) => handleOgfChange(index, 'intitule', e.target.value)}
                         required
                         placeholder="Intitulé de l'OGF"
                         style={{
@@ -540,8 +699,8 @@ const FormulaireDialog = () => {
                         Description de l'OGF *
                       </label>
                       <textarea
-                        value={ogf.description_ogf}
-                        onChange={(e) => handleOgfChange(index, 'description_ogf', e.target.value)}
+                        value={ogfItem.description}
+                        onChange={(e) => handleOgfChange(index, 'description', e.target.value)}
                         required
                         placeholder="Description détaillée de l'OGF"
                         rows="3"
@@ -629,7 +788,6 @@ const FormulaireDialog = () => {
         </div>
       </dialog>
 
-      {/* Backdrop style pour dialog */}
       <style>
         {`
           dialog::backdrop {
@@ -642,46 +800,4 @@ const FormulaireDialog = () => {
   );
 };
 
-export default FormulaireDialog;
-import React from 'react';
-import FormulaireDialog from './FormulaireDialog';
-
-function App() {
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '40px',
-        borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        textAlign: 'center',
-        maxWidth: '600px'
-      }}>
-        <h1 style={{
-          color: '#667eea',
-          marginBottom: '10px',
-          fontSize: '32px'
-        }}>
-          🏦 Gestion Budgétaire
-        </h1>
-        <p style={{
-          color: '#666',
-          marginBottom: '30px',
-          fontSize: '16px'
-        }}>
-          Créez et gérez vos objectifs globaux de formation avec facilité
-        </p>
-        <FormulaireDialog />
-      </div>
-    </div>
-  );
-}
-
-export default App;
+export default FormulaireVisualization;
