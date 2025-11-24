@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const FormationStats = () => {
-  // Données mock basées sur ta structure API
-  const data = {
+  const [selectedMonth, setSelectedMonth] = useState('2025-08');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fonction pour récupérer les données
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://192.168.115.90:28/api/generation/formation-stat/${selectedMonth}`);
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des données');
+      }
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+      console.error('Erreur:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Données mock pour la démo (à supprimer quand tu utiliseras l'API)
+  const mockData = {
     formation_presence: [
       {
         code_formation: "P25001",
@@ -57,9 +81,77 @@ const FormationStats = () => {
     ]
   };
 
+  // Utiliser mockData pour la démo, sinon utiliser data de l'API
+  const displayData = data || mockData;
+
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ marginBottom: '30px', color: '#333' }}>Statistiques des Formations - Août 2025</h2>
+      <h2 style={{ marginBottom: '30px', color: '#333' }}>Statistiques des Formations</h2>
+
+      {/* Sélecteur de mois */}
+      <div style={{ 
+        marginBottom: '30px', 
+        padding: '20px', 
+        backgroundColor: '#fff', 
+        borderRadius: '8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px',
+        flexWrap: 'wrap'
+      }}>
+        <label style={{ fontWeight: '600', color: '#555' }}>
+          Sélectionner le mois :
+        </label>
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{
+            padding: '10px 15px',
+            fontSize: '16px',
+            border: '2px solid #ddd',
+            borderRadius: '6px',
+            outline: 'none',
+            transition: 'border-color 0.2s'
+          }}
+        />
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          style={{
+            padding: '10px 25px',
+            fontSize: '16px',
+            fontWeight: '600',
+            backgroundColor: loading ? '#ccc' : '#4a90e2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          {loading ? 'Chargement...' : 'Rechercher'}
+        </button>
+      </div>
+
+      {/* Message d'erreur */}
+      {error && (
+        <div style={{
+          padding: '15px',
+          marginBottom: '20px',
+          backgroundColor: '#fee',
+          border: '1px solid #fcc',
+          borderRadius: '6px',
+          color: '#c33'
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Affichage des données */}
+      {displayData && (
+        <div>
 
       {/* Tableau Formation Présence */}
       <div style={{ marginBottom: '40px' }}>
@@ -89,7 +181,7 @@ const FormationStats = () => {
             </tr>
           </thead>
           <tbody>
-            {data.formation_presence.map((formation, index) => (
+            {displayData.formation_presence.map((formation, index) => (
               <tr key={index} style={{ 
                 backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
                 transition: 'background-color 0.2s'
@@ -152,7 +244,7 @@ const FormationStats = () => {
             </tr>
           </thead>
           <tbody>
-            {data.repartition_new_formation.map((formation, index) => (
+            {displayData.repartition_new_formation.map((formation, index) => (
               <tr key={index} style={{ 
                 backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
                 transition: 'background-color 0.2s'
@@ -204,29 +296,31 @@ const FormationStats = () => {
       }}>
         <div style={{ textAlign: 'center', margin: '10px' }}>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4a90e2' }}>
-            {data.formation_presence.length}
+            {displayData.formation_presence.length}
           </div>
           <div style={{ fontSize: '14px', color: '#666' }}>Formations en présence</div>
         </div>
         <div style={{ textAlign: 'center', margin: '10px' }}>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#27ae60' }}>
-            {data.formation_presence.reduce((sum, f) => sum + f.num_effective_participate, 0)}
+            {displayData.formation_presence.reduce((sum, f) => sum + f.num_effective_participate, 0)}
           </div>
           <div style={{ fontSize: '14px', color: '#666' }}>Total participants</div>
         </div>
         <div style={{ textAlign: 'center', margin: '10px' }}>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#e74c3c' }}>
-            {data.formation_presence.reduce((sum, f) => sum + f.num_no_participate, 0)}
+            {displayData.formation_presence.reduce((sum, f) => sum + f.num_no_participate, 0)}
           </div>
           <div style={{ fontSize: '14px', color: '#666' }}>Non participants</div>
         </div>
         <div style={{ textAlign: 'center', margin: '10px' }}>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#9b59b6' }}>
-            {data.repartition_new_formation.reduce((sum, f) => sum + f.num, 0)}
+            {displayData.repartition_new_formation.reduce((sum, f) => sum + f.num, 0)}
           </div>
           <div style={{ fontSize: '14px', color: '#666' }}>Nouvelles formations</div>
         </div>
       </div>
+        </div>
+      )}
     </div>
   );
 };
