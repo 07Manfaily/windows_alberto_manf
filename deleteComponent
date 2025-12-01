@@ -1,0 +1,499 @@
+import React, { useState } from 'react';
+
+const ConfirmModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title = "Confirmation",
+  message = "Êtes-vous sûr de vouloir continuer ?",
+  confirmText = "Confirmer",
+  cancelText = "Annuler",
+  type = "danger" // "danger", "warning", "success", "info"
+}) => {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    setIsConfirming(true);
+    setIsDeleting(true);
+    
+    // Animation de suppression
+    setTimeout(() => {
+      if (onConfirm) {
+        onConfirm();
+      }
+      setTimeout(() => {
+        setIsConfirming(false);
+        setIsDeleting(false);
+        onClose();
+      }, 500);
+    }, 1500);
+  };
+
+  const getColors = () => {
+    switch(type) {
+      case 'danger':
+        return {
+          primary: '#ff3b5c',
+          secondary: '#ff6b85',
+          glow: 'rgba(255, 59, 92, 0.4)',
+          icon: '🗑️'
+        };
+      case 'warning':
+        return {
+          primary: '#ffa726',
+          secondary: '#ffb84d',
+          glow: 'rgba(255, 167, 38, 0.4)',
+          icon: '⚠️'
+        };
+      case 'success':
+        return {
+          primary: '#4caf50',
+          secondary: '#66bb6a',
+          glow: 'rgba(76, 175, 80, 0.4)',
+          icon: '✓'
+        };
+      case 'info':
+        return {
+          primary: '#2196f3',
+          secondary: '#42a5f5',
+          glow: 'rgba(33, 150, 243, 0.4)',
+          icon: 'ℹ️'
+        };
+      default:
+        return {
+          primary: '#ff3b5c',
+          secondary: '#ff6b85',
+          glow: 'rgba(255, 59, 92, 0.4)',
+          icon: '🗑️'
+        };
+    }
+  };
+
+  const colors = getColors();
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.75)',
+      backdropFilter: 'blur(8px)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10000,
+      animation: 'fadeIn 0.3s ease',
+      padding: '20px'
+    }}>
+      {/* Particules de fond */}
+      {isDeleting && [...Array(30)].map((_, i) => (
+        <div
+          key={`particle-${i}`}
+          style={{
+            position: 'absolute',
+            width: `${Math.random() * 8 + 4}px`,
+            height: `${Math.random() * 8 + 4}px`,
+            background: colors.primary,
+            borderRadius: '50%',
+            top: '50%',
+            left: '50%',
+            animation: `explode ${0.8 + Math.random() * 0.5}s ease-out forwards`,
+            animationDelay: `${Math.random() * 0.2}s`,
+            boxShadow: `0 0 10px ${colors.primary}`,
+            transform: `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`,
+            '--tx': `${(Math.random() - 0.5) * 600}px`,
+            '--ty': `${(Math.random() - 0.5) * 600}px`
+          }}
+        />
+      ))}
+
+      {/* Modal */}
+      <div style={{
+        position: 'relative',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+        borderRadius: '24px',
+        padding: '0',
+        maxWidth: '480px',
+        width: '100%',
+        boxShadow: `0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px ${colors.glow}`,
+        border: `2px solid ${colors.primary}40`,
+        animation: isDeleting ? 'modalShake 0.5s ease, modalFadeOut 0.5s ease 1s forwards' : 'modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        overflow: 'hidden'
+      }}>
+        {/* Barre supérieure colorée */}
+        <div style={{
+          height: '6px',
+          background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
+          animation: 'shimmer 2s linear infinite',
+          backgroundSize: '200% 100%'
+        }} />
+
+        {/* Contenu */}
+        <div style={{
+          padding: '40px 35px'
+        }}>
+          {/* Icône animée */}
+          <div style={{
+            width: '80px',
+            height: '80px',
+            margin: '0 auto 25px',
+            background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '40px',
+            boxShadow: `0 10px 30px ${colors.glow}, inset 0 0 20px rgba(255, 255, 255, 0.2)`,
+            animation: isConfirming ? 'iconPulse 0.6s ease infinite' : 'iconBounce 0.6s ease',
+            position: 'relative'
+          }}>
+            {isDeleting ? (
+              <div style={{
+                animation: 'spin 1s linear infinite'
+              }}>
+                ⚡
+              </div>
+            ) : (
+              colors.icon
+            )}
+            
+            {/* Ondes autour de l'icône */}
+            {!isDeleting && (
+              <>
+                <div style={{
+                  position: 'absolute',
+                  inset: '-10px',
+                  borderRadius: '50%',
+                  border: `2px solid ${colors.primary}60`,
+                  animation: 'wave 2s ease-in-out infinite'
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  inset: '-20px',
+                  borderRadius: '50%',
+                  border: `2px solid ${colors.primary}40`,
+                  animation: 'wave 2s ease-in-out infinite 0.5s'
+                }} />
+              </>
+            )}
+          </div>
+
+          {/* Titre */}
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: 'white',
+            textAlign: 'center',
+            marginBottom: '15px',
+            letterSpacing: '0.5px',
+            background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent'
+          }}>
+            {title}
+          </h2>
+
+          {/* Message */}
+          <p style={{
+            fontSize: '16px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            textAlign: 'center',
+            lineHeight: '1.6',
+            marginBottom: '35px'
+          }}>
+            {message}
+          </p>
+
+          {/* Barre de progression lors de la suppression */}
+          {isDeleting && (
+            <div style={{
+              width: '100%',
+              height: '6px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              marginBottom: '25px'
+            }}>
+              <div style={{
+                height: '100%',
+                background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
+                borderRadius: '10px',
+                animation: 'progressBar 1.5s ease forwards',
+                boxShadow: `0 0 10px ${colors.primary}`
+              }} />
+            </div>
+          )}
+
+          {/* Message de suppression */}
+          {isDeleting && (
+            <div style={{
+              textAlign: 'center',
+              color: colors.primary,
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '1px',
+              marginBottom: '25px',
+              animation: 'pulse 1s ease infinite'
+            }}>
+              🔥 SUPPRESSION EN COURS...
+            </div>
+          )}
+
+          {/* Boutons */}
+          {!isDeleting && (
+            <div style={{
+              display: 'flex',
+              gap: '15px'
+            }}>
+              {/* Bouton Annuler */}
+              <button
+                onClick={onClose}
+                disabled={isConfirming}
+                style={{
+                  flex: 1,
+                  padding: '16px 28px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '12px',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  cursor: isConfirming ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  opacity: isConfirming ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!isConfirming) {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isConfirming) {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {cancelText}
+              </button>
+
+              {/* Bouton Confirmer */}
+              <button
+                onClick={handleConfirm}
+                disabled={isConfirming}
+                style={{
+                  flex: 1,
+                  padding: '16px 28px',
+                  background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: 'white',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  cursor: isConfirming ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: `0 6px 20px ${colors.glow}`,
+                  opacity: isConfirming ? 0.7 : 1,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isConfirming) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = `0 8px 25px ${colors.glow}`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isConfirming) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 6px 20px ${colors.glow}`;
+                  }
+                }}
+              >
+                {/* Effet de brillance sur le bouton */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+                  animation: 'buttonShine 2s ease infinite'
+                }} />
+                {confirmText}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes modalSlideIn {
+          0% {
+            opacity: 0;
+            transform: scale(0.7) translateY(30px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        @keyframes modalShake {
+          0%, 100% { transform: translateX(0) rotate(0deg); }
+          25% { transform: translateX(-10px) rotate(-2deg); }
+          50% { transform: translateX(10px) rotate(2deg); }
+          75% { transform: translateX(-10px) rotate(-2deg); }
+        }
+
+        @keyframes modalFadeOut {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+        }
+
+        @keyframes iconBounce {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+        }
+
+        @keyframes iconPulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.8;
+          }
+        }
+
+        @keyframes wave {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
+        }
+
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+
+        @keyframes progressBar {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 100%;
+          }
+        }
+
+        @keyframes explode {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+            opacity: 0;
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.6;
+          }
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes buttonShine {
+          0% {
+            left: -100%;
+          }
+          50%, 100% {
+            left: 100%;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default ConfirmModal;
+
+    import React, { useState } from 'react';
+import ConfirmModal from './ConfirmModal';
+
+function App() {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleDelete = () => {
+    console.log('Élément supprimé !');
+    // Ta logique de suppression ici
+  };
+
+  return (
+    <div>
+      <button onClick={() => setShowModal(true)}>
+        Supprimer
+      </button>
+
+      <ConfirmModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleDelete}
+        title="Supprimer cet élément ?"
+        message="Cette action est irréversible. Toutes les données associées seront définitivement perdues."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
+    </div>
+  );
+}
