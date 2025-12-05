@@ -1,1429 +1,1102 @@
-import React, { useState, useEffect, useRef } from "react"; 
-import { useParams } from "react-router-dom"; 
-import ReactWordcloud from "react-wordcloud"; 
-import ReactApexChart from "react-apexcharts"; 
-import { api } from "../services/api"; 
+Voici le code avec des données sur 4 mois et un graphique d'évolution budgétaire amélioré :
 
-// Suppression globale et définitive des erreurs ResizeObserver 
-const suppressResizeObserverErrors = (() => { 
-  let isInitialized = false; 
- 
-  return () => { 
-    if (isInitialized) return; 
-    isInitialized = true; 
- 
-    // Méthode 1: Suppression au niveau window.onerror 
-    const originalWindowError = window.onerror; 
-    window.onerror = function (message, source, lineno, colno, error) { 
-      if ( 
-        typeof message === "string" && 
-        (message.includes("ResizeObserver") || 
-          message.includes("Non-passive event listener")) 
-      ) { 
-        return true; // Supprime l'erreur 
-      } 
-      if (originalWindowError) { 
-        return originalWindowError.apply(this, arguments); 
-      } 
-      return false; 
-    }; 
- 
-    // Méthode 2: Suppression au niveau console 
-    const originalConsoleError = console.error; 
-    console.error = function (...args) { 
-      const message = args[0]; 
-      if ( 
-        typeof message === "string" && 
-        (message.includes("ResizeObserver") || 
-          message.includes("Non-passive event listener")) 
-      ) { 
-        return; // Ne pas afficher l'erreur 
-      } 
-      originalConsoleError.apply(console, args); 
-    }; 
- 
-    // Méthode 3: Gestion des promesses rejetées 
-    const originalUnhandledRejection = window.onunhandledrejection; 
-    window.onunhandledrejection = function (event) { 
-      if ( 
-        event.reason && 
-        event.reason.message && 
-        event.reason.message.includes("ResizeObserver") 
-      ) { 
-        event.preventDefault(); 
-        return; 
-      } 
-      if (originalUnhandledRejection) { 
-        originalUnhandledRejection.call(this, event); 
-      } 
-    }; 
- 
-    // Méthode 4: Intercepter les erreurs d'événements 
-    window.addEventListener( 
-      "error", 
-      function (event) { 
-        if (event.message && event.message.includes("ResizeObserver")) { 
-          event.stopImmediatePropagation(); 
-          event.preventDefault(); 
-          return false; 
-        } 
-      }, 
-      true 
-    ); 
- 
-    // Méthode 5: Patch du ResizeObserver natif 
-    if (typeof window.ResizeObserver !== "undefined") { 
-      const OriginalResizeObserver = window.ResizeObserver; 
-      window.ResizeObserver = class extends OriginalResizeObserver { 
-        constructor(callback) { 
-          super((entries, observer) => { 
-            try { 
-              requestAnimationFrame(() => { 
-                try { 
-                  callback(entries, observer); 
-                } catch (e) { 
-                  // Ignore silencieusement les erreurs ResizeObserver 
-                } 
-              }); 
-            } catch (e) { 
-              // Ignore silencieusement les erreurs ResizeObserver 
-            } 
-          }); 
-        } 
-      }; 
-    } 
-  }; 
-})(); 
- 
-// Composant ApexCharts Pie Chart avec gestion optimisée 
-const ApexPieChart = ({ title, data, color = "#475569", chartKey = 0 }) => { 
-  const chartRef = useRef(null); 
-  const containerRef = useRef(null); 
-  const [isVisible, setIsVisible] = useState(true); 
-  const total = Object.values(data || {}).reduce((sum, val) => sum + val, 0); 
- 
-  // Observer d'intersection pour optimiser le rendu 
-  useEffect(() => { 
-    const container = containerRef.current; 
-    if (!container) return; 
- 
-    const observer = new IntersectionObserver( 
-      ([entry]) => { 
-        setIsVisible(entry.isIntersecting); 
-      }, 
-      { threshold: 0.1 } 
-    ); 
- 
-    observer.observe(container); 
-    return () => observer.disconnect(); 
-  }, []); 
- 
-  // Si pas de données, afficher un chart vide 
-  if (total === 0 || !data || Object.keys(data).length === 0) { 
-    return ( 
-      <div 
-        ref={containerRef} 
-        style={{ 
-          backgroundColor: "rgba(255, 255, 255, 0.7)", 
-          backdropFilter: "blur(20px)", 
-          borderRadius: "24px", 
-          padding: "24px", 
-          boxShadow: "0 8px 40px rgba(0, 0, 0, 0.08)", 
-          border: "1px solid rgba(255, 255, 255, 0.3)", 
-          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", 
-          position: "relative", 
-          overflow: "hidden", 
-          minHeight: "400px", 
-          display: "flex", 
-          flexDirection: "column", 
-          justifyContent: "center", 
-          alignItems: "center", 
-        }} 
-      > 
-        <div 
-          style={{ 
-            position: "absolute", 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: "4px", 
-            background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`, 
-            borderRadius: "24px 24px 0 0", 
-          }} 
-        ></div> 
- 
-        <h3 
-          style={{ 
-            margin: "0 0 20px 0", 
-            fontSize: "16px", 
-            fontWeight: "600", 
-            color: "#1e293b", 
-            textAlign: "center", 
-            fontFamily: '"Inter", sans-serif', 
-            lineHeight: "1.3", 
-            position: "absolute", 
-            top: "24px", 
-            left: "24px", 
-            right: "24px", 
-          }} 
-          title={title} 
-        > 
-          {title.length <= 25 ? title : title.substring(0, 25) + "..."} 
-        </h3> 
- 
-        <div 
-          style={{ 
-            color: "#64748b", 
-            fontSize: "14px", 
-            textAlign: "center", 
-            fontStyle: "italic", 
-          }} 
-        > 
-          Aucune donnée disponible 
-        </div> 
-      </div> 
-    ); 
-  } 
- 
-  const chartData = Object.entries(data).map(([label, value]) => value); 
-  const chartLabels = Object.keys(data); 
-  const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"]; 
- 
-  const options = { 
-    chart: { 
-      type: "pie", 
-      width: 280, 
-      height: 280, 
-      animations: { 
-        enabled: false, // Complètement désactivé 
-      }, 
-      toolbar: { 
-        show: false, 
-      }, 
-      events: { 
-        mounted: () => { 
-          // Rien - évite les callbacks problématiques 
-        }, 
-        updated: () => { 
-          // Rien - évite les callbacks problématiques 
-        }, 
-      }, 
-    }, 
-    labels: chartLabels, 
-    colors: colors.slice(0, chartLabels.length), 
-    legend: { 
-      show: false, 
-    }, 
-    dataLabels: { 
-      enabled: true, 
-      formatter: function (val) { 
-        return Math.round(val) + "%"; 
-      }, 
-      style: { 
-        fontSize: "12px", 
-        fontFamily: "Inter, sans-serif", 
-        fontWeight: "600", 
-        colors: ["#fff"], 
-      }, 
-      dropShadow: { 
-        enabled: true, 
-        blur: 3, 
-        opacity: 0.8, 
-      }, 
-    }, 
-    plotOptions: { 
-      pie: { 
-        expandOnClick: false, 
-        donut: { 
-          size: "0%", 
-        }, 
-      }, 
-    }, 
-    stroke: { 
-      show: true, 
-      width: 2, 
-      colors: ["#fff"], 
-    }, 
-    tooltip: { 
-      enabled: true, 
-      y: { 
-        formatter: function (val, opts) { 
-          const percentage = ((val / total) * 100).toFixed(1); 
-          return `${val} (${percentage}%)`; 
-        }, 
-      }, 
-      style: { 
-        fontSize: "12px", 
-        fontFamily: "Inter, sans-serif", 
-      }, 
-    }, 
-  }; 
- 
-  return ( 
-    <div 
-      ref={containerRef} 
-      style={{ 
-        backgroundColor: "rgba(255, 255, 255, 0.7)", 
-        backdropFilter: "blur(20px)", 
-        borderRadius: "24px", 
-        padding: "24px", 
-        boxShadow: "0 8px 40px rgba(0, 0, 0, 0.08)", 
-        border: "1px solid rgba(255, 255, 255, 0.3)", 
-        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", 
-        position: "relative", 
-        overflow: "hidden", 
-        minHeight: "400px", 
-      }} 
-    > 
-      <div 
-        style={{ 
-          position: "absolute", 
-          top: 0, 
-          left: 0, 
-          right: 0, 
-          height: "4px", 
-          background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`, 
-          borderRadius: "24px 24px 0 0", 
-        }} 
-      ></div> 
- 
-      <h3 
-        style={{ 
-          margin: "0 0 20px 0", 
-          fontSize: "16px", 
-          fontWeight: "600", 
-          color: "#1e293b", 
-          textAlign: "center", 
-          fontFamily: '"Inter", sans-serif', 
-          lineHeight: "1.3", 
-        }} 
-        title={title} 
-      > 
-        {title.length <= 25 ? title : title.substring(0, 25) + "..."} 
-      </h3> 
- 
-      <div 
-        style={{ 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          marginBottom: "20px", 
-          opacity: isVisible ? 1 : 0, 
-          transition: "opacity 0.3s ease", 
-        }} 
-      > 
-        {isVisible && ( 
-          <div ref={chartRef} key={`chart-${chartKey}`}> 
-            <ReactApexChart 
-              options={options} 
-              series={chartData} 
-              type="pie" 
-              width={280} 
-              height={280} 
-            /> 
-          </div> 
-        )} 
-      </div> 
- 
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}> 
-        {Object.entries(data).map(([label, value], index) => { 
-          const percentage = ((value / total) * 100).toFixed(1); 
-          return ( 
-            <div 
-              key={index} 
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "space-between", 
-                padding: "8px 12px", 
-                backgroundColor: "rgba(255, 255, 255, 0.6)", 
-                borderRadius: "8px", 
-                fontSize: "12px", 
-              }} 
-            > 
-              <div 
-                style={{ display: "flex", alignItems: "center", gap: "8px" }} 
-              > 
-                <div 
-                  style={{ 
-                    width: "12px", 
-                    height: "12px", 
-                    backgroundColor: colors[index % colors.length], 
-                    borderRadius: "50%", 
-                  }} 
-                ></div> 
-                <span style={{ color: "#334155", fontWeight: "500" }}> 
-                  {value} {label} 
-                </span> 
-              </div> 
-              <span style={{ color: "#64748b", fontWeight: "600" }}> 
-                {percentage}% 
-              </span> 
-            </div> 
-          ); 
-        })} 
-      </div> 
-    </div> 
-  ); 
-}; 
+```jsx
+import React from 'react';
+import Chart from 'react-apexcharts';
 
-const AutoCompleteSelect = ({ 
-  title, 
-  icon, 
-  options, 
-  value, 
-  onChange, 
-  placeholder, 
-  searchValue, 
-  setSearchValue, 
-  showDropdown, 
-  setShowDropdown, 
-  displayKey = null, 
-}) => ( 
-  <div 
-    style={{ 
-      backgroundColor: "rgba(255, 255, 255, 0.8)", 
-      backdropFilter: "blur(16px)", 
-      borderRadius: "16px", 
-      padding: "20px", 
-      marginBottom: "20px", 
-      boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)", 
-      border: "1px solid rgba(255, 255, 255, 0.4)", 
-      transition: "all 0.3s ease", 
-      position: "relative", 
-    }} 
-  > 
-    <div 
-      style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        gap: "10px", 
-        marginBottom: "16px", 
-      }} 
-    > 
-      <span style={{ fontSize: "18px" }}>{icon}</span> 
-      <label 
-        style={{ 
-          fontSize: "15px", 
-          fontWeight: "600", 
-          color: "#334155", 
-          fontFamily: '"Inter", sans-serif', 
-        }} 
-      > 
-        {title} 
-      </label> 
-    </div> 
- 
-    <div style={{ position: "relative" }}> 
-     <input 
-            type="text" 
-            placeholder={placeholder} 
-            value={searchValue} 
-            onChange={(e) => { 
-              setSearchValue(e.target.value); 
-              setShowDropdown(true); 
-            }} 
-            onFocus={() => setShowDropdown(true)} 
-            onClick={(e) => e.stopPropagation()} 
-            style={{ 
-              width: '100%', 
-              padding: '12px 40px 12px 16px', 
-              borderRadius: '12px', 
-              border: '2px solid rgba(148, 163, 184, 0.3)', 
-              fontSize: '14px', 
-              backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-              fontFamily: '"Inter", sans-serif', 
-              transition: 'all 0.3s ease', 
-              outline: 'none', 
-              cursor: 'pointer', 
-              boxSizing: 'border-box' 
-            }} 
-          /> 
-      <span 
-        style={{ 
-          position: "absolute", 
-          right: "12px", 
-          top: "50%", 
-          transform: "translateY(-50%)", 
-          color: "#64748b", 
-          fontSize: "12px", 
-          pointerEvents: "none", 
-        }} 
-      > 
-        ▼ 
-      </span> 
- 
-      {showDropdown && options.length > 0 && ( 
-        <div 
-          onClick={(e) => e.stopPropagation()} 
-          style={{ 
-            position: "absolute", 
-            top: "100%", 
-            left: 0, 
-            right: 0, 
-            maxHeight: "200px", 
-            overflowY: "auto", 
-            border: "2px solid rgba(148, 163, 184, 0.2)", 
-            borderRadius: "12px", 
-            backgroundColor: "rgba(255, 255, 255, 0.95)", 
-            marginTop: "4px", 
-            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)", 
-            zIndex: 1000, 
-            backdropFilter: "blur(20px)", 
-          }} 
-        > 
-          {options.map((option, index) => { 
-            const displayValue = displayKey ? option[displayKey] : option; 
-            const isSelected = value === (displayKey ? option : option); 
- 
-            return ( 
-              <div 
-                key={index} 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onChange(displayKey ? option : option); 
-                  setSearchValue(""); 
-                  setShowDropdown(false); 
-                }} 
-                style={{ 
-                  padding: "12px 16px", 
-                  cursor: "pointer", 
-                  borderBottom: 
-                    index < options.length - 1 
-                      ? "1px solid rgba(148, 163, 184, 0.1)" 
-                      : "none", 
-                  fontSize: "13px", 
-                  backgroundColor: isSelected 
-                    ? "rgba(16, 185, 129, 0.1)" 
-                    : "transparent", 
-                  fontFamily: '"Inter", sans-serif', 
-                  transition: "all 0.2s ease", 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center", 
-                }} 
-                onMouseEnter={(e) => 
-                  (e.target.style.backgroundColor = "rgba(16, 185, 129, 0.15)") 
-                } 
-                onMouseLeave={(e) => 
-                  (e.target.style.backgroundColor = isSelected 
-                    ? "rgba(16, 185, 129, 0.1)" 
-                    : "transparent") 
-                } 
-              > 
-                <span> 
-                  {displayKey ? option.display : option} 
-                </span> 
-                {isSelected && ( 
-                  <span style={{ color: "#10b981", fontSize: "14px" }}>✓</span> 
-                )} 
-              </div> 
-            ); 
-          })} 
-        </div> 
-      )} 
-    </div> 
- 
-    {value && ( 
-      <div 
-        style={{ 
-          marginTop: "12px", 
-          padding: "10px 14px", 
-          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", 
-          borderRadius: "10px", 
-          color: "white", 
-          fontSize: "12px", 
-          fontWeight: "600", 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
-        }} 
-      > 
-        <span>{displayKey ? value.display : value}</span> 
-        <button 
-          onClick={() => onChange("")} 
-          style={{ 
-            background: "rgba(255, 255, 255, 0.2)", 
-            border: "none", 
-            borderRadius: "6px", 
-            color: "white", 
-            padding: "4px 8px", 
-            cursor: "pointer", 
-            fontSize: "10px", 
-          }} 
-        > 
-          ✕ 
-        </button> 
-      </div> 
-    )} 
-  </div> 
-); 
+const DashboardFormation = () => {
+  const data = {
+    budget: 205000000,
+    collaborateur_forme: [
+      {
+        classe_virtuelle: 0,
+        cumul_total: 2,
+        e_learning: 0,
+        month: "2025_08",
+        multimodal: 0,
+        presentiel: 2,
+        total_month: 2
+      },
+      {
+        classe_virtuelle: 1,
+        cumul_total: 5,
+        e_learning: 1,
+        month: "2025_09",
+        multimodal: 0,
+        presentiel: 3,
+        total_month: 5
+      },
+      {
+        classe_virtuelle: 2,
+        cumul_total: 9,
+        e_learning: 2,
+        month: "2025_10",
+        multimodal: 1,
+        presentiel: 4,
+        total_month: 9
+      },
+      {
+        classe_virtuelle: 1,
+        cumul_total: 12,
+        e_learning: 1,
+        month: "2025_11",
+        multimodal: 0,
+        presentiel: 3,
+        total_month: 12
+      }
+    ],
+    consommation_du_mois: [
+      {
+        cost_by_month: 5500000,
+        cumul_cost: 5500000,
+        month: "2025_08"
+      },
+      {
+        cost_by_month: 6800000,
+        cumul_cost: 12300000,
+        month: "2025_09"
+      },
+      {
+        cost_by_month: 8200000,
+        cumul_cost: 20500000,
+        month: "2025_10"
+      },
+      {
+        cost_by_month: 7000000,
+        cumul_cost: 27500000,
+        month: "2025_11"
+      }
+    ],
+    nombre_heure_formation: [
+      {
+        cumul_hour: 12,
+        etp_hour_number: 6,
+        month: "2025_08",
+        total_hour: 12
+      },
+      {
+        cumul_hour: 26,
+        etp_hour_number: 7,
+        month: "2025_09",
+        total_hour: 14
+      },
+      {
+        cumul_hour: 44,
+        etp_hour_number: 9,
+        month: "2025_10",
+        total_hour: 18
+      },
+      {
+        cumul_hour: 60,
+        etp_hour_number: 8,
+        month: "2025_11",
+        total_hour: 16
+      }
+    ]
+  };
 
-export default function FormationEvaluationDashboard() { 
-  const [filters, setFilters] = useState({ 
-    username: "", 
-    sessions: "", 
-  }); 
-  const { code } = useParams(); 
-  const [sessions, setSessions] = useState([]); 
-  const [selectedSession, setSelectedSession] = useState(null); 
-  const [sessionsSearch, setSessionsSearch] = useState(""); 
-  const [participantSearch, setParticipantSearch] = useState(""); 
-  const [apiData, setApiData] = useState(null); 
-  const [loading, setLoading] = useState(false); 
-  const [wordCloudKey, setWordCloudKey] = useState(0); 
-  const [chartKeys, setChartKeys] = useState({}); 
- 
-  // Initialiser la suppression des erreurs ResizeObserver 
-  useEffect(() => { 
-    suppressResizeObserverErrors(); 
-  }, []); 
- 
-  const handleGetSession = async () => { 
-    try { 
-      const response = await api.get(`formation/${code}/sessions`); 
-      if (response.status === 200) { 
-        // S'assurer que chaque session a un tableau de participants 
-        const sessionsWithParticipants = response.data.data.map((session) => ({ 
-          ...session, 
-          participants: session.participants || [], 
-        })); 
-        setSessions(sessionsWithParticipants); 
-        console.log("sessions:", sessionsWithParticipants); 
-      } 
-    } catch (error) { 
-      console.error("Error fetching sessions:", error); 
-    } 
-  }; 
+  // Calculs pour le dernier mois
+  const dernierMois = data.consommation_du_mois[data.consommation_du_mois.length - 1];
+  const tauxConsommation = ((dernierMois.cumul_cost / data.budget) * 100).toFixed(2);
+  const budgetRestant = data.budget - dernierMois.cumul_cost;
 
-  const _getResponseHotFormSession = async (sessionCode) => { 
-    try { 
-      setLoading(true); 
-      const response = await api.get(`session/${sessionCode}/hot-eval/responses`); 
-      setApiData(response.data.data || []); 
-    } catch (error) { 
-      console.error("Erreur lors du chargement des données de session:", error); 
-      setApiData(null); 
-    } finally { 
-      setLoading(false); 
-    } 
-  }; 
+  // Préparation des données pour les graphiques
+  const moisLabels = data.consommation_du_mois.map(item => {
+    const [annee, mois] = item.month.split('_');
+    const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    return moisNoms[parseInt(mois) - 1] + ' ' + annee;
+  });
 
-  const _getResponseHotFormFormation = async () => { 
-    try { 
-      setLoading(true); 
-      const response = await api.get(`formation/${code}/hot-eval/responses`); 
-      setApiData(response.data || []); 
-    } catch (error) { 
-      setLoading(false); 
-      console.error("Erreur lors du chargement des données de formation:", error); 
-      setApiData(null); 
-    } finally { 
-      setLoading(false); 
-    } 
-  }; 
- 
-  useEffect(() => { 
-    _getResponseHotFormFormation(); 
-    handleGetSession(); 
-  }, [code]); 
-
-  // Effet pour charger les données selon la session sélectionnée
-  useEffect(() => {
-    if (filters.sessions) {
-      _getResponseHotFormSession(filters.sessions.code_session);
-      setSelectedSession(filters.sessions);
-    } else {
-      _getResponseHotFormFormation();
-      setSelectedSession(null);
+  // Graphique d'évolution budgétaire (Line + Bar combiné)
+  const budgetEvolutionOptions = {
+    chart: {
+      type: 'line',
+      toolbar: { show: false },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 1200
+      },
+      dropShadow: {
+        enabled: true,
+        top: 5,
+        left: 0,
+        blur: 10,
+        opacity: 0.1
+      }
+    },
+    stroke: {
+      width: [0, 4, 3],
+      curve: 'smooth',
+      dashArray: [0, 0, 5]
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '50%',
+        borderRadius: 8
+      }
+    },
+    fill: {
+      type: ['gradient', 'solid', 'solid'],
+      gradient: {
+        shade: 'light',
+        type: 'vertical',
+        shadeIntensity: 0.5,
+        gradientToColors: ['#764ba2'],
+        inverseColors: false,
+        opacityFrom: 0.85,
+        opacityTo: 0.55,
+        stops: [0, 100]
+      }
+    },
+    colors: ['#667eea', '#f5576c', '#43e97b'],
+    dataLabels: {
+      enabled: true,
+      enabledOnSeries: [0, 1],
+      formatter: function (val) {
+        return (val / 1000000).toFixed(1) + 'M';
+      },
+      style: {
+        fontSize: '11px',
+        fontWeight: 'bold'
+      },
+      background: {
+        enabled: true,
+        borderRadius: 6,
+        padding: 4,
+        opacity: 0.9
+      }
+    },
+    xaxis: {
+      categories: moisLabels,
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontWeight: 600
+        }
+      }
+    },
+    yaxis: [
+      {
+        title: {
+          text: 'Montant (FCFA)',
+          style: {
+            fontSize: '13px',
+            fontWeight: 600
+          }
+        },
+        labels: {
+          formatter: function (val) {
+            return (val / 1000000).toFixed(0) + 'M';
+          },
+          style: {
+            fontSize: '12px',
+            fontWeight: 500
+          }
+        }
+      },
+      {
+        opposite: true,
+        title: {
+          text: 'Budget Total',
+          style: {
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#43e97b'
+          }
+        },
+        labels: {
+          formatter: function (val) {
+            return (val / 1000000).toFixed(0) + 'M';
+          },
+          style: {
+            fontSize: '12px',
+            fontWeight: 500,
+            colors: ['#43e97b']
+          }
+        },
+        min: 0,
+        max: data.budget
+      }
+    ],
+    legend: {
+      position: 'top',
+      horizontalAlign: 'center',
+      fontSize: '13px',
+      fontWeight: 600,
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 12
+      },
+      itemMargin: {
+        horizontal: 15
+      }
+    },
+    grid: {
+      borderColor: '#e9ecef',
+      strokeDashArray: 4,
+      padding: {
+        top: 0,
+        right: 30,
+        bottom: 0,
+        left: 10
+      }
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: function(val, opts) {
+          if (opts.seriesIndex === 2) {
+            return val.toLocaleString('fr-FR') + ' FCFA (Budget)';
+          }
+          return val.toLocaleString('fr-FR') + ' FCFA';
+        }
+      }
     }
-  }, [filters.sessions]);
- 
-  // Gestion des re-renders des graphiques avec debounce 
-  useEffect(() => { 
-    if (apiData?.quiz) { 
-      const timer = setTimeout(() => { 
-        const newChartKeys = {}; 
-        Object.keys(apiData.quiz).forEach((question, index) => { 
-          newChartKeys[index] = Date.now() + Math.random(); 
-        }); 
-        setChartKeys(newChartKeys); 
-      }, 100); 
-      return () => clearTimeout(timer); 
-    } 
-  }, [apiData]); 
- 
-  // Re-render périodique pour le WordCloud avec debounce 
-  useEffect(() => { 
-    if (apiData?.prepared_text_for_word_cloud) { 
-      const timer = setTimeout(() => { 
-        setWordCloudKey((prev) => prev + 1); 
-      }, 200); 
-      return () => clearTimeout(timer); 
-    } 
-  }, [apiData]); 
- 
-  // Composant Word Cloud avec gestion d'erreurs et lazy loading 
-  const ModernWordCloud = () => { 
-    const [wordCloudError, setWordCloudError] = useState(false); 
-    const [isVisible, setIsVisible] = useState(false); 
-    const containerRef = useRef(null); 
- 
-    useEffect(() => { 
-      const container = containerRef.current; 
-      if (!container) return; 
- 
-      const observer = new IntersectionObserver( 
-        ([entry]) => { 
-          if (entry.isIntersecting) { 
-            setIsVisible(true); 
-            observer.disconnect(); 
-          } 
-        }, 
-        { threshold: 0.1 } 
-      ); 
- 
-      observer.observe(container); 
-      return () => observer.disconnect(); 
-    }, []); 
- 
-    if (!apiData?.prepared_text_for_word_cloud) return null; 
- 
-    const words = apiData.prepared_text_for_word_cloud 
-      .split(" ") 
-      .filter((word) => word.length > 2) 
-      .map((word, index) => ({ 
-        text: word, 
-        value: 30 + (index % 3) * 10, // Valeurs fixes pour éviter les recalculs 
-      })); 
- 
-    const options = { 
-      colors: [ 
-        "#10b981", 
-        "#3b82f6", 
-        "#8b5cf6", 
-        "#f59e0b", 
-        "#ef4444", 
-        "#06b6d4", 
-      ], 
-      enableTooltip: false, 
-      deterministic: true, 
-      fontFamily: "Inter, sans-serif", 
-      fontSizes: [18, 40], 
-      fontStyle: "normal", 
-      fontWeight: "normal", 
-      padding: 4, 
-      rotations: 0, 
-      rotationAngles: [0], 
-      scale: "linear", 
-      spiral: "archimedean", 
-      transitionDuration: 0, 
-      enableOptimizations: true, 
-    }; 
- 
-    const WordCloudWrapper = () => { 
-      if (!isVisible) return null; 
- 
-      try { 
-        return ( 
-          <div 
-            key={`wordcloud-${wordCloudKey}`} 
-            style={{ 
-              width: "100%", 
-              height: "100%", 
-              position: "relative", 
-            }} 
-          > 
-            <ReactWordcloud words={words} options={options} /> 
-          </div> 
-        ); 
-      } catch (error) { 
-        setWordCloudError(true); 
-        return null; 
-      } 
-    }; 
- 
-    return ( 
-      <div 
-        ref={containerRef} 
-        style={{ 
-          background: "rgba(255, 255, 255, 0.6)", 
-          backdropFilter: "blur(20px)", 
-          borderRadius: "24px", 
-          padding: "32px", 
-          boxShadow: "0 12px 48px rgba(0, 0, 0, 0.08)", 
-          border: "1px solid rgba(255, 255, 255, 0.4)", 
-          minHeight: "320px", 
-          position: "relative", 
-          overflow: "hidden", 
-        }} 
-      > 
-        <h3 
-          style={{ 
-            margin: "0 0 28px 0", 
-            fontSize: "20px", 
-            fontWeight: "700", 
-            color: "#1e293b", 
-            textAlign: "center", 
-            fontFamily: '"Inter", sans-serif', 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            gap: "12px", 
-          }} 
-        > 
-          <span style={{ fontSize: "24px" }}>💭</span> 
-          Commentaires et Suggestions 
-        </h3> 
- 
-        <div 
-          style={{ 
-            height: "250px", 
-            width: "100%", 
-            position: "relative", 
-          }} 
-        > 
-          {wordCloudError ? ( 
-            <div 
-              style={{ 
-                display: "flex", 
-                flexDirection: "column", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                height: "100%", 
-                color: "#64748b", 
-                fontSize: "14px", 
-                textAlign: "center", 
-              }} 
-            > 
-              <div 
-                style={{ fontSize: "48px", marginBottom: "16px", opacity: 0.5 }} 
-              > 
-                🔧 
-              </div> 
-              <div> 
-                Visualisation des commentaires temporairement indisponible 
-              </div> 
-              <div style={{ fontSize: "12px", marginTop: "8px", opacity: 0.7 }}> 
-                Mots clés: {words.map((w) => w.text).join(", ")} 
-              </div> 
-            </div> 
-          ) : ( 
-            <WordCloudWrapper /> 
-          )} 
-        </div> 
-      </div> 
-    ); 
-  }; 
- 
-  // Composant Filtres moderne 
-  const ModernFiltersPanel = () => { 
-    const [showSessionsDropdown, setShowSessionsDropdown] = useState(false); 
-    const [showParticipantsDropdown, setShowParticipantsDropdown] = 
-      useState(false); 
-    
-    // Récupération des participants selon le contexte
-    const getAllParticipants = () => {
-      if (filters.sessions && filters.sessions.participants) {
-        // Si une session est sélectionnée, utiliser ses participants
-        return filters.sessions.participants.map((p) => ({
-          name: `${p.prenom} ${p.nom}`,
-          matricule: p.matricule,
-          email: p.email
-        }));
-      } else if (apiData?.data) {
-        // Sinon, utiliser tous les participants de la formation
-        return apiData.data.map((item) => ({
-          name: item.full_name,
-          matricule: item.matricule,
-        }));
-      }
-      return [];
-    };
-
-    const participants = getAllParticipants();
- 
-    // Préparer les sessions pour l'affichage
-    const sessionsForDisplay = sessions.map(session => ({
-      ...session,
-      display: `${session.code_session} - ${new Date(session.start_datetime).toLocaleDateString('fr-FR')} (${session.participants.length} participants)`
-    }));
-
-    const filteredSessions = sessionsForDisplay.filter((session) =>
-      session.code_session.toLowerCase().includes(sessionsSearch.toLowerCase()) ||
-      session.display.toLowerCase().includes(sessionsSearch.toLowerCase())
-    );
-
-    const filteredParticipants = participants.filter(
-      (participant) =>
-        participant.name
-          .toLowerCase()
-          .includes(participantSearch.toLowerCase()) ||
-        participant.matricule
-          .toLowerCase()
-          .includes(participantSearch.toLowerCase())
-    );
-
-    // Filtre les données en fonction des sélections
-    const getFilteredData = () => {
-      if (!apiData?.data) return [];
-
-      let filtered = apiData.data;
-
-      if (filters.username) {
-        filtered = filtered.filter(
-          (item) =>
-            item.full_name === filters.username.name ||
-            item.matricule === filters.username.matricule
-        );
-      }
-
-      return filtered;
-    };
-
-    const filteredData = getFilteredData();
-    const participantCount = filteredData.length;
-    const totalParticipants = apiData?.data ? apiData.data.length : 0;
-
-    return (
-      <div
-        style={{
-          background: "rgba(255, 255, 255, 0.5)",
-          backdropFilter: "blur(20px)",
-          borderRadius: "24px",
-          padding: "28px",
-          position: "sticky",
-          top: "20px",
-          border: "1px solid rgba(255, 255, 255, 0.4)",
-          boxShadow: "0 12px 48px rgba(0, 0, 0, 0.08)",
-        }}
-      >
-        <h3
-          style={{
-            margin: "0 0 28px 0",
-            fontSize: "20px",
-            fontWeight: "700",
-            color: "#1e293b",
-            textAlign: "center",
-            fontFamily: '"Inter", sans-serif',
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
-          <span style={{ fontSize: "24px" }}>🎯</span>
-          Filtres Intelligents
-        </h3>
-
-        <AutoCompleteSelect
-          title="Sessions"
-          icon="📅"
-          options={filteredSessions}
-          value={filters.sessions}
-          onChange={(value) => {
-            setFilters({ ...filters, sessions: value, username: "" }); // Reset participant filter
-            setParticipantSearch(""); // Reset participant search
-          }}
-          placeholder="Sélectionner une session..."
-          searchValue={sessionsSearch}
-          setSearchValue={setSessionsSearch}
-          showDropdown={showSessionsDropdown}
-          setShowDropdown={setShowSessionsDropdown}
-          displayKey="display"
-        />
-
-        <AutoCompleteSelect
-          title="Participants"
-          icon="👤"
-          options={filteredParticipants}
-          value={filters.username}
-          onChange={(value) => setFilters({ ...filters, username: value })}
-          placeholder="Sélectionner un participant..."
-          searchValue={participantSearch}
-          setSearchValue={setParticipantSearch}
-          showDropdown={showParticipantsDropdown}
-          setShowDropdown={setShowParticipantsDropdown}
-          displayKey="name"
-        />
-
-        {/* Bouton pour réinitialiser les filtres */}
-        {(filters.sessions || filters.username) && (
-          <button
-            onClick={() => {
-              setFilters({ sessions: "", username: "" });
-              setSessionsSearch("");
-              setParticipantSearch("");
-            }}
-            style={{
-              width: "100%",
-              padding: "12px",
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-              color: "white",
-              border: "none",
-              borderRadius: "12px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              marginBottom: "20px",
-              transition: "all 0.3s ease",
-            }}
-          >
-            🔄 Réinitialiser les filtres
-          </button>
-        )}
-
-        {/* Indicateur de contexte */}
-        <div
-          style={{
-            background: filters.sessions 
-              ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" 
-              : "linear-gradient(135deg, #334155 0%, #1e293b 100%)",
-            color: "#ffffff",
-            padding: "16px",
-            borderRadius: "16px",
-            textAlign: "center",
-            fontSize: "12px",
-            fontWeight: "600",
-            fontFamily: '"Inter", sans-serif',
-            boxShadow: filters.sessions 
-              ? "0 4px 16px rgba(59, 130, 246, 0.3)" 
-              : "0 4px 16px rgba(51, 65, 85, 0.3)",
-            marginBottom: "16px",
-          }}
-        >
-          <div style={{ fontSize: "14px", marginBottom: "4px" }}>
-            {filters.sessions ? "📍 SESSION" : "🏢 FORMATION"}
-          </div>
-          <div style={{ fontSize: "11px", opacity: 0.9 }}>
-            {filters.sessions 
-              ? filters.sessions.code_session 
-              : "Toutes les sessions"}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-            color: "#ffffff",
-            padding: "16px",
-            borderRadius: "16px",
-            textAlign: "center",
-            fontSize: "16px",
-            fontWeight: "700",
-            fontFamily: '"Inter", sans-serif',
-            boxShadow: "0 4px 16px rgba(16, 185, 129, 0.3)",
-          }}
-        >
-          <div style={{ fontSize: "24px", marginBottom: "8px" }}>
-            {participantCount} / {totalParticipants}
-          </div>
-          <div style={{ fontSize: "12px", opacity: 0.8, fontWeight: "500" }}>
-            Participants affichés
-          </div>
-        </div>
-
-        {loading && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "20px",
-              color: "#64748b",
-              fontStyle: "italic",
-            }}
-          >
-            🔄 Chargement des données...
-          </div>
-        )}
-      </div>
-    );
   };
 
-  // Calculer la moyenne générale depuis les données API
-  const calculateAverageScore = () => {
-    if (!apiData?.data || apiData.data.length === 0) return "4.6";
-    
-    // Filtrer selon le participant sélectionné
-    let dataToAnalyze = apiData.data;
-    if (filters.username) {
-      dataToAnalyze = apiData.data.filter(
-        (item) =>
-          item.full_name === filters.username.name ||
-          item.matricule === filters.username.matricule
-      );
+  const budgetEvolutionSeries = [
+    {
+      name: 'Coût Mensuel',
+      type: 'column',
+      data: data.consommation_du_mois.map(item => item.cost_by_month)
+    },
+    {
+      name: 'Coût Cumulé',
+      type: 'line',
+      data: data.consommation_du_mois.map(item => item.cumul_cost)
+    },
+    {
+      name: 'Budget Total',
+      type: 'line',
+      data: data.consommation_du_mois.map(() => data.budget)
     }
-    
-    if (dataToAnalyze.length === 0) return "0.0";
-    
-    const average =
-      dataToAnalyze.reduce((sum, item) => sum + item.score, 0) /
-      dataToAnalyze.length;
-    return average.toFixed(1);
-  };
+  ];
 
-  // Fonction pour calculer le total des réponses par catégorie
-  const getTotalByAnswerType = (answerType) => {
-    if (!apiData?.quiz) return 0;
-
-    let total = 0;
-    Object.values(apiData.quiz).forEach((questionData) => {
-      if (questionData[answerType]) {
-        total += questionData[answerType];
+  // Gauge Budget
+  const budgetGaugeOptions = {
+    chart: {
+      type: 'radialBar',
+      sparkline: { enabled: true },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 1500,
+        animateGradually: {
+          enabled: true,
+          delay: 150
+        }
       }
-    });
-    return total;
+    },
+    plotOptions: {
+      radialBar: {
+        startAngle: -135,
+        endAngle: 135,
+        hollow: {
+          margin: 0,
+          size: '70%',
+          background: 'transparent',
+        },
+        track: {
+          background: '#f0f0f0',
+          strokeWidth: '100%',
+          margin: 5,
+          dropShadow: {
+            enabled: true,
+            top: 2,
+            left: 0,
+            blur: 4,
+            opacity: 0.15
+          }
+        },
+        dataLabels: {
+          name: {
+            show: true,
+            fontSize: '16px',
+            fontWeight: 600,
+            color: '#333',
+            offsetY: 50
+          },
+          value: {
+            offsetY: -10,
+            fontSize: '44px',
+            fontWeight: 'bold',
+            color: '#667eea',
+            formatter: function (val) {
+              return val.toFixed(1) + "%";
+            }
+          }
+        }
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'horizontal',
+        shadeIntensity: 0.5,
+        gradientToColors: ['#f093fb', '#f5576c'],
+        inverseColors: false,
+        opacityFrom: 1,
+        opacityTo: 1,
+        stops: [0, 50, 100]
+      }
+    },
+    stroke: {
+      lineCap: 'round'
+    },
+    labels: ['Consommation Budget']
   };
+
+  const budgetGaugeSeries = [parseFloat(tauxConsommation)];
+
+  // Évolution des collaborateurs formés
+  const collaborateursEvolutionOptions = {
+    chart: {
+      type: 'area',
+      toolbar: { show: false },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 1200
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      style: {
+        fontSize: '12px',
+        fontWeight: 'bold'
+      }
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 3
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.3,
+        stops: [0, 90, 100]
+      }
+    },
+    xaxis: {
+      categories: moisLabels,
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontWeight: 600
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Nombre de personnes',
+        style: {
+          fontSize: '13px',
+          fontWeight: 600
+        }
+      },
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontWeight: 500
+        }
+      }
+    },
+    colors: ['#43e97b', '#667eea'],
+    legend: {
+      position: 'top',
+      fontSize: '13px',
+      fontWeight: 600
+    },
+    grid: {
+      borderColor: '#e9ecef',
+      strokeDashArray: 4
+    },
+    tooltip: {
+      y: {
+        formatter: function(val) {
+          return val + ' personnes';
+        }
+      }
+    }
+  };
+
+  const collaborateursEvolutionSeries = [
+    {
+      name: 'Cumulé',
+      data: data.collaborateur_forme.map(item => item.cumul_total)
+    },
+    {
+      name: 'Du Mois',
+      data: data.collaborateur_forme.map(item => item.total_month)
+    }
+  ];
+
+  // Évolution des heures
+  const heuresEvolutionOptions = {
+    chart: {
+      type: 'bar',
+      stacked: true,
+      toolbar: { show: false },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 1200
+      }
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '60%',
+        borderRadius: 8
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      style: {
+        fontSize: '11px',
+        fontWeight: 'bold',
+        colors: ['#fff']
+      }
+    },
+    xaxis: {
+      categories: moisLabels,
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontWeight: 600
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Heures',
+        style: {
+          fontSize: '13px',
+          fontWeight: 600
+        }
+      },
+      labels: {
+        style: {
+          fontSize: '12px',
+          fontWeight: 500
+        }
+      }
+    },
+    colors: ['#fa709a', '#fee140'],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'light',
+        type: 'vertical',
+        shadeIntensity: 0.5,
+        gradientToColors: ['#f093fb', '#ffa502'],
+        inverseColors: false,
+        opacityFrom: 1,
+        opacityTo: 0.85,
+        stops: [0, 100]
+      }
+    },
+    legend: {
+      position: 'top',
+      fontSize: '13px',
+      fontWeight: 600
+    },
+    grid: {
+      borderColor: '#e9ecef',
+      strokeDashArray: 4
+    },
+    tooltip: {
+      y: {
+        formatter: function(val) {
+          return val + ' heures';
+        }
+      }
+    }
+  };
+
+  const heuresEvolutionSeries = [
+    {
+      name: 'Heures du Mois',
+      data: data.nombre_heure_formation.map(item => item.total_hour)
+    },
+    {
+      name: 'Heures ETP',
+      data: data.nombre_heure_formation.map(item => item.etp_hour_number)
+    }
+  ];
+
+  // Donut Types de formation (données agrégées)
+  const formationTotaux = data.collaborateur_forme.reduce((acc, item) => {
+    acc.presentiel += item.presentiel;
+    acc.classe_virtuelle += item.classe_virtuelle;
+    acc.e_learning += item.e_learning;
+    acc.multimodal += item.multimodal;
+    return acc;
+  }, { presentiel: 0, classe_virtuelle: 0, e_learning: 0, multimodal: 0 });
+
+  const formationOptions = {
+    chart: {
+      type: 'donut',
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 1200
+      },
+      dropShadow: {
+        enabled: true,
+        top: 5,
+        left: 0,
+        blur: 10,
+        opacity: 0.2
+      }
+    },
+    labels: ['Présentiel', 'Classe Virtuelle', 'E-Learning', 'Multimodal'],
+    colors: ['#667eea', '#43e97b', '#f5576c', '#ffa502'],
+    legend: {
+      position: 'bottom',
+      fontSize: '14px',
+      fontWeight: 600,
+      markers: {
+        width: 14,
+        height: 14,
+        radius: 14
+      },
+      itemMargin: {
+        horizontal: 10,
+        vertical: 8
+      }
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '70%',
+          labels: {
+            show: true,
+            name: {
+              show: true,
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#333'
+            },
+            value: {
+              show: true,
+              fontSize: '32px',
+              fontWeight: 'bold',
+              color: '#667eea',
+              formatter: function (val) {
+                return val;
+              }
+            },
+            total: {
+              show: true,
+              label: 'Total Formés',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#6c757d',
+              formatter: function (w) {
+                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+              }
+            }
+          }
+        },
+        expandOnClick: true
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val, opts) {
+        return opts.w.config.series[opts.seriesIndex];
+      },
+      style: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        colors: ['#fff']
+      },
+      dropShadow: {
+        enabled: true,
+        blur: 3,
+        opacity: 0.8
+      }
+    }
+  };
+
+  const formationSeries = [
+    formationTotaux.presentiel,
+    formationTotaux.classe_virtuelle,
+    formationTotaux.e_learning,
+    formationTotaux.multimodal
+  ];
+
+  const kpiCards = [
+    {
+      title: "Budget Total",
+      value: (data.budget / 1000000).toFixed(0) + "M",
+      subtitle: data.budget.toLocaleString('fr-FR') + " FCFA",
+      icon: "💰",
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      shadow: "0 10px 40px rgba(102, 126, 234, 0.3)"
+    },
+    {
+      title: "Budget Consommé",
+      value: (dernierMois.cumul_cost / 1000000).toFixed(2) + "M",
+      subtitle: tauxConsommation + "% du budget",
+      icon: "📊",
+      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      shadow: "0 10px 40px rgba(245, 87, 108, 0.3)"
+    },
+    {
+      title: "Budget Restant",
+      value: (budgetRestant / 1000000).toFixed(0) + "M",
+      subtitle: budgetRestant.toLocaleString('fr-FR') + " FCFA",
+      icon: "💵",
+      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+      shadow: "0 10px 40px rgba(79, 172, 254, 0.3)"
+    },
+    {
+      title: "Collaborateurs",
+      value: data.collaborateur_forme[data.collaborateur_forme.length - 1].cumul_total,
+      subtitle: "Formés au total",
+      icon: "👥",
+      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      shadow: "0 10px 40px rgba(67, 233, 123, 0.3)"
+    },
+    {
+      title: "Heures Totales",
+      value: data.nombre_heure_formation[data.nombre_heure_formation.length - 1].cumul_hour + "h",
+      subtitle: "Formation cumulée",
+      icon: "⏱️",
+      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+      shadow: "0 10px 40px rgba(250, 112, 154, 0.3)"
+    },
+    {
+      title: "Dernier Mois",
+      value: (dernierMois.cost_by_month / 1000000).toFixed(1) + "M",
+      subtitle: dernierMois.cost_by_month.toLocaleString('fr-FR') + " FCFA",
+      icon: "📅",
+      gradient: "linear-gradient(135deg, #ffa502 0%, #ff6348 100%)",
+      shadow: "0 10px 40px rgba(255, 165, 2, 0.3)"
+    }
+  ];
 
   return (
-    <div
-      style={{
-        fontFamily: '"Inter", sans-serif',
-        background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-        minHeight: "100vh",
-        position: "relative",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0)",
-          backgroundSize: "20px 20px",
-          pointerEvents: "none",
-        }}
-      ></div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+      padding: '40px 25px',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    }}>
+      {/* Header */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '50px',
+        background: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        padding: '30px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        <h1 style={{
+          fontSize: '42px',
+          fontWeight: '800',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f5576c 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          marginBottom: '12px',
+          letterSpacing: '-1px'
+        }}>
+          Dashboard Formation 2025
+        </h1>
+        <p style={{
+          fontSize: '18px',
+          color: '#6c757d',
+          fontWeight: '600',
+          letterSpacing: '0.5px'
+        }}>
+          📊 Août - Novembre 2025 - Analyse Complète sur 4 Mois
+        </p>
+      </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 340px",
-          gap: "32px",
-          padding: "32px",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        {/* Main Content */}
-        <div>
-          {/* Header */}
-          <div
-            style={{
-              background: "rgba(255, 255, 255, 0.8)",
-              backdropFilter: "blur(20px)",
-              color: "#1e293b",
-              padding: "32px",
-              borderRadius: "24px",
-              marginBottom: "32px",
-              boxShadow: "0 12px 48px rgba(0, 0, 0, 0.08)",
-              border: "1px solid rgba(255, 255, 255, 0.4)",
-              position: "relative",
-              overflow: "hidden",
-            }}
+      {/* KPI Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '25px',
+        marginBottom: '40px'
+      }}>
+        {kpiCards.map((kpi, index) => (
+          <div key={index} style={{
+            background: kpi.gradient,
+            borderRadius: '20px',
+            padding: '28px',
+            color: 'white',
+            boxShadow: kpi.shadow,
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            cursor: 'pointer',
+            transform: 'translateY(0)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          }}
           >
-            <h1
-              style={{
-                margin: "0",
-                fontSize: "28px",
-                fontWeight: "800",
-                textAlign: "center",
-                letterSpacing: "-0.02em",
-                position: "relative",
-                zIndex: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "16px",
-              }}
-            >
-              <span style={{ fontSize: "32px" }}>📊</span>
-              ANALYSE DES ÉVALUATIONS À CHAUD
-            </h1>
-            <p
-              style={{
-                margin: "12px 0 0 0",
-                fontSize: "16px",
-                textAlign: "center",
-                opacity: 0.7,
-                position: "relative",
-                zIndex: 2,
-                fontWeight: "500",
-              }}
-            >
-              Tableau de bord interactif des formations
-              {filters.sessions && (
-                <span style={{ display: "block", fontSize: "14px", marginTop: "8px", color: "#3b82f6" }}>
-                  🎯 Session: {filters.sessions.code_session}
-                </span>
-              )}
-            </p>
-          </div>
-
-          {/* Module Info */}
-          <div
-            style={{
-              background: "rgba(255, 255, 255, 0.8)",
-              backdropFilter: "blur(20px)",
-              borderRadius: "20px",
-              padding: "28px",
-              marginBottom: "32px",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-              border: "1px solid rgba(255, 255, 255, 0.4)",
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              gap: "28px",
-              alignItems: "center",
-            }}
-          >
-            <div style={{ color: "#1e293b" }}>
-              <div
-                style={{
-                  marginBottom: "12px",
-                  fontSize: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  fontWeight: "500",
-                }}
-              >
-                <span style={{ fontSize: "18px" }}>📚</span>
-                <strong>Module:</strong> Programme de Management Avancé
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '15px'
+            }}>
+              <div style={{
+                fontSize: '48px',
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))'
+              }}>
+                {kpi.icon}
               </div>
-              <div
-                style={{
-                  marginBottom: "12px",
-                  fontSize: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  fontWeight: "500",
-                }}
-              >
-                <span style={{ fontSize: "18px" }}>🏢</span>
-                <strong>Cabinet:</strong> ESSEC Executive School
-              </div>
-              <div
-                style={{
-                  marginBottom: "12px",
-                  fontSize: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  fontWeight: "500",
-                }}
-              >
-                <span style={{ fontSize: "18px" }}>📍</span>
-                <strong>Lieu:</strong> Abidjan
-              </div>
-              <div
-                style={{
-                  fontSize: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  fontWeight: "500",
-                }}
-              >
-                <span style={{ fontSize: "18px" }}>📅</span>
-                <strong>Période:</strong> Avril - Octobre 2023
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.25)',
+                padding: '8px 14px',
+                borderRadius: '20px',
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '0.5px',
+                backdropFilter: 'blur(10px)'
+              }}>
+                2025
               </div>
             </div>
-            <div
-              style={{
-                background: "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
-                padding: "28px 36px",
-                borderRadius: "20px",
-                textAlign: "center",
-                color: "white",
-                boxShadow: "0 8px 32px rgba(30, 41, 59, 0.3)",
-                minWidth: "150px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "14px",
-                  opacity: 0.9,
-                  marginBottom: "6px",
-                  fontWeight: "500",
-                }}
-              >
-                Moyenne générale
-              </div>
-              <div
-                style={{ fontSize: "40px", fontWeight: "800", lineHeight: "1" }}
-              >
-                {calculateAverageScore()}
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  opacity: 0.9,
-                  marginTop: "4px",
-                  fontWeight: "500",
-                }}
-              >
-                / 5
-              </div>
+            
+            <div style={{
+              fontSize: '16px',
+              opacity: '0.95',
+              marginBottom: '10px',
+              fontWeight: '600',
+              letterSpacing: '0.5px'
+            }}>
+              {kpi.title}
+            </div>
+            
+            <div style={{
+              fontSize: '36px',
+              fontWeight: '800',
+              marginBottom: '8px',
+              letterSpacing: '-1px',
+              textShadow: '0 2px 10px rgba(0,0,0,0.2)'
+            }}>
+              {kpi.value}
+            </div>
+            
+            <div style={{
+              fontSize: '13px',
+              opacity: '0.9',
+              fontWeight: '500'
+            }}>
+              {kpi.subtitle}
             </div>
           </div>
+        ))}
+      </div>
 
-          {/* Legend - Dynamic from API Data */}
-          {apiData?.quiz && (
-            <div
-              style={{
-                background: "rgba(255, 255, 255, 0.7)",
-                backdropFilter: "blur(16px)",
-                borderRadius: "16px",
-                padding: "24px",
-                marginBottom: "32px",
-                boxShadow: "0 6px 32px rgba(0, 0, 0, 0.06)",
-                border: "1px solid rgba(255, 255, 255, 0.4)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "24px",
-                  flexWrap: "wrap",
-                }}
-              >
-                {(() => {
-                  // Extraire tous les types de réponses uniques
-                  const allAnswers = new Set();
-                  Object.values(apiData.quiz).forEach((questionData) => {
-                    Object.keys(questionData).forEach((answer) =>
-                      allAnswers.add(answer)
-                    );
-                  });
+      {/* Graphique principal - Évolution Budgétaire */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        padding: '35px',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        marginBottom: '30px'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '25px'
+        }}>
+          <div style={{
+            fontSize: '32px',
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+          }}>
+            📈
+          </div>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '700',
+            color: '#333',
+            margin: 0
+          }}>
+            Évolution Budgétaire Mensuelle
+          </h3>
+        </div>
+        
+        <Chart
+          options={budgetEvolutionOptions}
+          series={budgetEvolutionSeries}
+          type="line"
+          height={400}
+        />
+      </div>
 
-                  // Mapper les réponses aux couleurs et icônes
-                  const answerMap = {
-                    "Très satisfait": { color: "#10b981", icon: "😊" },
-                    Satisfait: { color: "#3b82f6", icon: "🙂" },
-                    "Oui, parfaitement": { color: "#10b981", icon: "✅" },
-                    Oui: { color: "#3b82f6", icon: "👍" },
-                    Neutre: { color: "#f59e0b", icon: "😐" },
-                    Insatisfait: { color: "#ef4444", icon: "😕" },
-                    "Très insatisfait": { color: "#64748b", icon: "😞" },
-                    Non: { color: "#ef4444", icon: "❌" },
-                  };
-
-                  return Array.from(allAnswers).map((answer, index) => {
-                    const config = answerMap[answer] || {
-                      color: "#94a3b8",
-                      icon: "⚪",
-                    };
-                    const total = getTotalByAnswerType(answer);
-                    return (
-                      <div
-                        key={index}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          background: "rgba(255, 255, 255, 0.8)",
-                          padding: "10px 18px",
-                          borderRadius: "14px",
-                          transition: "all 0.3s ease",
-                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-                        }}
-                      >
-                        <span style={{ fontSize: "16px" }}>{config.icon}</span>
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            backgroundColor: config.color,
-                            borderRadius: "50%",
-                            boxShadow: `0 2px 8px ${config.color}40`,
-                          }}
-                        ></div>
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            color: "#334155",
-                            fontWeight: "500",
-                          }}
-                        >
-                          {total} {answer}
-                        </span>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
+      {/* Graphiques secondaires */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gap: '30px',
+        marginBottom: '30px'
+      }}>
+        {/* Gauge Budget */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          padding: '35px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          transition: 'transform 0.3s ease',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '25px'
+          }}>
+            <div style={{
+              fontSize: '32px',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+            }}>
+              📊
             </div>
-          )}
-
-          {/* Pie Charts Grid */}
-          {apiData?.quiz && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                gap: "24px",
-                marginBottom: "32px",
-              }}
-            >
-              {Object.entries(apiData.quiz).map(
-                ([question, answers], index) => (
-                  <ApexPieChart
-                    key={`${index}-${JSON.stringify(answers)}`}
-                    title={question}
-                    data={answers}
-                    color={
-                      [
-                        "#10b981",
-                        "#3b82f6",
-                        "#8b5cf6",
-                        "#f59e0b",
-                        "#ef4444",
-                        "#06b6d4",
-                      ][index % 6]
-                    }
-                    chartKey={chartKeys[index] || 0}
-                  />
-                )
-              )}
-            </div>
-          )}
-
-          {/* Word Cloud */}
-          {apiData?.prepared_text_for_word_cloud && <ModernWordCloud />}
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#333',
+              margin: 0
+            }}>
+              Taux de Consommation
+            </h3>
+          </div>
           
-          {/* Message si aucune donnée */}
-          {!apiData && !loading && (
-            <div
-              style={{
-                background: "rgba(255, 255, 255, 0.8)",
-                backdropFilter: "blur(20px)",
-                borderRadius: "20px",
-                padding: "48px",
-                textAlign: "center",
-                color: "#64748b",
-                fontSize: "16px",
-              }}
-            >
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-              <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>
-                Aucune donnée disponible
+          <Chart
+            options={budgetGaugeOptions}
+            series={budgetGaugeSeries}
+            type="radialBar"
+            height={320}
+          />
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '15px',
+            marginTop: '25px'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '20px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '13px', opacity: '0.9', marginBottom: '8px', fontWeight: '600' }}>
+                Consommé
               </div>
-              <div>
-                {filters.sessions 
-                  ? "Aucune évaluation trouvée pour cette session." 
-                  : "Aucune évaluation trouvée pour cette formation."}
+              <div style={{ fontSize: '20px', fontWeight: '800' }}>
+                {(dernierMois.cumul_cost / 1000000).toFixed(2)}M
               </div>
             </div>
-          )}
+            <div style={{
+              background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+              padding: '20px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '13px', opacity: '0.9', marginBottom: '8px', fontWeight: '600' }}>
+                Restant
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: '800' }}>
+                {(budgetRestant / 1000000).toFixed(0)}M
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Filters Panel */}
-        <ModernFiltersPanel />
+        {/* Types de formation */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          padding: '35px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          transition: 'transform 0.3s ease',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '25px'
+          }}>
+            <div style={{
+              fontSize: '32px',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+            }}>
+              📚
+            </div>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#333',
+              margin: 0
+            }}>
+              Types de Formation
+            </h3>
+          </div>
+          
+          <Chart
+            options={formationOptions}
+            series={formationSeries}
+            type="donut"
+            height={370}
+          />
+        </div>
+      </div>
+
+      {/* Évolutions */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gap: '30px'
+      }}>
+        {/* Évolution Collaborateurs */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          padding: '35px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          transition: 'transform 0.3s ease',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '25px'
+          }}>
+            <div style={{
+              fontSize: '32px',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+            }}>
+              👥
+            </div>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#333',
+              margin: 0
+            }}>
+              Collaborateurs Formés
+            </h3>
+          </div>
+          
+          <Chart
+            options={collaborateursEvolutionOptions}
+            series={collaborateursEvolutionSeries}
+            type="area"
+            height={320}
+          />
+        </div>
+
+        {/* Évolution Heures */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          padding: '35px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          transition: 'transform 0.3s ease',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '25px'
+          }}>
+            <div style={{
+              fontSize: '32px',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+            }}>
+              ⏱️
+            </div>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#333',
+              margin: 0
+            }}>
+              Distribution des Heures
+            </h3>
+          </div>
+          
+          <Chart
+            options={heuresEvolutionOptions}
+            series={heuresEvolutionSeries}
+            type="bar"
+            height={320}
+          />
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default DashboardFormation;
+```
+
+🎯 **Nouveautés ajoutées :**
+
+1. **Données sur 4 mois** : Août à Novembre 2025
+2. **Graphique d'évolution budgétaire principal** :
+   - Barres pour le coût mensuel
+   - Ligne pour le coût cumulé
+   - Ligne de référence pour le budget total
+   - Permet de voir l'évolution mois par mois et le respect du budget
+
+3. **Nouveaux graphiques d'évolution** :
+   - Évolution des collaborateurs formés (mensuel vs cumulé)
+   - Évolution des heures de formation (barres empilées)
+
+4. **Amélioration de la visualisation** :
+   - Labels des mois en français
+   - DataLabels sur les graphiques
+   - Tooltips détaillés
+   - Légendes interactives
+
+Le dashboard montre maintenant clairement la progression sur 4 mois et permet de suivre l'évolution du budget ! 📊✨
