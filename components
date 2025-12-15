@@ -1,1 +1,1051 @@
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Search, Check, X } from 'lucide-react';
 
+// Composant Select Personnalisé avec Recherche
+const CustomSelect = ({ 
+  options = [], 
+  value, 
+  onChange, 
+  placeholder = "Sélectionner une option",
+  label,
+  searchPlaceholder = "Rechercher...",
+  disabled = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const selectRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Filtrer les options selon la recherche
+  const filteredOptions = options.filter(option =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Trouver l'option sélectionnée
+  const selectedOption = options.find(opt => opt.value === value);
+
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus sur l'input de recherche quand on ouvre
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  // Gestion du clavier
+  const handleKeyDown = (e) => {
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        setIsOpen(true);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev < filteredOptions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => prev > 0 ? prev - 1 : 0);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && filteredOptions[highlightedIndex]) {
+          handleSelect(filteredOptions[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        setSearchTerm('');
+        break;
+    }
+  };
+
+  const handleSelect = (option) => {
+    onChange(option.value);
+    setIsOpen(false);
+    setSearchTerm('');
+    setHighlightedIndex(-1);
+  };
+
+  const clearSelection = (e) => {
+    e.stopPropagation();
+    onChange(null);
+  };
+
+  // Styles
+  const containerStyle = {
+    position: 'relative',
+    width: '100%'
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#374151'
+  };
+
+  const selectButtonStyle = {
+    width: '100%',
+    padding: '12px 16px',
+    backgroundColor: disabled ? '#f3f4f6' : 'white',
+    border: isOpen ? '2px solid #7c3aed' : '2px solid #e5e7eb',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.3s ease',
+    boxShadow: isOpen ? '0 4px 12px rgba(124, 58, 237, 0.2)' : 'none',
+    opacity: disabled ? 0.5 : 1
+  };
+
+  const placeholderStyle = {
+    color: selectedOption ? '#1f2937' : '#9ca3af',
+    fontSize: '15px',
+    fontWeight: selectedOption ? '500' : '400',
+    flex: 1,
+    textAlign: 'left'
+  };
+
+  const iconsContainerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  };
+
+  const iconStyle = {
+    transition: 'transform 0.3s ease',
+    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+    color: '#6b7280'
+  };
+
+  const clearButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '2px',
+    cursor: 'pointer',
+    color: '#9ca3af',
+    transition: 'color 0.2s ease'
+  };
+
+  const dropdownStyle = {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: '8px',
+    backgroundColor: 'white',
+    border: '1px solid #e5e7eb',
+    borderRadius: '12px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+    zIndex: 1000,
+    maxHeight: isOpen ? '400px' : '0',
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translateY(0)' : 'translateY(-10px)',
+    transition: 'all 0.3s ease',
+    overflow: 'hidden'
+  };
+
+  const searchContainerStyle = {
+    padding: '12px',
+    borderBottom: '1px solid #e5e7eb',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: 'white',
+    zIndex: 1001
+  };
+
+  const searchInputWrapperStyle = {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  };
+
+  const searchIconStyle = {
+    position: 'absolute',
+    left: '12px',
+    color: '#9ca3af'
+  };
+
+  const searchInputStyle = {
+    width: '100%',
+    padding: '10px 12px 10px 40px',
+    border: '2px solid #e5e7eb',
+    borderRadius: '8px',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'border-color 0.2s ease'
+  };
+
+  const optionsContainerStyle = {
+    maxHeight: '300px',
+    overflowY: 'auto',
+    padding: '8px'
+  };
+
+  const getOptionStyle = (option, index) => ({
+    padding: '12px 16px',
+    cursor: 'pointer',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    transition: 'all 0.2s ease',
+    backgroundColor: 
+      index === highlightedIndex ? '#f3e8ff' : 
+      option.value === value ? '#ede9fe' : 
+      'transparent',
+    marginBottom: '4px'
+  });
+
+  const optionTextStyle = {
+    fontSize: '15px',
+    color: '#1f2937',
+    fontWeight: '500'
+  };
+
+  const noResultsStyle = {
+    padding: '24px',
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: '14px'
+  };
+
+  return (
+    <div style={containerStyle} ref={selectRef}>
+      {label && <label style={labelStyle}>{label}</label>}
+      
+      <div
+        style={selectButtonStyle}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
+        tabIndex={disabled ? -1 : 0}
+        onMouseEnter={(e) => {
+          if (!disabled && !isOpen) {
+            e.currentTarget.style.borderColor = '#7c3aed';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.borderColor = '#e5e7eb';
+          }
+        }}
+      >
+        <span style={placeholderStyle}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        
+        <div style={iconsContainerStyle}>
+          {selectedOption && !disabled && (
+            <div
+              style={clearButtonStyle}
+              onClick={clearSelection}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+            >
+              <X size={18} />
+            </div>
+          )}
+          <ChevronDown size={20} style={iconStyle} />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div style={dropdownStyle}>
+          <div style={searchContainerStyle}>
+            <div style={searchInputWrapperStyle}>
+              <Search size={18} style={searchIconStyle} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setHighlightedIndex(0);
+                }}
+                style={searchInputStyle}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#7c3aed'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          </div>
+
+          <div style={optionsContainerStyle}>
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option, index) => (
+                <div
+                  key={option.value}
+                  style={getOptionStyle(option, index)}
+                  onClick={() => handleSelect(option)}
+                  onMouseEnter={(e) => {
+                    setHighlightedIndex(index);
+                    if (option.value !== value && index !== highlightedIndex) {
+                      e.currentTarget.style.backgroundColor = '#f3e8ff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (option.value !== value && index === highlightedIndex) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                >
+                  <span style={optionTextStyle}>{option.label}</span>
+                  {option.value === value && (
+                    <Check size={18} style={{ color: '#7c3aed' }} />
+                  )}
+                </div>
+              ))
+            ) : (
+              <div style={noResultsStyle}>
+                Aucun résultat trouvé
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Demo App
+export default function SelectDemo() {
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
+  const [selectedCity, setSelectedCity] = useState(null);
+
+  // Grandes listes d'options pour tester
+  const countries = [
+    { value: 'fr', label: '🇫🇷 France' },
+    { value: 'us', label: '🇺🇸 États-Unis' },
+    { value: 'uk', label: '🇬🇧 Royaume-Uni' },
+    { value: 'de', label: '🇩🇪 Allemagne' },
+    { value: 'es', label: '🇪🇸 Espagne' },
+    { value: 'it', label: '🇮🇹 Italie' },
+    { value: 'ca', label: '🇨🇦 Canada' },
+    { value: 'jp', label: '🇯🇵 Japon' },
+    { value: 'cn', label: '🇨🇳 Chine' },
+    { value: 'br', label: '🇧🇷 Brésil' },
+    { value: 'au', label: '🇦🇺 Australie' },
+    { value: 'in', label: '🇮🇳 Inde' },
+    { value: 'mx', label: '🇲🇽 Mexique' },
+    { value: 'kr', label: '🇰🇷 Corée du Sud' },
+    { value: 'ru', label: '🇷🇺 Russie' }
+  ];
+
+  const languages = [
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'typescript', label: 'TypeScript' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'csharp', label: 'C#' },
+    { value: 'php', label: 'PHP' },
+    { value: 'ruby', label: 'Ruby' },
+    { value: 'go', label: 'Go' },
+    { value: 'rust', label: 'Rust' },
+    { value: 'swift', label: 'Swift' },
+    { value: 'kotlin', label: 'Kotlin' },
+    { value: 'cpp', label: 'C++' }
+  ];
+
+  const cities = Array.from({ length: 50 }, (_, i) => ({
+    value: `city${i}`,
+    label: `Ville ${i + 1} - Exemple de nom très long pour tester`
+  }));
+
+  const containerStyle = {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    padding: '40px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+  const cardStyle = {
+    backgroundColor: 'white',
+    borderRadius: '20px',
+    padding: '40px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+    maxWidth: '600px',
+    width: '100%'
+  };
+
+  const titleStyle = {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: '12px',
+    textAlign: 'center'
+  };
+
+  const subtitleStyle = {
+    fontSize: '16px',
+    color: '#6b7280',
+    marginBottom: '32px',
+    textAlign: 'center'
+  };
+
+  const sectionStyle = {
+    marginBottom: '32px'
+  };
+
+  const resultStyle = {
+    marginTop: '16px',
+    padding: '12px 16px',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '8px',
+    fontSize: '14px',
+    color: '#4b5563'
+  };
+
+  const resultLabelStyle = {
+    fontWeight: '600',
+    color: '#1f2937'
+  };
+
+  return (
+    <div style={containerStyle}>
+      <div style={cardStyle}>
+        <h1 style={titleStyle}>🔍 Select avec Recherche</h1>
+        <p style={subtitleStyle}>
+          Un composant select personnalisé avec zone de recherche intégrée
+        </p>
+
+        <div style={sectionStyle}>
+          <CustomSelect
+            label="Sélectionnez votre pays"
+            options={countries}
+            value={selectedCountry}
+            onChange={setSelectedCountry}
+            placeholder="Choisir un pays..."
+            searchPlaceholder="Rechercher un pays..."
+          />
+          {selectedCountry && (
+            <div style={resultStyle}>
+              <span style={resultLabelStyle}>Pays sélectionné :</span>{' '}
+              {countries.find(c => c.value === selectedCountry)?.label}
+            </div>
+          )}
+        </div>
+
+        <div style={sectionStyle}>
+          <CustomSelect
+            label="Langage de programmation"
+            options={languages}
+            value={selectedLanguage}
+            onChange={setSelectedLanguage}
+            placeholder="Choisir un langage..."
+            searchPlaceholder="Rechercher..."
+          />
+          {selectedLanguage && (
+            <div style={resultStyle}>
+              <span style={resultLabelStyle}>Langage :</span>{' '}
+              {languages.find(l => l.value === selectedLanguage)?.label}
+            </div>
+          )}
+        </div>
+
+        <div style={sectionStyle}>
+          <CustomSelect
+            label="Grande liste (50 villes)"
+            options={cities}
+            value={selectedCity}
+            onChange={setSelectedCity}
+            placeholder="Choisir une ville..."
+            searchPlaceholder="Filtrer les villes..."
+          />
+          {selectedCity && (
+            <div style={resultStyle}>
+              <span style={resultLabelStyle}>Ville :</span>{' '}
+              {cities.find(c => c.value === selectedCity)?.label}
+            </div>
+          )}
+        </div>
+
+        <div style={sectionStyle}>
+          <CustomSelect
+            label="Select désactivé"
+            options={languages}
+            value={null}
+            onChange={() => {}}
+            placeholder="Ce select est désactivé"
+            disabled={true}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+
+
+import { useState } from 'react';
+import { 
+  Home, 
+  BookOpen, 
+  Calendar, 
+  FolderOpen, 
+  MessageSquare, 
+  FileText, 
+  Settings, 
+  LogOut,
+  Search,
+  Bell,
+  Mail,
+  ChevronDown,
+  Menu,
+  X
+} from 'lucide-react';
+
+const Sidebar = ({ isOpen, onClose }) => {
+  const [activeMenu, setActiveMenu] = useState('Dashboard');
+
+  const menuItems = [
+    { icon: Home, label: 'Dashboard', badge: null },
+    { icon: BookOpen, label: 'Lessons', badge: '3' },
+    { icon: Calendar, label: 'Schedule', badge: null },
+    { icon: FolderOpen, label: 'Materials', badge: null },
+    { icon: MessageSquare, label: 'Forum', badge: '12' },
+    { icon: FileText, label: 'Assessments', badge: null },
+    { icon: Settings, label: 'Settings', badge: null }
+  ];
+
+  const sidebarStyle = {
+    position: 'fixed',
+    left: isOpen ? '0' : '-280px',
+    top: 0,
+    width: '280px',
+    height: '100vh',
+    background: 'linear-gradient(180deg, #4F46E5 0%, #6366F1 100%)',
+    transition: 'left 0.3s ease',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
+  };
+
+  const logoContainerStyle = {
+    padding: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+  };
+
+  const logoStyle = {
+    width: '40px',
+    height: '40px',
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: '#4F46E5'
+  };
+
+  const brandStyle = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: 'white'
+  };
+
+  const menuContainerStyle = {
+    flex: 1,
+    padding: '24px 0',
+    overflowY: 'auto'
+  };
+
+  const getMenuItemStyle = (isActive) => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '14px 24px',
+    margin: '4px 0 4px 16px',
+    borderRadius: isActive ? '12px 0 0 12px' : '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    backgroundColor: isActive ? 'white' : 'transparent',
+    position: 'relative',
+    marginRight: isActive ? '-16px' : '16px',
+    paddingRight: isActive ? '40px' : '24px'
+  });
+
+  const menuLabelStyle = (isActive) => ({
+    color: isActive ? '#1F2937' : 'white',
+    fontSize: '15px',
+    fontWeight: isActive ? '600' : '500',
+    flex: 1
+  });
+
+  const badgeStyle = {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    fontSize: '11px',
+    fontWeight: '600',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    minWidth: '20px',
+    textAlign: 'center'
+  };
+
+  const logoutButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '14px 24px',
+    margin: '16px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  };
+
+  const closeButtonStyle = {
+    display: 'none',
+    position: 'absolute',
+    top: '24px',
+    right: '24px',
+    color: 'white',
+    cursor: 'pointer'
+  };
+
+  return (
+    <div style={sidebarStyle}>
+      <div style={closeButtonStyle} onClick={onClose}>
+        <X size={24} />
+      </div>
+
+      <div style={logoContainerStyle}>
+        <div style={logoStyle}>S</div>
+        <span style={brandStyle}>Smart</span>
+      </div>
+
+      <div style={menuContainerStyle}>
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeMenu === item.label;
+          
+          return (
+            <div
+              key={item.label}
+              style={getMenuItemStyle(isActive)}
+              onClick={() => setActiveMenu(item.label)}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
+            >
+              <Icon size={20} style={{ color: isActive ? '#4F46E5' : 'white' }} />
+              <span style={menuLabelStyle(isActive)}>{item.label}</span>
+              {item.badge && <span style={badgeStyle}>{item.badge}</span>}
+              
+              {/* Courbes inversées pour l'élément actif */}
+              {isActive && (
+                <>
+                  {/* Courbe en haut à droite */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: 0,
+                    width: '20px',
+                    height: '20px',
+                    backgroundColor: 'transparent',
+                    borderBottomRightRadius: '20px',
+                    boxShadow: '10px 10px 0 0 white'
+                  }} />
+                  
+                  {/* Courbe en bas à droite */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '-20px',
+                    right: 0,
+                    width: '20px',
+                    height: '20px',
+                    backgroundColor: 'transparent',
+                    borderTopRightRadius: '20px',
+                    boxShadow: '10px -10px 0 0 white'
+                  }} />
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        style={logoutButtonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        }}
+      >
+        <LogOut size={20} style={{ color: 'white' }} />
+        <span style={{ color: 'white', fontSize: '15px', fontWeight: '500' }}>
+          Log Out
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const Header = ({ onMenuClick }) => {
+  const [searchValue, setSearchValue] = useState('');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const headerStyle = {
+    position: 'fixed',
+    top: 0,
+    left: '280px',
+    right: 0,
+    height: '70px',
+    backgroundColor: 'white',
+    borderBottom: '1px solid #E5E7EB',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 32px',
+    gap: '24px',
+    zIndex: 999,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+  };
+
+  const mobileMenuStyle = {
+    display: 'none',
+    cursor: 'pointer',
+    color: '#6B7280'
+  };
+
+  const searchContainerStyle = {
+    flex: 1,
+    maxWidth: '500px',
+    position: 'relative'
+  };
+
+  const searchInputWrapperStyle = {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  };
+
+  const searchIconStyle = {
+    position: 'absolute',
+    left: '16px',
+    color: '#9CA3AF'
+  };
+
+  const searchInputStyle = {
+    width: '100%',
+    padding: '10px 16px 10px 48px',
+    border: '1px solid #E5E7EB',
+    borderRadius: '10px',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    backgroundColor: '#F9FAFB'
+  };
+
+  const actionsStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px'
+  };
+
+  const iconButtonStyle = {
+    width: '40px',
+    height: '40px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    backgroundColor: 'transparent',
+    position: 'relative'
+  };
+
+  const notificationDotStyle = {
+    position: 'absolute',
+    top: '8px',
+    right: '8px',
+    width: '8px',
+    height: '8px',
+    backgroundColor: '#EF4444',
+    borderRadius: '50%',
+    border: '2px solid white'
+  };
+
+  const languageSelectorStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    backgroundColor: 'transparent',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#374151'
+  };
+
+  const dividerStyle = {
+    width: '1px',
+    height: '32px',
+    backgroundColor: '#E5E7EB'
+  };
+
+  const profileContainerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '8px 12px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    backgroundColor: 'transparent',
+    position: 'relative'
+  };
+
+  const avatarStyle = {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#4F46E5',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: '600',
+    fontSize: '16px'
+  };
+
+  const profileInfoStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  };
+
+  const profileNameStyle = {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#111827'
+  };
+
+  const profileRoleStyle = {
+    fontSize: '12px',
+    color: '#6B7280'
+  };
+
+  return (
+    <div style={headerStyle}>
+      <div style={mobileMenuStyle} onClick={onMenuClick}>
+        <Menu size={24} />
+      </div>
+
+      <div style={searchContainerStyle}>
+        <div style={searchInputWrapperStyle}>
+          <Search size={18} style={searchIconStyle} />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            style={searchInputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#4F46E5';
+              e.currentTarget.style.backgroundColor = 'white';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#E5E7EB';
+              e.currentTarget.style.backgroundColor = '#F9FAFB';
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={actionsStyle}>
+        <div
+          style={languageSelectorStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          ENG
+          <ChevronDown size={16} />
+        </div>
+
+        <div
+          style={iconButtonStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <Mail size={20} style={{ color: '#6B7280' }} />
+          <div style={notificationDotStyle} />
+        </div>
+
+        <div
+          style={iconButtonStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <Bell size={20} style={{ color: '#6B7280' }} />
+          <div style={notificationDotStyle} />
+        </div>
+
+        <div style={dividerStyle} />
+
+        <div
+          style={profileContainerStyle}
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F3F4F6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <div style={avatarStyle}>GS</div>
+          <div style={profileInfoStyle}>
+            <span style={profileNameStyle}>Grace Stanley</span>
+            <span style={profileRoleStyle}>Student</span>
+          </div>
+          <ChevronDown size={16} style={{ color: '#6B7280' }} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function DashboardLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const layoutStyle = {
+    minHeight: '100vh',
+    backgroundColor: '#F9FAFB'
+  };
+
+  const mainContentStyle = {
+    marginLeft: '280px',
+    marginTop: '70px',
+    padding: '32px',
+    minHeight: 'calc(100vh - 70px)'
+  };
+
+  const contentCardStyle = {
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    padding: '32px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    minHeight: '400px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+  const placeholderStyle = {
+    textAlign: 'center',
+    color: '#9CA3AF'
+  };
+
+  const placeholderTitleStyle = {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: '8px'
+  };
+
+  const placeholderTextStyle = {
+    fontSize: '16px',
+    color: '#6B7280'
+  };
+
+  return (
+    <div style={layoutStyle}>
+      <style>{`
+        @media (max-width: 768px) {
+          .sidebar {
+            left: ${isSidebarOpen ? '0' : '-280px'} !important;
+          }
+          .header {
+            left: 0 !important;
+          }
+          .main-content {
+            margin-left: 0 !important;
+          }
+          .mobile-menu {
+            display: block !important;
+          }
+          .close-button {
+            display: block !important;
+          }
+        }
+      `}</style>
+
+      <div className="sidebar">
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      </div>
+
+      <div className="header">
+        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+      </div>
+
+      <div className="main-content" style={mainContentStyle}>
+        <div style={contentCardStyle}>
+          <div style={placeholderStyle}>
+            <h2 style={placeholderTitleStyle}>Zone de contenu</h2>
+            <p style={placeholderTextStyle}>
+              Ajoutez votre contenu ici (dashboard, graphiques, tables, etc.)
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
