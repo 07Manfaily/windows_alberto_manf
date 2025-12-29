@@ -1,803 +1,355 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
+import { MapPin, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
-const FormulaireVisualization = () => {
-  const dialogRef = useRef(null);
-  
-  const [formData, setFormData] = useState({
-    année: '',
-    cotisation: '',
-    note: null,
-    budget: [{ intitule: '', compte: '', budget: '' }],
-    ogf: [{ intitule: '', description: '' }]
-  });
+export default function ATMAlertLogin() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const ouvrirDialog = () => {
-    dialogRef.current?.showModal();
-  };
+  const cities = [
+    'Abidjan', 'Yamoussoukro', 'Bouaké', 'Daloa', 'San-Pédro',
+    'Korhogo', 'Man', 'Gagnoa', 'Divo', 'Abengourou',
+    'Grand-Bassam', 'Sassandra', 'Soubré', 'Agboville'
+  ];
 
-  const fermerDialog = () => {
-    dialogRef.current?.close();
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      note: e.target.files[0]
-    });
-  };
-
-  const handleBudgetChange = (index, field, value) => {
-    const nouveauxBudgets = [...formData.budget];
-    nouveauxBudgets[index][field] = value;
-    setFormData({ ...formData, budget: nouveauxBudgets });
-  };
-
-  const ajouterBudget = () => {
-    setFormData({
-      ...formData,
-      budget: [...formData.budget, { intitule: '', compte: '', budget: '' }]
-    });
-  };
-
-  const supprimerBudget = (index) => {
-    const nouveauxBudgets = formData.budget.filter((_, i) => i !== index);
-    setFormData({ ...formData, budget: nouveauxBudgets });
-  };
-
-  const handleOgfChange = (index, field, value) => {
-    const nouveauxOgfs = [...formData.ogf];
-    nouveauxOgfs[index][field] = value;
-    setFormData({ ...formData, ogf: nouveauxOgfs });
-  };
-
-  const ajouterOgf = () => {
-    setFormData({
-      ...formData,
-      ogf: [...formData.ogf, { intitule: '', description: '' }]
-    });
-  };
-
-  const supprimerOgf = (index) => {
-    const nouveauxOgfs = formData.ogf.filter((_, i) => i !== index);
-    setFormData({ ...formData, ogf: nouveauxOgfs });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Créer un FormData pour l'envoi avec fichier
-    const apiData = new FormData();
-    apiData.append('année', formData.année);
-    apiData.append('cotisation', formData.cotisation);
-    if (formData.note) {
-      apiData.append('note', formData.note);
-    }
-    apiData.append('budget', JSON.stringify(formData.budget));
-    apiData.append('ogf', JSON.stringify(formData.ogf));
-    
-    console.log('Données du formulaire:', formData);
-    console.log('FormData pour API:', {
-      année: formData.année,
-      cotisation: formData.cotisation,
-      note: formData.note ? formData.note.name : null,
-      budget: formData.budget,
-      ogf: formData.ogf
-    });
-    
-    alert('✅ Formulaire soumis avec succès !\n\nVoir la console pour les données.');
-    fermerDialog();
+  const handleSubmit = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      alert('Connexion réussie !');
+    }, 1500);
   };
 
   return (
     <div style={{
-      padding: '20px',
-      fontFamily: 'Arial, sans-serif',
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      padding: '20px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <div style={{
-        background: 'white',
-        padding: '40px',
-        borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        textAlign: 'center',
-        maxWidth: '600px'
-      }}>
-        <h1 style={{
-          color: '#667eea',
-          marginBottom: '10px',
-          fontSize: '32px',
-          marginTop: 0
-        }}>
-          🏦 Gestion Budgétaire
-        </h1>
-        <p style={{
-          color: '#666',
-          marginBottom: '30px',
-          fontSize: '16px'
-        }}>
-          Créez et gérez vos objectifs globaux de formation
-        </p>
-        
-        <button
-          onClick={ouvrirDialog}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-30px) rotate(10deg); }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scrollDown {
+          0% { transform: translateY(-100%); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100vh); opacity: 0; }
+        }
+        @keyframes scrollUp {
+          0% { transform: translateY(100vh); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(-100%); opacity: 0; }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.1); opacity: 1; }
+        }
+        .pin-1 { animation: scrollDown 15s linear infinite; animation-delay: 0s; }
+        .pin-2 { animation: scrollDown 18s linear infinite; animation-delay: 3s; }
+        .pin-3 { animation: scrollUp 20s linear infinite; animation-delay: 1s; }
+        .pin-4 { animation: scrollDown 16s linear infinite; animation-delay: 5s; }
+        .pin-5 { animation: scrollUp 19s linear infinite; animation-delay: 2s; }
+        .pin-6 { animation: scrollDown 17s linear infinite; animation-delay: 7s; }
+        .city-1 { animation: scrollDown 22s linear infinite; animation-delay: 1s; }
+        .city-2 { animation: scrollUp 25s linear infinite; animation-delay: 4s; }
+        .city-3 { animation: scrollDown 20s linear infinite; animation-delay: 6s; }
+        .city-4 { animation: scrollUp 23s linear infinite; animation-delay: 2s; }
+        .city-5 { animation: scrollDown 21s linear infinite; animation-delay: 8s; }
+        .city-6 { animation: scrollUp 24s linear infinite; animation-delay: 3s; }
+      `}</style>
+
+      {/* Animated Background Pins */}
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={`pin-${i}`}
+          className={`pin-${i}`}
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: 'none',
-            padding: '15px 40px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            position: 'absolute',
+            left: `${15 + (i * 14)}%`,
+            color: 'rgba(255, 255, 255, 0.15)',
+            pointerEvents: 'none'
           }}
         >
-          ✨ Créer un nouveau formulaire
-        </button>
-      </div>
+          <MapPin size={40} strokeWidth={2} />
+        </div>
+      ))}
 
-      <dialog
-        ref={dialogRef}
-        style={{
-          border: 'none',
-          borderRadius: '16px',
-          padding: '0',
-          maxWidth: '900px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-          backgroundColor: 'transparent'
-        }}
-      >
-        <div style={{
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-          padding: '30px',
-          maxHeight: '90vh',
-          overflowY: 'auto'
-        }}>
-          <div style={{
+      {/* Animated Cities */}
+      {cities.slice(0, 6).map((city, i) => (
+        <div
+          key={`city-${i}`}
+          className={`city-${i + 1}`}
+          style={{
+            position: 'absolute',
+            left: `${10 + (i * 15)}%`,
+            color: 'rgba(255, 255, 255, 0.2)',
+            fontSize: '14px',
+            fontWeight: '600',
+            pointerEvents: 'none',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '25px'
+            gap: '6px'
+          }}
+        >
+          <MapPin size={16} />
+          {city}
+        </div>
+      ))}
+
+      {/* Floating background blobs */}
+      <div style={{
+        position: 'absolute',
+        top: '15%',
+        left: '8%',
+        width: '250px',
+        height: '250px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '50%',
+        filter: 'blur(60px)',
+        animation: 'float 8s ease-in-out infinite'
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '15%',
+        right: '8%',
+        width: '300px',
+        height: '300px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '50%',
+        filter: 'blur(80px)',
+        animation: 'float 10s ease-in-out infinite reverse'
+      }} />
+
+      {/* Login Card */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '24px',
+        boxShadow: '0 25px 70px rgba(0, 0, 0, 0.35)',
+        width: '100%',
+        maxWidth: '440px',
+        padding: '48px 40px',
+        position: 'relative',
+        zIndex: 10,
+        animation: 'slideIn 0.6s ease-out',
+        border: '1px solid rgba(255, 255, 255, 0.3)'
+      }}>
+        {/* Logo and Title */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            marginBottom: '20px'
           }}>
-            <h2 style={{
-              margin: '0',
+            <div style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontSize: '28px',
-              fontWeight: 'bold'
+              borderRadius: '20px',
+              padding: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px rgba(102, 126, 234, 0.5)',
+              animation: 'pulse 3s ease-in-out infinite'
             }}>
-              Formulaire de Gestion Budgétaire
-            </h2>
-            <button
-              onClick={fermerDialog}
-              style={{
-                background: 'rgba(255, 255, 255, 0.8)',
-                border: 'none',
-                width: '35px',
-                height: '35px',
-                borderRadius: '50%',
-                fontSize: '20px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 59, 48, 0.8)';
-                e.target.style.color = 'white';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.8)';
-                e.target.style.color = 'black';
-              }}
-            >
-              ✕
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            {/* Section Informations générales */}
-            <div style={{
-              background: 'white',
-              padding: '25px',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-            }}>
-              <h3 style={{
-                marginTop: '0',
-                marginBottom: '20px',
-                color: '#667eea',
-                fontSize: '20px',
-                fontWeight: '600'
-              }}>
-                📋 Informations Générales
-              </h3>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '15px'
-              }}>
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Année d'exécution *
-                  </label>
-                  <input
-                    type="number"
-                    name="année"
-                    value={formData.année}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ex: 2024"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Cotisation FDTP *
-                  </label>
-                  <input
-                    type="text"
-                    name="cotisation"
-                    value={formData.cotisation}
-                    onChange={handleChange}
-                    required
-                    placeholder="Cotisation FDTP"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '14px'
-                  }}>
-                    Note d'orientation (fichier) *
-                  </label>
-                  <input
-                    type="file"
-                    name="note"
-                    onChange={handleFileChange}
-                    required
-                    accept=".pdf,.doc,.docx,.txt"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      transition: 'all 0.3s ease',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      cursor: 'pointer',
-                      backgroundColor: 'white'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                  {formData.note && (
-                    <p style={{
-                      marginTop: '8px',
-                      fontSize: '12px',
-                      color: '#667eea',
-                      fontWeight: '500'
-                    }}>
-                      📎 Fichier sélectionné: {formData.note.name}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <MapPin size={38} color="white" strokeWidth={2.5} />
             </div>
-
-            {/* Section Budget */}
-            <div style={{
-              background: 'white',
-              padding: '25px',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-              }}>
-                <h3 style={{
-                  margin: '0',
-                  color: '#667eea',
-                  fontSize: '20px',
-                  fontWeight: '600'
-                }}>
-                  💼 Budget(s)
-                </h3>
-                <button
-                  type="button"
-                  onClick={ajouterBudget}
-                  style={{
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 8px rgba(79, 172, 254, 0.3)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'scale(1.05)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(79, 172, 254, 0.5)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'scale(1)';
-                    e.target.style.boxShadow = '0 2px 8px rgba(79, 172, 254, 0.3)';
-                  }}
-                >
-                  ➕ Ajouter un Budget
-                </button>
-              </div>
-
-              {formData.budget.map((budgetItem, index) => (
-                <div
-                  key={index}
-                  style={{
-                    background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-                    padding: '20px',
-                    borderRadius: '10px',
-                    marginBottom: '15px',
-                    border: '2px solid rgba(168, 237, 234, 0.5)'
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '15px'
-                  }}>
-                    <h4 style={{
-                      margin: '0',
-                      color: '#2980b9',
-                      fontSize: '16px',
-                      fontWeight: '600'
-                    }}>
-                      Budget #{index + 1}
-                    </h4>
-                    {formData.budget.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => supprimerBudget(index)}
-                        style={{
-                          background: 'rgba(231, 76, 60, 0.8)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = 'rgba(231, 76, 60, 1)'}
-                        onMouseLeave={(e) => e.target.style.background = 'rgba(231, 76, 60, 0.8)'}
-                      >
-                        🗑️ Supprimer
-                      </button>
-                    )}
-                  </div>
-
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '15px'
-                  }}>
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        color: '#2980b9',
-                        fontWeight: '500',
-                        fontSize: '14px'
-                      }}>
-                        Intitulé *
-                      </label>
-                      <input
-                        type="text"
-                        value={budgetItem.intitule}
-                        onChange={(e) => handleBudgetChange(index, 'intitule', e.target.value)}
-                        required
-                        placeholder="Intitulé du compte"
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '2px solid rgba(255, 255, 255, 0.8)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: 'white'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        color: '#2980b9',
-                        fontWeight: '500',
-                        fontSize: '14px'
-                      }}>
-                        Compte *
-                      </label>
-                      <input
-                        type="text"
-                        value={budgetItem.compte}
-                        onChange={(e) => handleBudgetChange(index, 'compte', e.target.value)}
-                        required
-                        placeholder="Numéro de compte"
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '2px solid rgba(255, 255, 255, 0.8)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: 'white'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        color: '#2980b9',
-                        fontWeight: '500',
-                        fontSize: '14px'
-                      }}>
-                        Budget *
-                      </label>
-                      <input
-                        type="number"
-                        value={budgetItem.budget}
-                        onChange={(e) => handleBudgetChange(index, 'budget', e.target.value)}
-                        required
-                        placeholder="Montant du budget"
-                        step="0.01"
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '2px solid rgba(255, 255, 255, 0.8)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: 'white'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#2980b9'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Section OGF */}
-            <div style={{
-              background: 'white',
-              padding: '25px',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-              }}>
-                <h3 style={{
-                  margin: '0',
-                  color: '#667eea',
-                  fontSize: '20px',
-                  fontWeight: '600'
-                }}>
-                  📊 OGF (Objectifs Globaux de Formation)
-                </h3>
-                <button
-                  type="button"
-                  onClick={ajouterOgf}
-                  style={{
-                    background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 8px rgba(17, 153, 142, 0.3)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'scale(1.05)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(17, 153, 142, 0.5)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'scale(1)';
-                    e.target.style.boxShadow = '0 2px 8px rgba(17, 153, 142, 0.3)';
-                  }}
-                >
-                  ➕ Ajouter un OGF
-                </button>
-              </div>
-
-              {formData.ogf.map((ogfItem, index) => (
-                <div
-                  key={index}
-                  style={{
-                    background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-                    padding: '20px',
-                    borderRadius: '10px',
-                    marginBottom: '15px',
-                    border: '2px solid rgba(252, 182, 159, 0.5)'
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '15px'
-                  }}>
-                    <h4 style={{
-                      margin: '0',
-                      color: '#d35400',
-                      fontSize: '16px',
-                      fontWeight: '600'
-                    }}>
-                      OGF #{index + 1}
-                    </h4>
-                    {formData.ogf.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => supprimerOgf(index)}
-                        style={{
-                          background: 'rgba(231, 76, 60, 0.8)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = 'rgba(231, 76, 60, 1)'}
-                        onMouseLeave={(e) => e.target.style.background = 'rgba(231, 76, 60, 0.8)'}
-                      >
-                        🗑️ Supprimer
-                      </button>
-                    )}
-                  </div>
-
-                  <div style={{
-                    display: 'grid',
-                    gap: '15px'
-                  }}>
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        color: '#d35400',
-                        fontWeight: '500',
-                        fontSize: '14px'
-                      }}>
-                        Intitulé de l'OGF *
-                      </label>
-                      <input
-                        type="text"
-                        value={ogfItem.intitule}
-                        onChange={(e) => handleOgfChange(index, 'intitule', e.target.value)}
-                        required
-                        placeholder="Intitulé de l'OGF"
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '2px solid rgba(255, 255, 255, 0.8)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: 'white'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#d35400'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        color: '#d35400',
-                        fontWeight: '500',
-                        fontSize: '14px'
-                      }}>
-                        Description de l'OGF *
-                      </label>
-                      <textarea
-                        value={ogfItem.description}
-                        onChange={(e) => handleOgfChange(index, 'description', e.target.value)}
-                        required
-                        placeholder="Description détaillée de l'OGF"
-                        rows="3"
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '2px solid rgba(255, 255, 255, 0.8)',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          background: 'white',
-                          resize: 'vertical',
-                          fontFamily: 'Arial, sans-serif'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#d35400'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Boutons d'action */}
             <div style={{
               display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '15px',
-              marginTop: '30px'
+              flexDirection: 'column',
+              gap: '8px'
             }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <CheckCircle size={20} color="#10b981" style={{ animation: 'pulse 2s infinite' }} />
+                <span style={{ fontSize: '12px', color: '#10b981', fontWeight: '600' }}>Actifs</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <AlertCircle size={20} color="#ef4444" style={{ animation: 'pulse 2s infinite 1s' }} />
+                <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: '600' }}>Alertes</span>
+              </div>
+            </div>
+          </div>
+          
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '8px',
+            letterSpacing: '-1px'
+          }}>
+            Alerte DAB
+          </h1>
+          <p style={{
+            color: '#64748b',
+            fontSize: '15px',
+            margin: 0,
+            fontWeight: '500'
+          }}>
+            Surveillance des distributeurs en Côte d'Ivoire
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#334155',
+              marginBottom: '8px'
+            }}>
+              Nom d'utilisateur
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Entrez votre nom d'utilisateur"
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                fontSize: '15px',
+                border: '2px solid #e2e8f0',
+                borderRadius: '12px',
+                outline: 'none',
+                transition: 'all 0.3s',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#667eea';
+                e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e2e8f0';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '32px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#334155',
+              marginBottom: '8px'
+            }}>
+              Mot de passe
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Entrez votre mot de passe"
+                style={{
+                  width: '100%',
+                  padding: '14px 48px 14px 16px',
+                  fontSize: '15px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && username && password) {
+                    handleSubmit();
+                  }
+                }}
+              />
               <button
                 type="button"
-                onClick={fermerDialog}
+                onClick={() => setShowPassword(!showPassword)}
                 style={{
-                  background: 'linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%)',
-                  color: 'white',
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
                   border: 'none',
-                  padding: '14px 30px',
-                  borderRadius: '8px',
-                  fontSize: '15px',
-                  fontWeight: 'bold',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.2)'
+                  padding: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748b',
+                  transition: 'color 0.2s'
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.2)';
-                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#667eea'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#64748b'}
               >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '14px 40px',
-                  borderRadius: '8px',
-                  fontSize: '15px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 3px 10px rgba(102, 126, 234, 0.4)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 5px 15px rgba(102, 126, 234, 0.6)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 3px 10px rgba(102, 126, 234, 0.4)';
-                }}
-              >
-                💾 Enregistrer
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-          </form>
-        </div>
-      </dialog>
+          </div>
 
-      <style>
-        {`
-          dialog::backdrop {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-          }
-        `}
-      </style>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !username || !password}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '16px',
+              fontWeight: '700',
+              color: 'white',
+              background: (isLoading || !username || !password)
+                ? '#94a3b8' 
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: (isLoading || !username || !password) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s',
+              boxShadow: (isLoading || !username || !password)
+                ? 'none' 
+                : '0 4px 12px rgba(102, 126, 234, 0.4)',
+              fontFamily: 'inherit'
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading && username && password) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.6)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading && username && password) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+              }
+            }}
+          >
+            {isLoading ? 'Connexion en cours...' : 'Se connecter'}
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default FormulaireVisualization;
+}
