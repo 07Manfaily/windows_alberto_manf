@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Calendar, Upload, Users, FileText, BarChart3, Settings, Home, Plus, Search, Download, Eye, Trash2, Edit, RefreshCw, Check, X, FileSpreadsheet, FilePlus } from 'lucide-react';
+import { Building2, Calendar, Upload, Users, FileText, BarChart3, Settings, Home, Plus, Search, Download, Eye, Trash2, Edit, RefreshCw, Check, X, FileSpreadsheet, FilePlus, Sparkles, TrendingUp, Zap, Award } from 'lucide-react';
 
 const AGManagement = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -7,16 +7,16 @@ const AGManagement = () => {
   const [modalType, setModalType] = useState('');
 
   const stats = [
-    { label: 'Entreprises', value: '24', icon: Building2, color: 'blue', trend: '+12%' },
-    { label: 'AG Actives', value: '8', icon: Calendar, color: 'purple', trend: '+3' },
-    { label: 'Participants', value: '156', icon: Users, color: 'green', trend: '+24%' },
-    { label: 'Fichiers SGI', value: '42', icon: FileText, color: 'orange', trend: '+7' },
+    { label: 'Entreprises', value: '24', icon: Building2, color: 'blue', trend: '+12%', bg1: '#667eea', bg2: '#764ba2' },
+    { label: 'AG Actives', value: '8', icon: Calendar, color: 'purple', trend: '+3', bg1: '#f093fb', bg2: '#f5576c' },
+    { label: 'Participants', value: '156', icon: Users, color: 'green', trend: '+24%', bg1: '#4facfe', bg2: '#00f2fe' },
+    { label: 'Fichiers SGI', value: '42', icon: FileText, color: 'orange', trend: '+7', bg1: '#fa709a', bg2: '#fee140' },
   ];
 
   const recentAGs = [
-    { id: 1, company: 'SGCI Holding', date: '2025-12-20', status: 'En cours', participants: 45, files: 3 },
-    { id: 2, company: 'Tech Solutions SA', date: '2025-12-15', status: 'Complétée', participants: 32, files: 5 },
-    { id: 3, company: 'Finance Corp', date: '2026-01-10', status: 'Planifiée', participants: 28, files: 2 },
+    { id: 1, company: 'SGCI Holding', date: '2025-12-20', status: 'En cours', participants: 45, files: 3, progress: 75 },
+    { id: 2, company: 'Tech Solutions SA', date: '2025-12-15', status: 'Complétée', participants: 32, files: 5, progress: 100 },
+    { id: 3, company: 'Finance Corp', date: '2026-01-10', status: 'Planifiée', participants: 28, files: 2, progress: 30 },
   ];
 
   const openModal = (type) => {
@@ -24,162 +24,270 @@ const AGManagement = () => {
     setShowModal(true);
   };
 
-  const StatCard = ({ stat }) => {
+  const StatCard = ({ stat, index }) => {
     const Icon = stat.icon;
-    const gradients = {
-      blue: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-      purple: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)',
-      green: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-      orange: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
-    };
-
     return (
       <div style={{
-        background: '#ffffff',
-        borderRadius: '16px',
-        padding: '24px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer'
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        padding: '28px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.6)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        cursor: 'pointer',
+        position: 'relative',
+        overflow: 'hidden',
+        animation: `slideUp 0.6s ease-out ${index * 0.1}s backwards`
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.15)';
+        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+        e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.15)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.08)';
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-          <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '12px',
-            background: gradients[stat.color],
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-          }}>
-            <Icon style={{ width: '28px', height: '28px', color: '#ffffff' }} />
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          right: '-20%',
+          width: '200px',
+          height: '200px',
+          background: `linear-gradient(135deg, ${stat.bg1}20, ${stat.bg2}20)`,
+          borderRadius: '50%',
+          filter: 'blur(40px)',
+          zIndex: 0
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '18px',
+              background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: `0 8px 24px ${stat.bg1}40`,
+              position: 'relative'
+            }}>
+              <Icon style={{ width: '32px', height: '32px', color: '#ffffff' }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              padding: '6px 14px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+            }}>
+              <TrendingUp style={{ width: '14px', height: '14px', color: '#ffffff' }} />
+              <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>
+                {stat.trend}
+              </span>
+            </div>
           </div>
-          <span style={{
-            color: '#22c55e',
-            fontSize: '14px',
-            fontWeight: '600',
-            background: '#f0fdf4',
-            padding: '4px 12px',
-            borderRadius: '20px'
-          }}>
-            {stat.trend}
-          </span>
+          <h3 style={{ 
+            color: '#64748b', 
+            fontSize: '15px', 
+            fontWeight: '600', 
+            marginBottom: '8px',
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase'
+          }}>{stat.label}</h3>
+          <p style={{ 
+            fontSize: '42px', 
+            fontWeight: '800', 
+            background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>{stat.value}</p>
         </div>
-        <h3 style={{ color: '#6b7280', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>{stat.label}</h3>
-        <p style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937' }}>{stat.value}</p>
       </div>
     );
   };
 
-  const AGCard = ({ ag }) => {
-    const statusColors = {
-      'En cours': { bg: '#dbeafe', color: '#1e40af' },
-      'Complétée': { bg: '#dcfce7', color: '#166534' },
-      'Planifiée': { bg: '#f3e8ff', color: '#6b21a8' }
+  const AGCard = ({ ag, index }) => {
+    const statusConfig = {
+      'En cours': { bg: 'linear-gradient(135deg, #667eea, #764ba2)', glow: '#667eea' },
+      'Complétée': { bg: 'linear-gradient(135deg, #10b981, #059669)', glow: '#10b981' },
+      'Planifiée': { bg: 'linear-gradient(135deg, #f093fb, #f5576c)', glow: '#f093fb' }
     };
 
     return (
       <div style={{
-        background: '#ffffff',
-        borderRadius: '12px',
-        padding: '20px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #f3f4f6',
-        transition: 'all 0.3s ease'
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '20px',
+        padding: '24px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.8)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        overflow: 'hidden',
+        animation: `fadeIn 0.6s ease-out ${index * 0.15}s backwards`
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.12)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '4px',
+          background: statusConfig[ag.status].bg,
+          boxShadow: `0 0 20px ${statusConfig[ag.status].glow}60`
+        }} />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', marginTop: '8px' }}>
           <div>
-            <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', marginBottom: '4px' }}>{ag.company}</h4>
-            <p style={{ fontSize: '14px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h4 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>{ag.company}</h4>
+            <p style={{ fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Calendar style={{ width: '16px', height: '16px' }} />
               {ag.date}
             </p>
           </div>
           <span style={{
-            padding: '4px 12px',
-            borderRadius: '20px',
+            padding: '8px 16px',
+            borderRadius: '12px',
             fontSize: '12px',
-            fontWeight: '600',
-            backgroundColor: statusColors[ag.status].bg,
-            color: statusColors[ag.status].color
+            fontWeight: '700',
+            background: statusConfig[ag.status].bg,
+            color: '#ffffff',
+            boxShadow: `0 4px 12px ${statusConfig[ag.status].glow}40`,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
           }}>
             {ag.status}
           </span>
         </div>
         
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', fontSize: '14px', color: '#6b7280' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Users style={{ width: '16px', height: '16px' }} />
-            {ag.participants} participants
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+            <span style={{ color: '#64748b', fontWeight: '600' }}>Progression</span>
+            <span style={{ color: '#1e293b', fontWeight: '700' }}>{ag.progress}%</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <FileText style={{ width: '16px', height: '16px' }} />
-            {ag.files} fichiers
+          <div style={{
+            width: '100%',
+            height: '8px',
+            background: '#e2e8f0',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${ag.progress}%`,
+              height: '100%',
+              background: statusConfig[ag.status].bg,
+              borderRadius: '8px',
+              transition: 'width 1s ease-out',
+              boxShadow: `0 0 12px ${statusConfig[ag.status].glow}60`
+            }} />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontSize: '14px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            padding: '8px 12px',
+            background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+            borderRadius: '10px'
+          }}>
+            <Users style={{ width: '18px', height: '18px', color: '#3b82f6' }} />
+            <span style={{ fontWeight: '600', color: '#1e40af' }}>{ag.participants}</span>
+          </div>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            padding: '8px 12px',
+            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+            borderRadius: '10px'
+          }}>
+            <FileText style={{ width: '18px', height: '18px', color: '#f59e0b' }} />
+            <span style={{ fontWeight: '600', color: '#b45309' }}>{ag.files}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button style={{
             flex: 1,
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
             color: '#ffffff',
-            padding: '8px 16px',
-            borderRadius: '8px',
+            padding: '12px 20px',
+            borderRadius: '12px',
             border: 'none',
             fontSize: '14px',
-            fontWeight: '500',
+            fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
             cursor: 'pointer',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'}>
-            <Eye style={{ width: '16px', height: '16px' }} />
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          }}>
+            <Eye style={{ width: '18px', height: '18px' }} />
             Voir
           </button>
           <button style={{
-            background: '#f3f4f6',
-            color: '#374151',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            border: 'none',
+            background: 'rgba(100, 116, 139, 0.1)',
+            backdropFilter: 'blur(10px)',
+            color: '#475569',
+            padding: '12px',
+            borderRadius: '12px',
+            border: '1px solid rgba(100, 116, 139, 0.2)',
             cursor: 'pointer',
             transition: 'all 0.3s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-          onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
-            <Edit style={{ width: '16px', height: '16px' }} />
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}>
+            <Edit style={{ width: '18px', height: '18px' }} />
           </button>
           <button style={{
-            background: '#f3f4f6',
-            color: '#374151',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            border: 'none',
+            background: 'rgba(100, 116, 139, 0.1)',
+            backdropFilter: 'blur(10px)',
+            color: '#475569',
+            padding: '12px',
+            borderRadius: '12px',
+            border: '1px solid rgba(100, 116, 139, 0.2)',
             cursor: 'pointer',
             transition: 'all 0.3s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-          onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
-            <Download style={{ width: '16px', height: '16px' }} />
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}>
+            <Download style={{ width: '18px', height: '18px' }} />
           </button>
         </div>
       </div>
@@ -187,473 +295,271 @@ const AGManagement = () => {
   };
 
   const DashboardView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        animation: 'fadeIn 0.6s ease-out'
+      }}>
         <div>
-          <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Tableau de bord</h2>
-          <p style={{ color: '#6b7280' }}>Vue d'ensemble de vos assemblées générales</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <h2 style={{ 
+              fontSize: '40px', 
+              fontWeight: '800', 
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Tableau de bord</h2>
+            <Sparkles style={{ width: '32px', height: '32px', color: '#667eea' }} />
+          </div>
+          <p style={{ color: '#64748b', fontSize: '16px' }}>Vue d'ensemble de vos assemblées générales</p>
         </div>
         <button 
           onClick={() => openModal('createAG')}
           style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
             color: '#ffffff',
-            padding: '12px 24px',
-            borderRadius: '12px',
+            padding: '16px 32px',
+            borderRadius: '16px',
             border: 'none',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            fontWeight: '500',
+            gap: '10px',
+            fontWeight: '700',
+            fontSize: '15px',
             cursor: 'pointer',
             transition: 'all 0.3s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.5)';
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(102, 126, 234, 0.5)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
           }}>
-          <Plus style={{ width: '20px', height: '20px' }} />
+          <Plus style={{ width: '22px', height: '22px' }} />
           Nouvelle AG
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
         {stats.map((stat, idx) => (
-          <StatCard key={idx} stat={stat} />
+          <StatCard key={idx} stat={stat} index={idx} />
         ))}
       </div>
 
-      <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937' }}>Assemblées Générales Récentes</h3>
+      <div style={{ 
+        background: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px', 
+        padding: '32px', 
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.6)',
+        animation: 'slideUp 0.6s ease-out 0.3s backwards'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '4px' }}>
+              Assemblées Générales Récentes
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '14px' }}>Suivez l'avancement de vos AG</p>
+          </div>
           <button style={{
-            padding: '8px 16px',
-            background: '#eff6ff',
+            padding: '10px 20px',
+            background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
             color: '#2563eb',
-            borderRadius: '8px',
+            borderRadius: '12px',
             border: 'none',
             fontSize: '14px',
-            fontWeight: '500',
+            fontWeight: '600',
             cursor: 'pointer',
             transition: 'all 0.3s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
-          onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #dbeafe, #bfdbfe)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #eff6ff, #dbeafe)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}>
             Toutes les AG
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-          {recentAGs.map(ag => (
-            <AGCard key={ag.id} ag={ag} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          {recentAGs.map((ag, index) => (
+            <AGCard key={ag.id} ag={ag} index={index} />
           ))}
         </div>
       </div>
-    </div>
-  );
 
-  const AGListView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937' }}>Gestion des Assemblées Générales</h2>
-        <button 
-          onClick={() => openModal('createAG')}
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-            color: '#ffffff',
-            padding: '12px 24px',
-            borderRadius: '12px',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}>
-          <Plus style={{ width: '20px', height: '20px' }} />
-          Créer une AG
-        </button>
-      </div>
-
-      <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', color: '#9ca3af' }} />
-            <input 
-              type="text" 
-              placeholder="Rechercher une entreprise, une date..." 
-              style={{
-                width: '100%',
-                paddingLeft: '40px',
-                paddingRight: '16px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'all 0.3s ease'
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#3b82f6';
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-          <button style={{
-            padding: '12px 24px',
-            background: '#f3f4f6',
-            color: '#374151',
-            borderRadius: '12px',
-            border: 'none',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-          onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
-            Filtres
-          </button>
-        </div>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '16px', fontWeight: '600', color: '#374151' }}>Entreprise</th>
-                <th style={{ textAlign: 'left', padding: '16px', fontWeight: '600', color: '#374151' }}>Date AG</th>
-                <th style={{ textAlign: 'left', padding: '16px', fontWeight: '600', color: '#374151' }}>Statut</th>
-                <th style={{ textAlign: 'left', padding: '16px', fontWeight: '600', color: '#374151' }}>Participants</th>
-                <th style={{ textAlign: 'left', padding: '16px', fontWeight: '600', color: '#374151' }}>Fichiers</th>
-                <th style={{ textAlign: 'right', padding: '16px', fontWeight: '600', color: '#374151' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentAGs.map(ag => {
-                const statusColors = {
-                  'En cours': { bg: '#dbeafe', color: '#1e40af' },
-                  'Complétée': { bg: '#dcfce7', color: '#166534' },
-                  'Planifiée': { bg: '#f3e8ff', color: '#6b21a8' }
-                };
-                
-                return (
-                  <tr key={ag.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s ease' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          width: '40px',
-                          height: '40px',
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #a855f7 100%)',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <Building2 style={{ width: '20px', height: '20px', color: '#ffffff' }} />
-                        </div>
-                        <span style={{ fontWeight: '500', color: '#1f2937' }}>{ag.company}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '16px', color: '#6b7280' }}>{ag.date}</td>
-                    <td style={{ padding: '16px' }}>
-                      <span style={{
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        backgroundColor: statusColors[ag.status].bg,
-                        color: statusColors[ag.status].color,
-                        display: 'inline-block'
-                      }}>
-                        {ag.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px', color: '#6b7280' }}>{ag.participants}</td>
-                    <td style={{ padding: '16px', color: '#6b7280' }}>{ag.files}</td>
-                    <td style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                        <button style={{
-                          padding: '8px',
-                          background: '#eff6ff',
-                          color: '#2563eb',
-                          borderRadius: '8px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}>
-                          <Eye style={{ width: '16px', height: '16px' }} />
-                        </button>
-                        <button style={{
-                          padding: '8px',
-                          background: '#f3f4f6',
-                          color: '#6b7280',
-                          borderRadius: '8px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
-                          <Edit style={{ width: '16px', height: '16px' }} />
-                        </button>
-                        <button style={{
-                          padding: '8px',
-                          background: '#fef2f2',
-                          color: '#dc2626',
-                          borderRadius: '8px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}>
-                          <Trash2 style={{ width: '16px', height: '16px' }} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 
   const FilesView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937' }}>Gestion des Fichiers SGI</h2>
+        <h2 style={{ 
+          fontSize: '36px', 
+          fontWeight: '800',
+          background: 'linear-gradient(135deg, #fa709a, #fee140)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>Gestion des Fichiers SGI</h2>
         <button 
           onClick={() => openModal('uploadFile')}
           style={{
-            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+            background: 'linear-gradient(135deg, #10b981, #059669)',
             color: '#ffffff',
-            padding: '12px 24px',
-            borderRadius: '12px',
+            padding: '14px 28px',
+            borderRadius: '16px',
             border: 'none',
-            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
             cursor: 'pointer',
+            fontWeight: '700',
             transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(16, 185, 129, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.4)';
           }}>
           <Upload style={{ width: '20px', height: '20px' }} />
           Uploader des fichiers
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-          borderRadius: '16px',
-          padding: '24px',
-          color: '#ffffff',
-          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-        }}>
-          <FileSpreadsheet style={{ width: '48px', height: '48px', marginBottom: '16px', opacity: 0.9 }} />
-          <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Fichiers CSV</h3>
-          <p style={{ fontSize: '32px', fontWeight: '700' }}>24</p>
-          <p style={{ color: '#bfdbfe', fontSize: '14px', marginTop: '8px' }}>Listes d'actionnaires</p>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)',
-          borderRadius: '16px',
-          padding: '24px',
-          color: '#ffffff',
-          boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)'
-        }}>
-          <FileText style={{ width: '48px', height: '48px', marginBottom: '16px', opacity: 0.9 }} />
-          <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Dépositaires PDF</h3>
-          <p style={{ fontSize: '32px', fontWeight: '700' }}>18</p>
-          <p style={{ color: '#e9d5ff', fontSize: '14px', marginTop: '8px' }}>Documents importés</p>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-          borderRadius: '16px',
-          padding: '24px',
-          color: '#ffffff',
-          boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)'
-        }}>
-          <RefreshCw style={{ width: '48px', height: '48px', marginBottom: '16px', opacity: 0.9 }} />
-          <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Comparaisons</h3>
-          <p style={{ fontSize: '32px', fontWeight: '700' }}>12</p>
-          <p style={{ color: '#fed7aa', fontSize: '14px', marginTop: '8px' }}>AG vs Dépositaire</p>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+        {[
+          { icon: FileSpreadsheet, title: 'Fichiers CSV', count: '24', desc: 'Listes d\'actionnaires', bg1: '#4facfe', bg2: '#00f2fe' },
+          { icon: FileText, title: 'Dépositaires PDF', count: '18', desc: 'Documents importés', bg1: '#fa709a', bg2: '#fee140' },
+          { icon: RefreshCw, title: 'Comparaisons', count: '12', desc: 'AG vs Dépositaire', bg1: '#f093fb', bg2: '#f5576c' },
+          { icon: Award, title: 'Rapports', count: '31', desc: 'Analyses générées', bg1: '#667eea', bg2: '#764ba2' }
+        ].map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <div key={index} style={{
+              background: `linear-gradient(135deg, ${item.bg1}, ${item.bg2})`,
+              borderRadius: '20px',
+              padding: '28px',
+              color: '#ffffff',
+              boxShadow: `0 8px 32px ${item.bg1}40`,
+              transition: 'all 0.4s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              animation: `slideUp 0.6s ease-out ${index * 0.1}s backwards`
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+              e.currentTarget.style.boxShadow = `0 16px 48px ${item.bg1}60`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = `0 8px 32px ${item.bg1}40`;
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-50px',
+                right: '-50px',
+                width: '150px',
+                height: '150px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '50%',
+                filter: 'blur(40px)'
+              }} />
+              <Icon style={{ width: '56px', height: '56px', marginBottom: '20px', opacity: 0.95, position: 'relative', zIndex: 1 }} />
+              <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{item.title}</h3>
+              <p style={{ fontSize: '48px', fontWeight: '800', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{item.count}</p>
+              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px', position: 'relative', zIndex: 1 }}>{item.desc}</p>
+            </div>
+          );
+        })}
       </div>
 
-      <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>Actions rapides</h3>
+      <div style={{ 
+        background: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px', 
+        padding: '28px', 
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.6)'
+      }}>
+        <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '24px' }}>Actions rapides</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          <button style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '16px',
-            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            textAlign: 'left'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1)';
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: '#3b82f6',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.3s ease'
-            }}>
-              <Upload style={{ width: '24px', height: '24px', color: '#ffffff' }} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: '700', color: '#1f2937' }}>Upload fichiers SGI</h4>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>CSV ou XLSX</p>
-            </div>
-          </button>
-
-          <button style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '16px',
-            background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            textAlign: 'left'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1)';
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: '#a855f7',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.3s ease'
-            }}>
-              <FilePlus style={{ width: '24px', height: '24px', color: '#ffffff' }} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: '700', color: '#1f2937' }}>Import dépositaire</h4>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>Fichier PDF</p>
-            </div>
-          </button>
-
-          <button style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '16px',
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            textAlign: 'left'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1)';
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: '#22c55e',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.3s ease'
-            }}>
-              <BarChart3 style={{ width: '24px', height: '24px', color: '#ffffff' }} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: '700', color: '#1f2937' }}>Comparer</h4>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>AG vs Dépositaire</p>
-            </div>
-          </button>
-
-          <button style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '16px',
-            background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            textAlign: 'left'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)';
-            e.currentTarget.querySelector('div').style.transform = 'scale(1)';
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: '#f97316',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.3s ease'
-            }}>
-              <Download style={{ width: '24px', height: '24px', color: '#ffffff' }} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: '700', color: '#1f2937' }}>Export</h4>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>CSV ou XLSX</p>
-            </div>
-          </button>
+          {[
+            { icon: Upload, title: 'Upload fichiers SGI', desc: 'CSV ou XLSX', bg1: '#4facfe', bg2: '#00f2fe' },
+            { icon: FilePlus, title: 'Import dépositaire', desc: 'Fichier PDF', bg1: '#fa709a', bg2: '#fee140' },
+            { icon: BarChart3, title: 'Comparer', desc: 'AG vs Dépositaire', bg1: '#10b981', bg2: '#059669' },
+            { icon: Download, title: 'Export', desc: 'CSV ou XLSX', bg1: '#f093fb', bg2: '#f5576c' }
+          ].map((action, index) => {
+            const Icon = action.icon;
+            return (
+              <button key={index} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '20px',
+                background: `linear-gradient(135deg, ${action.bg1}15, ${action.bg2}15)`,
+                borderRadius: '16px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'left'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${action.bg1}25, ${action.bg2}25)`;
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = `0 8px 24px ${action.bg1}30`;
+                e.currentTarget.querySelector('div').style.transform = 'scale(1.1) rotate(5deg)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${action.bg1}15, ${action.bg2}15)`;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.querySelector('div').style.transform = 'scale(1) rotate(0deg)';
+              }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  background: `linear-gradient(135deg, ${action.bg1}, ${action.bg2})`,
+                  borderRadius: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'transform 0.3s ease',
+                  boxShadow: `0 4px 12px ${action.bg1}40`
+                }}>
+                  <Icon style={{ width: '28px', height: '28px', color: '#ffffff' }} />
+                </div>
+                <div>
+                  <h4 style={{ fontWeight: '700', color: '#1e293b', fontSize: '16px', marginBottom: '2px' }}>{action.title}</h4>
+                  <p style={{ fontSize: '13px', color: '#64748b' }}>{action.desc}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -666,64 +572,84 @@ const AGManagement = () => {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 50,
-        padding: '16px'
+        padding: '20px',
+        animation: 'fadeIn 0.3s ease-out'
       }}>
         <div style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          padding: '24px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          padding: '32px',
           maxWidth: '600px',
           width: '100%',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-          transform: 'scale(1)',
-          transition: 'transform 0.3s ease'
+          boxShadow: '0 20px 80px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
+          animation: 'slideUp 0.4s ease-out'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+            <h3 style={{ 
+              fontSize: '28px', 
+              fontWeight: '800', 
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
               {modalType === 'createAG' ? 'Créer une nouvelle AG' :
                modalType === 'uploadFile' ? 'Uploader des fichiers SGI' : 'Nouvelle action'}
             </h3>
             <button 
               onClick={() => setShowModal(false)}
               style={{
-                padding: '8px',
-                background: 'transparent',
+                padding: '10px',
+                background: 'rgba(100, 116, 139, 0.1)',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 cursor: 'pointer',
-                transition: 'background 0.3s ease'
+                transition: 'all 0.3s ease'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-              <X style={{ width: '24px', height: '24px', color: '#6b7280' }} />
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+                e.currentTarget.style.transform = 'rotate(90deg)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+                e.currentTarget.style.transform = 'rotate(0deg)';
+              }}>
+              <X style={{ width: '24px', height: '24px', color: '#64748b' }} />
             </button>
           </div>
 
           {modalType === 'createAG' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Entreprise</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Entreprise</label>
                 <select style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '14px',
+                  padding: '14px 18px',
+                  border: '2px solid transparent',
+                  borderRadius: '14px',
+                  fontSize: '15px',
                   outline: 'none',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  fontWeight: '500',
+                  cursor: 'pointer'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#3b82f6';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  e.currentTarget.style.background = '#ffffff';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.borderColor = 'transparent';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
                 }}>
                   <option>Sélectionner une entreprise</option>
                   <option>SGCI Holding</option>
@@ -733,91 +659,111 @@ const AGManagement = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Date de l'AG</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date de l'AG</label>
                 <input 
                   type="date" 
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
-                    fontSize: '14px',
+                    padding: '14px 18px',
+                    border: '2px solid transparent',
+                    borderRadius: '14px',
+                    fontSize: '15px',
                     outline: 'none',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    background: 'rgba(241, 245, 249, 0.8)',
+                    fontWeight: '500'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#3b82f6';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    e.currentTarget.style.borderColor = '#667eea';
+                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                    e.currentTarget.style.background = '#ffffff';
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.borderColor = 'transparent';
                     e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Informations entreprise (JSON)</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Informations entreprise (JSON)</label>
                 <textarea 
                   rows="4"
                   placeholder='{"entreprise_id": 0, "nom_entreprise": "string"}'
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
+                    padding: '14px 18px',
+                    border: '2px solid transparent',
+                    borderRadius: '14px',
                     fontSize: '14px',
                     fontFamily: 'monospace',
                     outline: 'none',
                     transition: 'all 0.3s ease',
+                    background: 'rgba(241, 245, 249, 0.8)',
                     resize: 'vertical'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#3b82f6';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                    e.currentTarget.style.borderColor = '#667eea';
+                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                    e.currentTarget.style.background = '#ffffff';
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.borderColor = 'transparent';
                     e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', gap: '14px', paddingTop: '12px' }}>
                 <button 
                   onClick={() => setShowModal(false)}
                   style={{
                     flex: 1,
-                    padding: '12px 24px',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    borderRadius: '12px',
+                    padding: '14px 24px',
+                    background: 'rgba(100, 116, 139, 0.1)',
+                    color: '#475569',
+                    borderRadius: '14px',
                     border: 'none',
-                    fontWeight: '500',
+                    fontWeight: '700',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}>
                   Annuler
                 </button>
                 <button style={{
                   flex: 1,
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  padding: '14px 24px',
+                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
                   color: '#ffffff',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   border: 'none',
-                  fontWeight: '500',
+                  fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'}>
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                }}>
                   <Check style={{ width: '20px', height: '20px' }} />
                   Créer l'AG
                 </button>
@@ -826,25 +772,30 @@ const AGManagement = () => {
           )}
 
           {modalType === 'uploadFile' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>AG concernée</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AG concernée</label>
                 <select style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '14px',
+                  padding: '14px 18px',
+                  border: '2px solid transparent',
+                  borderRadius: '14px',
+                  fontSize: '15px',
                   outline: 'none',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  fontWeight: '500',
+                  cursor: 'pointer'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#22c55e';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.1)';
+                  e.currentTarget.style.borderColor = '#10b981';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.1)';
+                  e.currentTarget.style.background = '#ffffff';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.borderColor = 'transparent';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
                 }}>
                   <option>Sélectionner une AG</option>
                   {recentAGs.map(ag => (
@@ -854,97 +805,127 @@ const AGManagement = () => {
               </div>
 
               <div style={{
-                border: '2px dashed #d1d5db',
-                borderRadius: '12px',
-                padding: '32px',
+                border: '3px dashed #cbd5e1',
+                borderRadius: '16px',
+                padding: '40px',
                 textAlign: 'center',
-                background: '#f9fafb',
+                background: 'linear-gradient(135deg, rgba(241, 245, 249, 0.5), rgba(226, 232, 240, 0.5))',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#22c55e'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}>
-                <Upload style={{ width: '48px', height: '48px', color: '#9ca3af', margin: '0 auto 16px' }} />
-                <p style={{ color: '#374151', fontWeight: '500', marginBottom: '8px' }}>Glissez-déposez vos fichiers ici</p>
-                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>ou cliquez pour sélectionner</p>
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#10b981';
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#cbd5e1';
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(241, 245, 249, 0.5), rgba(226, 232, 240, 0.5))';
+              }}>
+                <Upload style={{ width: '56px', height: '56px', color: '#94a3b8', margin: '0 auto 20px' }} />
+                <p style={{ color: '#475569', fontWeight: '600', marginBottom: '8px', fontSize: '16px' }}>Glissez-déposez vos fichiers ici</p>
+                <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>ou cliquez pour sélectionner</p>
                 <button style={{
-                  padding: '8px 24px',
-                  background: '#22c55e',
+                  padding: '10px 28px',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
                   color: '#ffffff',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   border: 'none',
                   cursor: 'pointer',
-                  transition: 'background 0.3s ease'
+                  fontWeight: '700',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#16a34a'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#22c55e'}>
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                }}>
                   Parcourir
                 </button>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '16px' }}>Formats acceptés: CSV, XLSX (max 10MB)</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '16px' }}>Formats acceptés: CSV, XLSX (max 10MB)</p>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Informations SGI (optionnel)</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Informations SGI (optionnel)</label>
                 <textarea 
                   rows="3"
                   placeholder='{"sgi_id": 5, "nom_sgi": "Nom SGI"}'
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
+                    padding: '14px 18px',
+                    border: '2px solid transparent',
+                    borderRadius: '14px',
                     fontSize: '14px',
                     fontFamily: 'monospace',
                     outline: 'none',
                     transition: 'all 0.3s ease',
+                    background: 'rgba(241, 245, 249, 0.8)',
                     resize: 'vertical'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#22c55e';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.1)';
+                    e.currentTarget.style.borderColor = '#10b981';
+                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.1)';
+                    e.currentTarget.style.background = '#ffffff';
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.borderColor = 'transparent';
                     e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', gap: '14px', paddingTop: '12px' }}>
                 <button 
                   onClick={() => setShowModal(false)}
                   style={{
                     flex: 1,
-                    padding: '12px 24px',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    borderRadius: '12px',
+                    padding: '14px 24px',
+                    background: 'rgba(100, 116, 139, 0.1)',
+                    color: '#475569',
+                    borderRadius: '14px',
                     border: 'none',
-                    fontWeight: '500',
+                    fontWeight: '700',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}>
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}>
                   Annuler
                 </button>
                 <button style={{
                   flex: 1,
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  padding: '14px 24px',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
                   color: '#ffffff',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   border: 'none',
-                  fontWeight: '500',
+                  fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}>
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
+                }}>
                   <Upload style={{ width: '20px', height: '20px' }} />
                   Uploader
                 </button>
@@ -967,22 +948,66 @@ const AGManagement = () => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)' }}>
-      {/* Sidebar */}
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-10%',
+        right: '-5%',
+        width: '40%',
+        height: '40%',
+        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(60px)'
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '-15%',
+        left: '-8%',
+        width: '45%',
+        height: '45%',
+        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(80px)'
+      }} />
+
       <div style={{
         position: 'fixed',
         left: 0,
         top: 0,
         height: '100%',
-        width: '256px',
-        background: 'linear-gradient(180deg, #111827 0%, #1f2937 100%)',
+        width: '280px',
+        background: 'rgba(30, 41, 59, 0.95)',
+        backdropFilter: 'blur(20px)',
         color: '#ffffff',
-        padding: '24px',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+        padding: '32px 24px',
+        boxShadow: '0 10px 60px rgba(0, 0, 0, 0.3)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+        zIndex: 10
       }}>
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '4px' }}>AG Online</h1>
-          <p style={{ color: '#9ca3af', fontSize: '14px' }}>Gestion d'Assemblées</p>
+        <div style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+            }}>
+              <Zap style={{ width: '28px', height: '28px', color: '#ffffff' }} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '2px' }}>AG Online</h1>
+              <p style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500' }}>Gestion d'Assemblées</p>
+            </div>
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -997,30 +1022,32 @@ const AGManagement = () => {
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
+                  gap: '14px',
+                  padding: '14px 18px',
+                  borderRadius: '14px',
                   border: 'none',
-                  background: isActive ? '#3b82f6' : 'transparent',
-                  color: isActive ? '#ffffff' : '#d1d5db',
+                  background: isActive ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
+                  color: isActive ? '#ffffff' : '#cbd5e1',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  boxShadow: isActive ? '0 4px 12px rgba(59, 130, 246, 0.5)' : 'none'
+                  boxShadow: isActive ? '0 4px 16px rgba(102, 126, 234, 0.4)' : 'none'
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = '#374151';
+                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
                     e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.transform = 'translateX(4px)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#d1d5db';
+                    e.currentTarget.style.color = '#cbd5e1';
+                    e.currentTarget.style.transform = 'translateX(0)';
                   }
                 }}>
-                <Icon style={{ width: '20px', height: '20px' }} />
-                <span style={{ fontWeight: '500' }}>{item.label}</span>
+                <Icon style={{ width: '22px', height: '22px' }} />
+                <span style={{ fontWeight: '600', fontSize: '15px' }}>{item.label}</span>
               </button>
             );
           })}
@@ -1028,70 +1055,114 @@ const AGManagement = () => {
 
         <div style={{
           position: 'absolute',
-          bottom: '24px',
+          bottom: '32px',
           left: '24px',
           right: '24px'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #a855f7 100%)',
-            borderRadius: '12px',
-            padding: '16px'
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            borderRadius: '16px',
+            padding: '20px',
+            boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Besoin d'aide ?</p>
-            <p style={{ fontSize: '12px', color: '#bfdbfe', marginBottom: '12px' }}>Consultez notre documentation</p>
+            <div style={{
+              position: 'absolute',
+              top: '-20px',
+              right: '-20px',
+              width: '100px',
+              height: '100px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              filter: 'blur(30px)'
+            }} />
+            <Sparkles style={{ width: '24px', height: '24px', marginBottom: '12px', position: 'relative', zIndex: 1 }} />
+            <p style={{ fontSize: '14px', fontWeight: '700', marginBottom: '6px', position: 'relative', zIndex: 1 }}>Besoin d'aide ?</p>
+            <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '14px', position: 'relative', zIndex: 1 }}>Consultez notre documentation</p>
             <button style={{
               width: '100%',
-              background: '#ffffff',
-              color: '#1f2937',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: 'none',
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(10px)',
+              color: '#ffffff',
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
               fontSize: '14px',
-              fontWeight: '500',
+              fontWeight: '700',
               cursor: 'pointer',
-              transition: 'background 0.3s ease'
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              zIndex: 1
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}>
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+              e.currentTarget.style.transform = 'scale(1.03)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}>
               Documentation
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ marginLeft: '256px', padding: '32px' }}>
-        {activeTab === 'dashboard' && <DashboardView />}
-        {activeTab === 'ag' && <AGListView />}
-        {activeTab === 'files' && <FilesView />}
-        {activeTab === 'companies' && (
-          <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
-            <Building2 style={{ width: '64px', height: '64px', color: '#9ca3af', margin: '0 auto 16px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Gestion des Entreprises</h2>
-            <p style={{ color: '#6b7280' }}>Cette section est en cours de développement</p>
-          </div>
-        )}
-        {activeTab === 'participants' && (
-          <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
-            <Users style={{ width: '64px', height: '64px', color: '#9ca3af', margin: '0 auto 16px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Gestion des Participants</h2>
-            <p style={{ color: '#6b7280' }}>Cette section est en cours de développement</p>
-          </div>
-        )}
-        {activeTab === 'reports' && (
-          <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
-            <BarChart3 style={{ width: '64px', height: '64px', color: '#9ca3af', margin: '0 auto 16px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Rapports et Analyses</h2>
-            <p style={{ color: '#6b7280' }}>Cette section est en cours de développement</p>
-          </div>
-        )}
-        {activeTab === 'settings' && (
-          <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
-            <Settings style={{ width: '64px', height: '64px', color: '#9ca3af', margin: '0 auto 16px' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Paramètres</h2>
-            <p style={{ color: '#6b7280' }}>Cette section est en cours de développement</p>
-          </div>
-        )}
+      <div style={{ 
+        marginLeft: '280px', 
+        padding: '40px',
+        minHeight: '100vh',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(40px)',
+          borderRadius: '32px',
+          padding: '40px',
+          minHeight: 'calc(100vh - 80px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
+          {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'files' && <FilesView />}
+          {activeTab === 'companies' && (
+            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
+              <Building2 style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des Entreprises</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
+            </div>
+          )}
+          {activeTab === 'ag' && (
+            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
+              <Calendar style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des AG</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
+            </div>
+          )}
+          {activeTab === 'participants' && (
+            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
+              <Users style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des Participants</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
+            </div>
+          )}
+          {activeTab === 'reports' && (
+            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
+              <BarChart3 style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Rapports et Analyses</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
+            </div>
+          )}
+          {activeTab === 'settings' && (
+            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
+              <Settings style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Paramètres</h2>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <Modal />
