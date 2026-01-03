@@ -14,9 +14,20 @@ const AGManagement = () => {
   ];
 
   const recentAGs = [
-    { id: 1, company: 'SGCI Holding', date: '2025-12-20', status: 'En cours', participants: 45, files: 3, progress: 75 },
-    { id: 2, company: 'Tech Solutions SA', date: '2025-12-15', status: 'Complétée', participants: 32, files: 5, progress: 100 },
-    { id: 3, company: 'Finance Corp', date: '2026-01-10', status: 'Planifiée', participants: 28, files: 2, progress: 30 },
+    { id: 1, company: 'SGCI Holding', date: '2025-12-20' },
+    { id: 2, company: 'Tech Solutions SA', date: '2025-12-15' },
+    { id: 3, company: 'Finance Corp', date: '2026-01-10' },
+    { id: 4, company: 'Innovation Group', date: '2026-02-05' },
+    { id: 5, company: 'Digital Services', date: '2025-11-28' },
+    { id: 6, company: 'Global Industries', date: '2026-03-12' },
+  ];
+
+  const companies = [
+    { id: 1, name: 'SGCI Holding', code: 'SGCI001', actions: 100000, createdDate: '2020-03-15', agCount: 5, status: 'Active' },
+    { id: 2, name: 'Tech Solutions SA', code: 'TECH002', actions: 250000, createdDate: '2018-06-22', agCount: 8, status: 'Active' },
+    { id: 3, name: 'Finance Corp', code: 'FIN003', actions: 180000, createdDate: '2019-11-10', agCount: 6, status: 'Active' },
+    { id: 4, name: 'Innovation Group', code: 'INN004', actions: 320000, createdDate: '2021-01-08', agCount: 3, status: 'Active' },
+    { id: 5, name: 'Digital Services', code: 'DIG005', actions: 150000, createdDate: '2022-04-12', agCount: 2, status: 'Inactive' },
   ];
 
   const openModal = (type) => {
@@ -112,28 +123,32 @@ const AGManagement = () => {
   };
 
   const AGCard = ({ ag, index }) => {
-    const statusConfig = {
-      'En cours': { bg: 'linear-gradient(135deg, #667eea, #764ba2)', glow: '#667eea' },
-      'Complétée': { bg: 'linear-gradient(135deg, #10b981, #059669)', glow: '#10b981' },
-      'Planifiée': { bg: 'linear-gradient(135deg, #f093fb, #f5576c)', glow: '#f093fb' }
-    };
+    const gradients = [
+      { bg1: '#667eea', bg2: '#764ba2' },
+      { bg1: '#4facfe', bg2: '#00f2fe' },
+      { bg1: '#fa709a', bg2: '#fee140' },
+      { bg1: '#f093fb', bg2: '#f5576c' },
+      { bg1: '#10b981', bg2: '#059669' },
+      { bg1: '#f97316', bg2: '#ea580c' }
+    ];
+    
+    const gradient = gradients[index % gradients.length];
 
     return (
       <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: '24px',
+        background: '#ffffff',
+        borderRadius: '24px',
+        padding: '32px',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.8)',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
         overflow: 'hidden',
-        animation: `fadeIn 0.6s ease-out ${index * 0.15}s backwards`
+        animation: `fadeIn 0.6s ease-out ${index * 0.1}s backwards`
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.12)';
+        e.currentTarget.style.transform = 'translateY(-8px)';
+        e.currentTarget.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.15)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
@@ -144,150 +159,94 @@ const AGManagement = () => {
           top: 0,
           left: 0,
           right: 0,
-          height: '4px',
-          background: statusConfig[ag.status].bg,
-          boxShadow: `0 0 20px ${statusConfig[ag.status].glow}60`
+          height: '6px',
+          background: `linear-gradient(90deg, ${gradient.bg1}, ${gradient.bg2})`,
+          borderRadius: '24px 24px 0 0'
         }} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', marginTop: '8px' }}>
-          <div>
-            <h4 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>{ag.company}</h4>
-            <p style={{ fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Calendar style={{ width: '16px', height: '16px' }} />
-              {ag.date}
-            </p>
-          </div>
-          <span style={{
-            padding: '8px 16px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            fontWeight: '700',
-            background: statusConfig[ag.status].bg,
-            color: '#ffffff',
-            boxShadow: `0 4px 12px ${statusConfig[ag.status].glow}40`,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}>
-            {ag.status}
-          </span>
-        </div>
-        
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
-            <span style={{ color: '#64748b', fontWeight: '600' }}>Progression</span>
-            <span style={{ color: '#1e293b', fontWeight: '700' }}>{ag.progress}%</span>
-          </div>
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '150px',
+          height: '150px',
+          background: `linear-gradient(135deg, ${gradient.bg1}10, ${gradient.bg2}10)`,
+          borderRadius: '50%',
+          filter: 'blur(40px)'
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{
-            width: '100%',
-            height: '8px',
-            background: '#e2e8f0',
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              width: `${ag.progress}%`,
-              height: '100%',
-              background: statusConfig[ag.status].bg,
-              borderRadius: '8px',
-              transition: 'width 1s ease-out',
-              boxShadow: `0 0 12px ${statusConfig[ag.status].glow}60`
-            }} />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontSize: '14px' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            padding: '8px 12px',
-            background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-            borderRadius: '10px'
-          }}>
-            <Users style={{ width: '18px', height: '18px', color: '#3b82f6' }} />
-            <span style={{ fontWeight: '600', color: '#1e40af' }}>{ag.participants}</span>
-          </div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            padding: '8px 12px',
-            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-            borderRadius: '10px'
-          }}>
-            <FileText style={{ width: '18px', height: '18px', color: '#f59e0b' }} />
-            <span style={{ fontWeight: '600', color: '#b45309' }}>{ag.files}</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button style={{
-            flex: 1,
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: '#ffffff',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            border: 'none',
-            fontSize: '14px',
-            fontWeight: '600',
+            width: '64px',
+            height: '64px',
+            background: `linear-gradient(135deg, ${gradient.bg1}, ${gradient.bg2})`,
+            borderRadius: '18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
+            marginBottom: '20px',
+            boxShadow: `0 8px 24px ${gradient.bg1}40`
+          }}>
+            <Building2 style={{ width: '32px', height: '32px', color: '#ffffff' }} />
+          </div>
+
+          <h4 style={{ 
+            fontSize: '26px', 
+            fontWeight: '800', 
+            color: '#1e293b', 
+            marginBottom: '16px',
+            lineHeight: '1.3'
+          }}>
+            {ag.company}
+          </h4>
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            padding: '12px 16px',
+            background: `linear-gradient(135deg, ${gradient.bg1}08, ${gradient.bg2}08)`,
+            borderRadius: '14px',
+            marginBottom: '24px'
+          }}>
+            <Calendar style={{ width: '20px', height: '20px', color: gradient.bg1 }} />
+            <p style={{ 
+              fontSize: '16px', 
+              color: '#475569', 
+              fontWeight: '600',
+              letterSpacing: '0.3px'
+            }}>
+              {ag.date}
+            </p>
+          </div>
+
+          <button style={{
+            width: '100%',
+            background: `linear-gradient(135deg, ${gradient.bg1}, ${gradient.bg2})`,
+            color: '#ffffff',
+            padding: '14px 24px',
+            borderRadius: '14px',
+            border: 'none',
+            fontSize: '15px',
+            fontWeight: '700',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+            boxShadow: `0 6px 20px ${gradient.bg1}50`
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+            e.currentTarget.style.boxShadow = `0 10px 30px ${gradient.bg1}60`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            e.currentTarget.style.boxShadow = `0 6px 20px ${gradient.bg1}50`;
           }}>
-            <Eye style={{ width: '18px', height: '18px' }} />
-            Voir
-          </button>
-          <button style={{
-            background: 'rgba(100, 116, 139, 0.1)',
-            backdropFilter: 'blur(10px)',
-            color: '#475569',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(100, 116, 139, 0.2)',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}>
-            <Edit style={{ width: '18px', height: '18px' }} />
-          </button>
-          <button style={{
-            background: 'rgba(100, 116, 139, 0.1)',
-            backdropFilter: 'blur(10px)',
-            color: '#475569',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(100, 116, 139, 0.2)',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}>
-            <Download style={{ width: '18px', height: '18px' }} />
+            <Edit style={{ width: '20px', height: '20px' }} />
+            Modifier
           </button>
         </div>
       </div>
@@ -364,9 +323,9 @@ const AGManagement = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <div>
             <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '4px' }}>
-              Assemblées Générales Récentes
+              Assemblées Générales
             </h3>
-            <p style={{ color: '#64748b', fontSize: '14px' }}>Suivez l'avancement de vos AG</p>
+            <p style={{ color: '#64748b', fontSize: '14px' }}>Gérez et organisez vos assemblées</p>
           </div>
           <button style={{
             padding: '10px 20px',
@@ -391,7 +350,7 @@ const AGManagement = () => {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
           {recentAGs.map((ag, index) => (
             <AGCard key={ag.id} ag={ag} index={index} />
           ))}
@@ -560,6 +519,329 @@ const AGManagement = () => {
               </button>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+
+  const CompaniesView = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ 
+            fontSize: '36px', 
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '8px'
+          }}>Gestion des Entreprises</h2>
+          <p style={{ color: '#64748b', fontSize: '16px' }}>Gérez toutes vos entreprises et leurs assemblées</p>
+        </div>
+        <button 
+          onClick={() => openModal('createCompany')}
+          style={{
+            background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+            color: '#ffffff',
+            padding: '14px 28px',
+            borderRadius: '16px',
+            border: 'none',
+            boxShadow: '0 8px 24px rgba(79, 172, 254, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            fontWeight: '700',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(79, 172, 254, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(79, 172, 254, 0.4)';
+          }}>
+          <Plus style={{ width: '20px', height: '20px' }} />
+          Nouvelle Entreprise
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+        {[
+          { label: 'Total Entreprises', value: companies.length, icon: Building2, bg1: '#4facfe', bg2: '#00f2fe' },
+          { label: 'Entreprises Actives', value: companies.filter(c => c.status === 'Active').length, icon: Award, bg1: '#10b981', bg2: '#059669' },
+          { label: 'Total Actions', value: companies.reduce((sum, c) => sum + c.actions, 0).toLocaleString(), icon: TrendingUp, bg1: '#f093fb', bg2: '#f5576c' },
+          { label: 'AG Totales', value: companies.reduce((sum, c) => sum + c.agCount, 0), icon: Calendar, bg1: '#fa709a', bg2: '#fee140' }
+        ].map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <div key={idx} style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '24px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-30px',
+                right: '-30px',
+                width: '120px',
+                height: '120px',
+                background: `linear-gradient(135deg, ${stat.bg1}15, ${stat.bg2}15)`,
+                borderRadius: '50%',
+                filter: 'blur(30px)'
+              }} />
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+                boxShadow: `0 4px 12px ${stat.bg1}40`,
+                position: 'relative',
+                zIndex: 1
+              }}>
+                <Icon style={{ width: '24px', height: '24px', color: '#ffffff' }} />
+              </div>
+              <p style={{ color: '#64748b', fontSize: '13px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', position: 'relative', zIndex: 1 }}>{stat.label}</p>
+              <p style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b', position: 'relative', zIndex: 1 }}>{stat.value}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ 
+        background: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px', 
+        padding: '28px', 
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.6)'
+      }}>
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Search style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '50%', 
+              transform: 'translateY(-50%)', 
+              width: '20px', 
+              height: '20px', 
+              color: '#94a3b8' 
+            }} />
+            <input 
+              type="text" 
+              placeholder="Rechercher une entreprise..." 
+              style={{
+                width: '100%',
+                paddingLeft: '48px',
+                paddingRight: '20px',
+                paddingTop: '14px',
+                paddingBottom: '14px',
+                border: '2px solid transparent',
+                borderRadius: '16px',
+                fontSize: '15px',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                background: 'rgba(241, 245, 249, 0.8)',
+                fontWeight: '500'
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#4facfe';
+                e.currentTarget.style.boxShadow = '0 0 0 4px rgba(79, 172, 254, 0.1)';
+                e.currentTarget.style.background = '#ffffff';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'transparent';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
+              }}
+            />
+          </div>
+          <button style={{
+            padding: '14px 28px',
+            background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+            color: '#475569',
+            borderRadius: '16px',
+            border: 'none',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #e2e8f0, #cbd5e1)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #f1f5f9, #e2e8f0)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}>
+            Filtres
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
+          {companies.map((company, index) => (
+            <div key={company.id} style={{
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '24px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              animation: `fadeIn 0.5s ease-out ${index * 0.1}s backwards`
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.06)';
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '4px',
+                background: company.status === 'Active' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #94a3b8, #64748b)'
+              }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', marginTop: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>{company.name}</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', fontWeight: '500', fontFamily: 'monospace' }}>Code: {company.code}</p>
+                </div>
+                <span style={{
+                  padding: '6px 14px',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  background: company.status === 'Active' ? 'linear-gradient(135deg, #d1fae5, #a7f3d0)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                  color: company.status === 'Active' ? '#065f46' : '#475569'
+                }}>
+                  {company.status}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+                  padding: '12px',
+                  borderRadius: '12px'
+                }}>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', fontWeight: '600' }}>Actions</p>
+                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#1e40af' }}>{company.actions.toLocaleString()}</p>
+                </div>
+                <div style={{
+                  background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                  padding: '12px',
+                  borderRadius: '12px'
+                }}>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', fontWeight: '600' }}>AG Total</p>
+                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#b45309' }}>{company.agCount}</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
+                <Calendar style={{ width: '14px', height: '14px', color: '#94a3b8' }} />
+                <p style={{ fontSize: '13px', color: '#64748b' }}>Créée le {company.createdDate}</p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+                  color: '#ffffff',
+                  padding: '10px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(79, 172, 254, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(79, 172, 254, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 172, 254, 0.3)';
+                }}>
+                  <Eye style={{ width: '16px', height: '16px' }} />
+                  Voir
+                </button>
+                <button style={{
+                  background: 'rgba(100, 116, 139, 0.1)',
+                  color: '#475569',
+                  padding: '10px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}>
+                  <Edit style={{ width: '16px', height: '16px' }} />
+                </button>
+                <button style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#dc2626',
+                  padding: '10px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}>
+                  <Trash2 style={{ width: '16px', height: '16px' }} />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1109,7 +1391,7 @@ const AGManagement = () => {
         </div>
       </div>
 
-      <div style={{ 
+      <div style={{
         marginLeft: '280px', 
         padding: '40px',
         minHeight: '100vh',
@@ -1127,13 +1409,7 @@ const AGManagement = () => {
         }}>
           {activeTab === 'dashboard' && <DashboardView />}
           {activeTab === 'files' && <FilesView />}
-          {activeTab === 'companies' && (
-            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
-              <Building2 style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
-              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des Entreprises</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
-            </div>
-          )}
+          {activeTab === 'companies' && <CompaniesView />}
           {activeTab === 'ag' && (
             <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
               <Calendar style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
