@@ -1,1449 +1,1594 @@
-import React, { useState } from 'react';
-import { Building2, Calendar, Upload, Users, FileText, BarChart3, Settings, Home, Plus, Search, Download, Eye, Trash2, Edit, RefreshCw, Check, X, FileSpreadsheet, FilePlus, Sparkles, TrendingUp, Zap, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Building2, Users, FileText, Plus, Search, Download, Edit, Eye, Trash2, Home, TrendingUp } from 'lucide-react';
 
-const AGManagement = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+const API_BASE_URL = 'https://api.anthropic.com/v1/messages';
+
+const App = () => {
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [entreprises, setEntreprises] = useState([]);
+  const [ags, setAgs] = useState([]);
+  const [selectedEntreprise, setSelectedEntreprise] = useState(null);
+  const [selectedAg, setSelectedAg] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
 
-  const stats = [
-    { label: 'Entreprises', value: '24', icon: Building2, color: 'blue', trend: '+12%', bg1: '#667eea', bg2: '#764ba2' },
-    { label: 'AG Actives', value: '8', icon: Calendar, color: 'purple', trend: '+3', bg1: '#f093fb', bg2: '#f5576c' },
-    { label: 'Participants', value: '156', icon: Users, color: 'green', trend: '+24%', bg1: '#4facfe', bg2: '#00f2fe' },
-    { label: 'Fichiers SGI', value: '42', icon: FileText, color: 'orange', trend: '+7', bg1: '#fa709a', bg2: '#fee140' },
-  ];
-
-  const recentAGs = [
-    { id: 1, company: 'SGCI Holding', date: '2025-12-20' },
-    { id: 2, company: 'Tech Solutions SA', date: '2025-12-15' },
-    { id: 3, company: 'Finance Corp', date: '2026-01-10' },
-    { id: 4, company: 'Innovation Group', date: '2026-02-05' },
-    { id: 5, company: 'Digital Services', date: '2025-11-28' },
-    { id: 6, company: 'Global Industries', date: '2026-03-12' },
-  ];
-
-  const companies = [
-    { id: 1, name: 'SGCI Holding', code: 'SGCI001', actions: 100000, createdDate: '2020-03-15', agCount: 5, status: 'Active' },
-    { id: 2, name: 'Tech Solutions SA', code: 'TECH002', actions: 250000, createdDate: '2018-06-22', agCount: 8, status: 'Active' },
-    { id: 3, name: 'Finance Corp', code: 'FIN003', actions: 180000, createdDate: '2019-11-10', agCount: 6, status: 'Active' },
-    { id: 4, name: 'Innovation Group', code: 'INN004', actions: 320000, createdDate: '2021-01-08', agCount: 3, status: 'Active' },
-    { id: 5, name: 'Digital Services', code: 'DIG005', actions: 150000, createdDate: '2022-04-12', agCount: 2, status: 'Inactive' },
-  ];
+  // Simulated data loading
+  useEffect(() => {
+    setEntreprises([
+      { id: 1, nom_entreprise: "TechCorp SA", entreprise_id: 1, created_at: "2024-01-15" },
+      { id: 2, nom_entreprise: "InnoVest Partners", entreprise_id: 2, created_at: "2024-02-20" }
+    ]);
+    
+    setAgs([
+      { 
+        id: 1, 
+        code_ag: "AG2026-001", 
+        date_ag: "2026-03-15", 
+        entreprise_id: 1,
+        nom_entreprise: "TechCorp SA",
+        fichiers_count: 5,
+        participants_count: 45
+      },
+      { 
+        id: 2, 
+        code_ag: "AG2026-002", 
+        date_ag: "2026-04-20", 
+        entreprise_id: 1,
+        nom_entreprise: "TechCorp SA",
+        fichiers_count: 3,
+        participants_count: 32
+      }
+    ]);
+  }, []);
 
   const openModal = (type) => {
     setModalType(type);
     setShowModal(true);
   };
 
-  const StatCard = ({ stat, index }) => {
-    const Icon = stat.icon;
-    return (
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '24px',
-        padding: '28px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.6)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        cursor: 'pointer',
-        position: 'relative',
-        overflow: 'hidden',
-        animation: `slideUp 0.6s ease-out ${index * 0.1}s backwards`
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-        e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.15)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.08)';
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '-50%',
-          right: '-20%',
-          width: '200px',
-          height: '200px',
-          background: `linear-gradient(135deg, ${stat.bg1}20, ${stat.bg2}20)`,
-          borderRadius: '50%',
-          filter: 'blur(40px)',
-          zIndex: 0
-        }} />
-        
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '18px',
-              background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 8px 24px ${stat.bg1}40`,
-              position: 'relative'
-            }}>
-              <Icon style={{ width: '32px', height: '32px', color: '#ffffff' }} />
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              padding: '6px 14px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-            }}>
-              <TrendingUp style={{ width: '14px', height: '14px', color: '#ffffff' }} />
-              <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>
-                {stat.trend}
-              </span>
-            </div>
-          </div>
-          <h3 style={{ 
-            color: '#64748b', 
-            fontSize: '15px', 
-            fontWeight: '600', 
-            marginBottom: '8px',
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-          }}>{stat.label}</h3>
-          <p style={{ 
-            fontSize: '42px', 
-            fontWeight: '800', 
-            background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>{stat.value}</p>
-        </div>
-      </div>
-    );
+  const closeModal = () => {
+    setShowModal(false);
+    setModalType('');
   };
 
-  const AGCard = ({ ag, index }) => {
-    const gradients = [
-      { bg1: '#667eea', bg2: '#764ba2' },
-      { bg1: '#4facfe', bg2: '#00f2fe' },
-      { bg1: '#fa709a', bg2: '#fee140' },
-      { bg1: '#f093fb', bg2: '#f5576c' },
-      { bg1: '#10b981', bg2: '#059669' },
-      { bg1: '#f97316', bg2: '#ea580c' }
-    ];
-    
-    const gradient = gradients[index % gradients.length];
-
-    return (
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '24px',
-        padding: '32px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(0, 0, 0, 0.05)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        position: 'relative',
-        overflow: 'hidden',
-        animation: `fadeIn 0.6s ease-out ${index * 0.1}s backwards`
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-8px)';
-        e.currentTarget.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.15)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '6px',
-          background: `linear-gradient(90deg, ${gradient.bg1}, ${gradient.bg2})`,
-          borderRadius: '24px 24px 0 0'
-        }} />
-
-        <div style={{
-          position: 'absolute',
-          top: '-50px',
-          right: '-50px',
-          width: '150px',
-          height: '150px',
-          background: `linear-gradient(135deg, ${gradient.bg1}10, ${gradient.bg2}10)`,
-          borderRadius: '50%',
-          filter: 'blur(40px)'
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: `linear-gradient(135deg, ${gradient.bg1}, ${gradient.bg2})`,
-            borderRadius: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '20px',
-            boxShadow: `0 8px 24px ${gradient.bg1}40`
-          }}>
-            <Building2 style={{ width: '32px', height: '32px', color: '#ffffff' }} />
-          </div>
-
-          <h4 style={{ 
-            fontSize: '26px', 
-            fontWeight: '800', 
-            color: '#1e293b', 
-            marginBottom: '16px',
-            lineHeight: '1.3'
-          }}>
-            {ag.company}
-          </h4>
-
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            padding: '12px 16px',
-            background: `linear-gradient(135deg, ${gradient.bg1}08, ${gradient.bg2}08)`,
-            borderRadius: '14px',
-            marginBottom: '24px'
-          }}>
-            <Calendar style={{ width: '20px', height: '20px', color: gradient.bg1 }} />
-            <p style={{ 
-              fontSize: '16px', 
-              color: '#475569', 
-              fontWeight: '600',
-              letterSpacing: '0.3px'
-            }}>
-              {ag.date}
-            </p>
-          </div>
-
-          <button style={{
-            width: '100%',
-            background: `linear-gradient(135deg, ${gradient.bg1}, ${gradient.bg2})`,
-            color: '#ffffff',
-            padding: '14px 24px',
-            borderRadius: '14px',
-            border: 'none',
-            fontSize: '15px',
-            fontWeight: '700',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: `0 6px 20px ${gradient.bg1}50`
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = `0 10px 30px ${gradient.bg1}60`;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = `0 6px 20px ${gradient.bg1}50`;
-          }}>
-            <Edit style={{ width: '20px', height: '20px' }} />
-            Modifier
+  // Navigation Component
+  const Navigation = () => (
+    <div style={{
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px 40px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <Calendar size={32} color="white" />
+        <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
+          AG Online
+        </h1>
+      </div>
+      <div style={{ display: 'flex', gap: '20px' }}>
+        {[
+          { id: 'dashboard', icon: Home, label: 'Dashboard' },
+          { id: 'entreprises', icon: Building2, label: 'Entreprises' },
+          { id: 'ags', icon: Calendar, label: 'Assemblées' },
+          { id: 'participants', icon: Users, label: 'Participants' },
+          { id: 'rapports', icon: FileText, label: 'Rapports' }
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => setCurrentView(item.id)}
+            style={{
+              background: currentView === item.id ? 'rgba(255,255,255,0.3)' : 'transparent',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseLeave={(e) => e.target.style.background = currentView === item.id ? 'rgba(255,255,255,0.3)' : 'transparent'}
+          >
+            <item.icon size={18} />
+            {item.label}
           </button>
-        </div>
+        ))}
       </div>
-    );
-  };
+    </div>
+  );
 
-  const DashboardView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+  // Dashboard Component
+  const Dashboard = () => (
+    <div style={{ padding: '40px' }}>
+      <h2 style={{ fontSize: '28px', marginBottom: '30px', color: '#1a202c' }}>
+        Tableau de Bord
+      </h2>
+      
       <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        animation: 'fadeIn 0.6s ease-out'
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+        gap: '20px',
+        marginBottom: '40px'
       }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <h2 style={{ 
-              fontSize: '40px', 
-              fontWeight: '800', 
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Tableau de bord</h2>
-            <Sparkles style={{ width: '32px', height: '32px', color: '#667eea' }} />
-          </div>
-          <p style={{ color: '#64748b', fontSize: '16px' }}>Vue d'ensemble de vos assemblées générales</p>
-        </div>
-        <button 
-          onClick={() => openModal('createAG')}
-          style={{
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: '#ffffff',
-            padding: '16px 32px',
-            borderRadius: '16px',
-            border: 'none',
-            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+        {[
+          { icon: Building2, label: 'Entreprises', value: entreprises.length, color: '#667eea', bg: '#e0e7ff' },
+          { icon: Calendar, label: 'AG Planifiées', value: ags.length, color: '#f59e0b', bg: '#fef3c7' },
+          { icon: Users, label: 'Participants', value: '156', color: '#10b981', bg: '#d1fae5' },
+          { icon: TrendingUp, label: 'Taux Participation', value: '87%', color: '#ef4444', bg: '#fee2e2' }
+        ].map((stat, index) => (
+          <div key={index} style={{
+            background: 'white',
+            padding: '25px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            fontWeight: '700',
-            fontSize: '15px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
+            gap: '20px',
+            transition: 'transform 0.3s ease',
+            cursor: 'pointer'
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px)';
-            e.currentTarget.style.boxShadow = '0 12px 32px rgba(102, 126, 234, 0.5)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
-          }}>
-          <Plus style={{ width: '22px', height: '22px' }} />
-          Nouvelle AG
-        </button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
-        {stats.map((stat, idx) => (
-          <StatCard key={idx} stat={stat} index={idx} />
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{
+              background: stat.bg,
+              padding: '15px',
+              borderRadius: '10px'
+            }}>
+              <stat.icon size={28} color={stat.color} />
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '5px' }}>
+                {stat.label}
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a202c' }}>
+                {stat.value}
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
       <div style={{ 
-        background: 'rgba(255, 255, 255, 0.95)', 
-        backdropFilter: 'blur(10px)',
-        borderRadius: '24px', 
-        padding: '32px', 
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.6)',
-        animation: 'slideUp 0.6s ease-out 0.3s backwards'
+        background: 'white', 
+        padding: '30px', 
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '4px' }}>
-              Assemblées Générales
-            </h3>
-            <p style={{ color: '#64748b', fontSize: '14px' }}>Gérez et organisez vos assemblées</p>
-          </div>
-          <button style={{
-            padding: '10px 20px',
-            background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-            color: '#2563eb',
-            borderRadius: '12px',
-            border: 'none',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #dbeafe, #bfdbfe)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #eff6ff, #dbeafe)';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}>
-            Toutes les AG
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-          {recentAGs.map((ag, index) => (
-            <AGCard key={ag.id} ag={ag} index={index} />
+        <h3 style={{ fontSize: '20px', marginBottom: '20px', color: '#1a202c' }}>
+          Prochaines Assemblées Générales
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {ags.slice(0, 3).map(ag => (
+            <div key={ag.id} style={{
+              padding: '20px',
+              background: '#f9fafb',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1a202c', marginBottom: '5px' }}>
+                  {ag.code_ag}
+                </div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                  {ag.nom_entreprise} • {new Date(ag.date_ag).toLocaleDateString('fr-FR')}
+                </div>
+              </div>
+              <button style={{
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}>
+                Voir détails
+              </button>
+            </div>
           ))}
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 
-  const FilesView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ 
-          fontSize: '36px', 
-          fontWeight: '800',
-          background: 'linear-gradient(135deg, #fa709a, #fee140)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>Gestion des Fichiers SGI</h2>
-        <button 
-          onClick={() => openModal('uploadFile')}
+  // Entreprises Component
+  const EntreprisesView = () => (
+    <div style={{ padding: '40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '28px', color: '#1a202c' }}>Gestion des Entreprises</h2>
+        <button
+          onClick={() => openModal('entreprise')}
           style={{
-            background: 'linear-gradient(135deg, #10b981, #059669)',
-            color: '#ffffff',
-            padding: '14px 28px',
-            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
             border: 'none',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer',
-            fontWeight: '700',
-            transition: 'all 0.3s ease'
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 12px 32px rgba(16, 185, 129, 0.5)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.4)';
-          }}>
-          <Upload style={{ width: '20px', height: '20px' }} />
-          Uploader des fichiers
-        </button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-        {[
-          { icon: FileSpreadsheet, title: 'Fichiers CSV', count: '24', desc: 'Listes d\'actionnaires', bg1: '#4facfe', bg2: '#00f2fe' },
-          { icon: FileText, title: 'Dépositaires PDF', count: '18', desc: 'Documents importés', bg1: '#fa709a', bg2: '#fee140' },
-          { icon: RefreshCw, title: 'Comparaisons', count: '12', desc: 'AG vs Dépositaire', bg1: '#f093fb', bg2: '#f5576c' },
-          { icon: Award, title: 'Rapports', count: '31', desc: 'Analyses générées', bg1: '#667eea', bg2: '#764ba2' }
-        ].map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <div key={index} style={{
-              background: `linear-gradient(135deg, ${item.bg1}, ${item.bg2})`,
-              borderRadius: '20px',
-              padding: '28px',
-              color: '#ffffff',
-              boxShadow: `0 8px 32px ${item.bg1}40`,
-              transition: 'all 0.4s ease',
-              position: 'relative',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              animation: `slideUp 0.6s ease-out ${index * 0.1}s backwards`
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-              e.currentTarget.style.boxShadow = `0 16px 48px ${item.bg1}60`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = `0 8px 32px ${item.bg1}40`;
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-50px',
-                right: '-50px',
-                width: '150px',
-                height: '150px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '50%',
-                filter: 'blur(40px)'
-              }} />
-              <Icon style={{ width: '56px', height: '56px', marginBottom: '20px', opacity: 0.95, position: 'relative', zIndex: 1 }} />
-              <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{item.title}</h3>
-              <p style={{ fontSize: '48px', fontWeight: '800', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{item.count}</p>
-              <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px', position: 'relative', zIndex: 1 }}>{item.desc}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ 
-        background: 'rgba(255, 255, 255, 0.95)', 
-        backdropFilter: 'blur(10px)',
-        borderRadius: '24px', 
-        padding: '28px', 
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.6)'
-      }}>
-        <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '24px' }}>Actions rapides</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          {[
-            { icon: Upload, title: 'Upload fichiers SGI', desc: 'CSV ou XLSX', bg1: '#4facfe', bg2: '#00f2fe' },
-            { icon: FilePlus, title: 'Import dépositaire', desc: 'Fichier PDF', bg1: '#fa709a', bg2: '#fee140' },
-            { icon: BarChart3, title: 'Comparer', desc: 'AG vs Dépositaire', bg1: '#10b981', bg2: '#059669' },
-            { icon: Download, title: 'Export', desc: 'CSV ou XLSX', bg1: '#f093fb', bg2: '#f5576c' }
-          ].map((action, index) => {
-            const Icon = action.icon;
-            return (
-              <button key={index} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                padding: '20px',
-                background: `linear-gradient(135deg, ${action.bg1}15, ${action.bg2}15)`,
-                borderRadius: '16px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textAlign: 'left'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = `linear-gradient(135deg, ${action.bg1}25, ${action.bg2}25)`;
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = `0 8px 24px ${action.bg1}30`;
-                e.currentTarget.querySelector('div').style.transform = 'scale(1.1) rotate(5deg)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = `linear-gradient(135deg, ${action.bg1}15, ${action.bg2}15)`;
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.querySelector('div').style.transform = 'scale(1) rotate(0deg)';
-              }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  background: `linear-gradient(135deg, ${action.bg1}, ${action.bg2})`,
-                  borderRadius: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'transform 0.3s ease',
-                  boxShadow: `0 4px 12px ${action.bg1}40`
-                }}>
-                  <Icon style={{ width: '28px', height: '28px', color: '#ffffff' }} />
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '700', color: '#1e293b', fontSize: '16px', marginBottom: '2px' }}>{action.title}</h4>
-                  <p style={{ fontSize: '13px', color: '#64748b' }}>{action.desc}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
-  const CompaniesView = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ 
-            fontSize: '36px', 
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: '8px'
-          }}>Gestion des Entreprises</h2>
-          <p style={{ color: '#64748b', fontSize: '16px' }}>Gérez toutes vos entreprises et leurs assemblées</p>
-        </div>
-        <button 
-          onClick={() => openModal('createCompany')}
-          style={{
-            background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
-            color: '#ffffff',
-            padding: '14px 28px',
-            borderRadius: '16px',
-            border: 'none',
-            boxShadow: '0 8px 24px rgba(79, 172, 254, 0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer',
-            fontWeight: '700',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 12px 32px rgba(79, 172, 254, 0.5)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(79, 172, 254, 0.4)';
-          }}>
-          <Plus style={{ width: '20px', height: '20px' }} />
+        >
+          <Plus size={18} />
           Nouvelle Entreprise
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-        {[
-          { label: 'Total Entreprises', value: companies.length, icon: Building2, bg1: '#4facfe', bg2: '#00f2fe' },
-          { label: 'Entreprises Actives', value: companies.filter(c => c.status === 'Active').length, icon: Award, bg1: '#10b981', bg2: '#059669' },
-          { label: 'Total Actions', value: companies.reduce((sum, c) => sum + c.actions, 0).toLocaleString(), icon: TrendingUp, bg1: '#f093fb', bg2: '#f5576c' },
-          { label: 'AG Totales', value: companies.reduce((sum, c) => sum + c.agCount, 0), icon: Calendar, bg1: '#fa709a', bg2: '#fee140' }
-        ].map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <div key={idx} style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
-              padding: '24px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.8)',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden'
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ position: 'relative', maxWidth: '400px' }}>
+          <Search size={20} color="#9ca3af" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            type="text"
+            placeholder="Rechercher une entreprise..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 12px 12px 45px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              fontSize: '14px',
+              outline: 'none'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-30px',
-                right: '-30px',
-                width: '120px',
-                height: '120px',
-                background: `linear-gradient(135deg, ${stat.bg1}15, ${stat.bg2}15)`,
-                borderRadius: '50%',
-                filter: 'blur(30px)'
-              }} />
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: `linear-gradient(135deg, ${stat.bg1}, ${stat.bg2})`,
-                borderRadius: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '16px',
-                boxShadow: `0 4px 12px ${stat.bg1}40`,
-                position: 'relative',
-                zIndex: 1
-              }}>
-                <Icon style={{ width: '24px', height: '24px', color: '#ffffff' }} />
-              </div>
-              <p style={{ color: '#64748b', fontSize: '13px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', position: 'relative', zIndex: 1 }}>{stat.label}</p>
-              <p style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b', position: 'relative', zIndex: 1 }}>{stat.value}</p>
-            </div>
-          );
-        })}
+          />
+        </div>
       </div>
 
       <div style={{ 
-        background: 'rgba(255, 255, 255, 0.95)', 
-        backdropFilter: 'blur(10px)',
-        borderRadius: '24px', 
-        padding: '28px', 
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-        border: '1px solid rgba(255, 255, 255, 0.6)'
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+        gap: '20px' 
       }}>
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Search style={{ 
-              position: 'absolute', 
-              left: '16px', 
-              top: '50%', 
-              transform: 'translateY(-50%)', 
-              width: '20px', 
-              height: '20px', 
-              color: '#94a3b8' 
-            }} />
-            <input 
-              type="text" 
-              placeholder="Rechercher une entreprise..." 
-              style={{
-                width: '100%',
-                paddingLeft: '48px',
-                paddingRight: '20px',
-                paddingTop: '14px',
-                paddingBottom: '14px',
-                border: '2px solid transparent',
-                borderRadius: '16px',
-                fontSize: '15px',
-                outline: 'none',
-                transition: 'all 0.3s ease',
-                background: 'rgba(241, 245, 249, 0.8)',
-                fontWeight: '500'
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#4facfe';
-                e.currentTarget.style.boxShadow = '0 0 0 4px rgba(79, 172, 254, 0.1)';
-                e.currentTarget.style.background = '#ffffff';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'transparent';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-              }}
-            />
-          </div>
-          <button style={{
-            padding: '14px 28px',
-            background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-            color: '#475569',
-            borderRadius: '16px',
-            border: 'none',
-            fontWeight: '600',
-            cursor: 'pointer',
+        {entreprises.filter(e => 
+          e.nom_entreprise.toLowerCase().includes(searchTerm.toLowerCase())
+        ).map(entreprise => (
+          <div key={entreprise.id} style={{
+            background: 'white',
+            padding: '25px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             transition: 'all 0.3s ease'
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #e2e8f0, #cbd5e1)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #f1f5f9, #e2e8f0)';
-            e.currentTarget.style.transform = 'scale(1)';
+          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)'}
+          onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
+          >
+            <div style={{ display: 'flex', alignItems: 'start', gap: '15px', marginBottom: '20px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '12px',
+                borderRadius: '10px'
+              }}>
+                <Building2 size={24} color="white" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a202c', marginBottom: '5px' }}>
+                  {entreprise.nom_entreprise}
+                </h3>
+                <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                  ID: {entreprise.entreprise_id}
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ 
+              padding: '15px', 
+              background: '#f9fafb', 
+              borderRadius: '8px',
+              marginBottom: '15px'
+            }}>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '5px' }}>
+                Créée le
+              </div>
+              <div style={{ fontSize: '14px', color: '#1a202c', fontWeight: '500' }}>
+                {new Date(entreprise.created_at).toLocaleDateString('fr-FR')}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button style={{
+                flex: 1,
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                padding: '10px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}>
+                <Eye size={16} />
+                Voir
+              </button>
+              <button style={{
+                flex: 1,
+                background: '#f59e0b',
+                color: 'white',
+                border: 'none',
+                padding: '10px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}>
+                <Edit size={16} />
+                Modifier
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Assemblées Générales Component
+  const AGsView = () => {
+    const [selectedAgDetails, setSelectedAgDetails] = useState(null);
+    const [participants, setParticipants] = useState([]);
+    const [loadingParticipants, setLoadingParticipants] = useState(false);
+    const [selectedSgi, setSelectedSgi] = useState(null);
+    const [searchSgi, setSearchSgi] = useState('');
+    const [searchParticipant, setSearchParticipant] = useState('');
+
+    const handleAgClick = (ag) => {
+      setSelectedAgDetails(ag);
+      setSelectedSgi(null);
+      setSearchSgi('');
+      setSearchParticipant('');
+      setLoadingParticipants(true);
+      
+      // Simulated API call to get participants
+      setTimeout(() => {
+        // Mock data based on Swagger response structure
+        setParticipants([
+          {
+            nom_sgi: "SGI Alpha Investments",
+            participants: [
+              { nom_client: "Dupont Jean", user_id: 1 },
+              { nom_client: "Martin Sophie", user_id: 2 },
+              { nom_client: "Bernard Pierre", user_id: 3 },
+              { nom_client: "Petit Marie", user_id: 6 }
+            ]
+          },
+          {
+            nom_sgi: "SGI Beta Finance",
+            participants: [
+              { nom_client: "Dubois Marie", user_id: 4 },
+              { nom_client: "Laurent Thomas", user_id: 5 },
+              { nom_client: "Moreau Claire", user_id: 7 }
+            ]
+          },
+          {
+            nom_sgi: "SGI Gamma Capital",
+            participants: [
+              { nom_client: "Simon Lucas", user_id: 8 },
+              { nom_client: "Roux Emma", user_id: 9 }
+            ]
+          }
+        ]);
+        setLoadingParticipants(false);
+      }, 500);
+    };
+
+    const handleDownloadParticipants = (format) => {
+      if (!selectedAgDetails) return;
+      
+      // Simulated download - In production, call the API:
+      // GET /api/automation_ag/list_users_ag/{code_ag}/participants-par-sgi?download=true&format={format}
+      console.log(`Downloading participants for ${selectedAgDetails.code_ag} in ${format} format`);
+      alert(`Téléchargement du fichier ${format.toUpperCase()} en cours...`);
+    };
+
+    const handleBackToList = () => {
+      setSelectedAgDetails(null);
+      setParticipants([]);
+      setSelectedSgi(null);
+      setSearchSgi('');
+      setSearchParticipant('');
+    };
+
+    const handleSgiClick = (sgi) => {
+      setSelectedSgi(sgi);
+      setSearchParticipant('');
+    };
+
+    const handleBackToSgiList = () => {
+      setSelectedSgi(null);
+      setSearchParticipant('');
+    };
+
+    const filteredParticipants = participants.filter(sgi =>
+      sgi.nom_sgi.toLowerCase().includes(searchSgi.toLowerCase())
+    );
+
+    const filteredSgiParticipants = selectedSgi 
+      ? selectedSgi.participants.filter(p =>
+          p.nom_client.toLowerCase().includes(searchParticipant.toLowerCase())
+        )
+      : [];
+
+    if (selectedAgDetails && selectedSgi) {
+      // Vue des participants d'un SGI spécifique
+      const colors = [
+        { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', light: '#e0e7ff', text: '#4338ca' },
+        { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', light: '#fce7f3', text: '#be185d' },
+        { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', light: '#dbeafe', text: '#0369a1' },
+        { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', light: '#d1fae5', text: '#065f46' },
+        { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', light: '#fef3c7', text: '#92400e' }
+      ];
+      const sgiIndex = participants.findIndex(s => s.nom_sgi === selectedSgi.nom_sgi);
+      const colorScheme = colors[sgiIndex % colors.length];
+
+      return (
+        <div style={{ padding: '40px' }}>
+          <button
+            onClick={handleBackToSgiList}
+            style={{
+              background: '#f3f4f6',
+              color: '#374151',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            ← Retour aux SGI
+          </button>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
           }}>
-            Filtres
+            <div style={{
+              background: colorScheme.bg,
+              padding: '25px',
+              borderRadius: '12px',
+              marginBottom: '25px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{
+                  background: 'rgba(255,255,255,0.3)',
+                  padding: '15px',
+                  borderRadius: '12px'
+                }}>
+                  <Users size={30} color="white" />
+                </div>
+                <div>
+                  <h2 style={{ 
+                    color: 'white', 
+                    fontWeight: '700', 
+                    fontSize: '24px',
+                    margin: 0,
+                    marginBottom: '6px'
+                  }}>
+                    {selectedSgi.nom_sgi}
+                  </h2>
+                  <div style={{
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: '14px'
+                  }}>
+                    {selectedSgi.participants.length} participants présents
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ position: 'relative', marginBottom: '25px' }}>
+              <Search size={20} color="#9ca3af" style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)' 
+              }} />
+              <input
+                type="text"
+                placeholder="Rechercher un participant..."
+                value={searchParticipant}
+                onChange={(e) => setSearchParticipant(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 45px',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = colorScheme.text}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {filteredSgiParticipants.length > 0 ? (
+                filteredSgiParticipants.map((participant, pIndex) => (
+                  <div key={pIndex} style={{
+                    background: '#fafafa',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    transition: 'all 0.3s ease',
+                    border: '2px solid transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = colorScheme.light;
+                    e.currentTarget.style.transform = 'translateX(5px)';
+                    e.currentTarget.style.borderColor = colorScheme.text;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#fafafa';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                      <div style={{
+                        width: '55px',
+                        height: '55px',
+                        borderRadius: '50%',
+                        background: colorScheme.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '18px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}>
+                        {participant.nom_client.split(' ').map(n => n.charAt(0)).join('')}
+                      </div>
+                      <div>
+                        <div style={{ 
+                          fontWeight: '700', 
+                          color: '#1a202c', 
+                          fontSize: '17px',
+                          marginBottom: '5px'
+                        }}>
+                          {participant.nom_client}
+                        </div>
+                        <div style={{ 
+                          fontSize: '13px', 
+                          color: '#6b7280',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <div style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: '#10b981'
+                          }}></div>
+                          ID: {participant.user_id}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{
+                      background: colorScheme.light,
+                      color: colorScheme.text,
+                      padding: '10px 18px',
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '600'
+                    }}>
+                      Présent
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '50px',
+                  color: '#6b7280',
+                  fontSize: '15px'
+                }}>
+                  <Users size={48} color="#d1d5db" style={{ margin: '0 auto 15px' }} />
+                  Aucun participant trouvé
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedAgDetails) {
+      // Vue des cartes SGI
+      return (
+        <div style={{ padding: '40px' }}>
+          <button
+            onClick={handleBackToList}
+            style={{
+              background: '#f3f4f6',
+              color: '#374151',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            ← Retour à la liste des AG
+          </button>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', color: '#1a202c', marginBottom: '10px' }}>
+                  {selectedAgDetails.code_ag}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Building2 size={18} color="#667eea" />
+                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
+                      {selectedAgDetails.nom_entreprise}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Calendar size={18} color="#10b981" />
+                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
+                      {new Date(selectedAgDetails.date_ag).toLocaleDateString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => handleDownloadParticipants('xlsx')}
+                  style={{
+                    background: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <Download size={16} />
+                  Excel
+                </button>
+                <button
+                  onClick={() => handleDownloadParticipants('pdf')}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <Download size={16} />
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '20px',
+              marginTop: '20px'
+            }}>
+              <div style={{
+                background: '#f9fafb',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '5px' }}>
+                  Fichiers
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c' }}>
+                  {selectedAgDetails.fichiers_count}
+                </div>
+              </div>
+              <div style={{
+                background: '#f9fafb',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '5px' }}>
+                  Total Participants
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c' }}>
+                  {participants.reduce((acc, sgi) => acc + sgi.participants.length, 0)}
+                </div>
+              </div>
+              <div style={{
+                background: '#f9fafb',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '5px' }}>
+                  SGI représentés
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c' }}>
+                  {participants.length}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '25px'
+            }}>
+              <h3 style={{ fontSize: '20px', color: '#1a202c', margin: 0 }}>
+                SGI présents à l'assemblée
+              </h3>
+            </div>
+
+            <div style={{ position: 'relative', marginBottom: '25px' }}>
+              <Search size={20} color="#9ca3af" style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)' 
+              }} />
+              <input
+                type="text"
+                placeholder="Rechercher un SGI..."
+                value={searchSgi}
+                onChange={(e) => setSearchSgi(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 45px',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  outline: 'none',
+                  transition: 'border 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+
+            {loadingParticipants ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px',
+                color: '#6b7280'
+              }}>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  border: '4px solid #f3f4f6',
+                  borderTop: '4px solid #667eea',
+                  borderRadius: '50%',
+                  margin: '0 auto 20px',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                Chargement des SGI...
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                gap: '20px' 
+              }}>
+                {filteredParticipants.length > 0 ? (
+                  filteredParticipants.map((sgi, index) => {
+                    const colors = [
+                      { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', light: '#e0e7ff', text: '#4338ca', icon: '#667eea' },
+                      { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', light: '#fce7f3', text: '#be185d', icon: '#f093fb' },
+                      { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', light: '#dbeafe', text: '#0369a1', icon: '#4facfe' },
+                      { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', light: '#d1fae5', text: '#065f46', icon: '#43e97b' },
+                      { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', light: '#fef3c7', text: '#92400e', icon: '#fa709a' }
+                    ];
+                    const colorScheme = colors[index % colors.length];
+
+                    return (
+                      <div 
+                        key={index}
+                        onClick={() => handleSgiClick(sgi)}
+                        style={{
+                          background: 'white',
+                          border: `2px solid ${colorScheme.light}`,
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-8px)';
+                          e.currentTarget.style.boxShadow = `0 12px 24px ${colorScheme.light}`;
+                          e.currentTarget.style.borderColor = colorScheme.text;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.borderColor = colorScheme.light;
+                        }}
+                      >
+                        <div style={{
+                          background: colorScheme.bg,
+                          padding: '25px',
+                          position: 'relative'
+                        }}>
+                          <div style={{
+                            background: 'rgba(255,255,255,0.3)',
+                            backdropFilter: 'blur(10px)',
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '15px'
+                          }}>
+                            <Users size={30} color="white" />
+                          </div>
+                          <h4 style={{
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: 'white',
+                            marginBottom: '8px',
+                            margin: 0
+                          }}>
+                            {sgi.nom_sgi}
+                          </h4>
+                          <div style={{
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '13px',
+                            marginTop: '8px'
+                          }}>
+                            Société de Gestion et d'Intermédiation
+                          </div>
+                        </div>
+
+                        <div style={{ padding: '25px' }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '15px'
+                          }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              Participants présents
+                            </div>
+                            <div style={{
+                              background: colorScheme.light,
+                              color: colorScheme.text,
+                              padding: '6px 16px',
+                              borderRadius: '20px',
+                              fontSize: '16px',
+                              fontWeight: '700'
+                            }}>
+                              {sgi.participants.length}
+                            </div>
+                          </div>
+
+                          <div style={{
+                            padding: '15px',
+                            background: colorScheme.light,
+                            borderRadius: '10px',
+                            marginBottom: '15px'
+                          }}>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: colorScheme.text,
+                              fontWeight: '600',
+                              marginBottom: '8px'
+                            }}>
+                              Aperçu des participants
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              {sgi.participants.slice(0, 5).map((p, i) => (
+                                <div 
+                                  key={i}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: colorScheme.bg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '11px',
+                                    fontWeight: '700',
+                                    border: '2px solid white',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  {p.nom_client.split(' ').map(n => n.charAt(0)).join('')}
+                                </div>
+                              ))}
+                              {sgi.participants.length > 5 && (
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: '#f3f4f6',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#6b7280',
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  border: '2px solid white'
+                                }}>
+                                  +{sgi.participants.length - 5}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            color: colorScheme.text,
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            paddingTop: '10px',
+                            borderTop: `1px solid ${colorScheme.light}`
+                          }}>
+                            <Eye size={16} />
+                            Voir tous les participants
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '50px',
+                    color: '#6b7280',
+                    fontSize: '15px'
+                  }}>
+                    <Users size={48} color="#d1d5db" style={{ margin: '0 auto 15px' }} />
+                    Aucun SGI trouvé
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ padding: '40px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <h2 style={{ fontSize: '28px', color: '#1a202c' }}>Assemblées Générales</h2>
+          <button
+            onClick={() => openModal('ag')}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Plus size={18} />
+            Nouvelle AG
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
-          {companies.map((company, index) => (
-            <div key={company.id} style={{
-              background: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
-              padding: '24px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.8)',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              overflow: 'hidden',
-              animation: `fadeIn 0.5s ease-out ${index * 0.1}s backwards`
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.06)';
-            }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
+          gap: '25px' 
+        }}>
+          {ags.map((ag) => (
+            <div 
+              key={ag.id} 
+              onClick={() => handleAgClick(ag)}
+              style={{
+                background: 'white',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-5px)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+              }}
+            >
               <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '4px',
-                background: company.status === 'Active' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #94a3b8, #64748b)'
-              }} />
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', marginTop: '8px' }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>{company.name}</h3>
-                  <p style={{ fontSize: '13px', color: '#64748b', fontWeight: '500', fontFamily: 'monospace' }}>Code: {company.code}</p>
-                </div>
-                <span style={{
-                  padding: '6px 14px',
-                  borderRadius: '10px',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  background: company.status === 'Active' ? 'linear-gradient(135deg, #d1fae5, #a7f3d0)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-                  color: company.status === 'Active' ? '#065f46' : '#475569'
-                }}>
-                  {company.status}
-                </span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '25px',
+                position: 'relative'
+              }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-                  padding: '12px',
-                  borderRadius: '12px'
+                  position: 'absolute',
+                  top: '15px',
+                  right: '15px',
+                  background: 'rgba(255,255,255,0.2)',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  color: 'white',
+                  fontWeight: '500'
                 }}>
-                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', fontWeight: '600' }}>Actions</p>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#1e40af' }}>{company.actions.toLocaleString()}</p>
+                  {new Date(ag.date_ag).toLocaleDateString('fr-FR')}
                 </div>
                 <div style={{
-                  background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-                  padding: '12px',
-                  borderRadius: '12px'
-                }}>
-                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', fontWeight: '600' }}>AG Total</p>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#b45309' }}>{company.agCount}</p>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-                <Calendar style={{ width: '14px', height: '14px', color: '#94a3b8' }} />
-                <p style={{ fontSize: '13px', color: '#64748b' }}>Créée le {company.createdDate}</p>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button style={{
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
-                  color: '#ffffff',
-                  padding: '10px 16px',
+                  background: 'white',
+                  width: '60px',
+                  height: '60px',
                   borderRadius: '12px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '15px'
+                }}>
+                  <Calendar size={30} color="#667eea" />
+                </div>
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  marginBottom: '8px'
+                }}>
+                  {ag.code_ag}
+                </h3>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'rgba(255,255,255,0.9)',
+                  fontSize: '14px'
+                }}>
+                  <Building2 size={16} />
+                  {ag.nom_entreprise}
+                </div>
+              </div>
+
+              <div style={{ padding: '25px' }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '15px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{
+                    background: '#f0f9ff',
+                    padding: '15px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#0369a1',
+                      marginBottom: '5px',
+                      fontWeight: '500'
+                    }}>
+                      Fichiers
+                    </div>
+                    <div style={{
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      color: '#0c4a6e'
+                    }}>
+                      {ag.fichiers_count}
+                    </div>
+                  </div>
+                  <div style={{
+                    background: '#f0fdf4',
+                    padding: '15px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#15803d',
+                      marginBottom: '5px',
+                      fontWeight: '500'
+                    }}>
+                      Participants
+                    </div>
+                    <div style={{
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      color: '#14532d'
+                    }}>
+                      {ag.participants_count}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(79, 172, 254, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(79, 172, 254, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 172, 254, 0.3)';
+                  color: '#667eea',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  paddingTop: '10px',
+                  borderTop: '1px solid #e5e7eb'
                 }}>
-                  <Eye style={{ width: '16px', height: '16px' }} />
-                  Voir
-                </button>
-                <button style={{
-                  background: 'rgba(100, 116, 139, 0.1)',
-                  color: '#475569',
-                  padding: '10px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}>
-                  <Edit style={{ width: '16px', height: '16px' }} />
-                </button>
-                <button style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: '#dc2626',
-                  padding: '10px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}>
-                  <Trash2 style={{ width: '16px', height: '16px' }} />
-                </button>
+                  <Eye size={16} />
+                  Voir les participants
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
+  // Modal Component
   const Modal = () => {
+    const [formData, setFormData] = useState({});
+
+    const handleSubmit = () => {
+      console.log('Form submitted:', formData);
+      
+      if (modalType === 'entreprise') {
+        const newEntreprise = {
+          id: entreprises.length + 1,
+          entreprise_id: entreprises.length + 1,
+          nom_entreprise: formData.nom_entreprise,
+          created_at: new Date().toISOString().split('T')[0]
+        };
+        setEntreprises([...entreprises, newEntreprise]);
+      } else {
+        const newAg = {
+          id: ags.length + 1,
+          code_ag: formData.code_ag,
+          date_ag: formData.date_ag,
+          entreprise_id: parseInt(formData.entreprise_id),
+          nom_entreprise: entreprises.find(e => e.entreprise_id === parseInt(formData.entreprise_id))?.nom_entreprise,
+          fichiers_count: 0,
+          participants_count: 0
+        };
+        setAgs([...ags, newAg]);
+      }
+      
+      closeModal();
+    };
+
     if (!showModal) return null;
 
     return (
       <div style={{
         position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.6)',
-        backdropFilter: 'blur(8px)',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.5)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 50,
-        padding: '20px',
-        animation: 'fadeIn 0.3s ease-out'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '32px',
-          maxWidth: '600px',
-          width: '100%',
-          boxShadow: '0 20px 80px rgba(0, 0, 0, 0.3)',
-          border: '1px solid rgba(255, 255, 255, 0.8)',
-          animation: 'slideUp 0.4s ease-out'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-            <h3 style={{ 
-              fontSize: '28px', 
-              fontWeight: '800', 
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              {modalType === 'createAG' ? 'Créer une nouvelle AG' :
-               modalType === 'uploadFile' ? 'Uploader des fichiers SGI' : 'Nouvelle action'}
-            </h3>
-            <button 
-              onClick={() => setShowModal(false)}
-              style={{
-                padding: '10px',
-                background: 'rgba(100, 116, 139, 0.1)',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-                e.currentTarget.style.transform = 'rotate(90deg)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-                e.currentTarget.style.transform = 'rotate(0deg)';
-              }}>
-              <X style={{ width: '24px', height: '24px', color: '#64748b' }} />
-            </button>
+        zIndex: 1000
+      }}
+      onClick={closeModal}
+      >
+        <div 
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '30px',
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 style={{ fontSize: '24px', marginBottom: '20px', color: '#1a202c' }}>
+            {modalType === 'entreprise' ? 'Créer une Entreprise' : 'Créer une Assemblée Générale'}
+          </h3>
+          
+          <div>
+            {modalType === 'entreprise' ? (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                    Nom de l'entreprise *
+                  </label>
+                  <input
+                    type="text"
+                    onChange={(e) => setFormData({...formData, nom_entreprise: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                    placeholder="Ex: TechCorp SA"
+                  />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                    Adresse
+                  </label>
+                  <input
+                    type="text"
+                    onChange={(e) => setFormData({...formData, adresse: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                    placeholder="Adresse complète"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                    Code AG *
+                  </label>
+                  <input
+                    type="text"
+                    onChange={(e) => setFormData({...formData, code_ag: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                    placeholder="Ex: AG2026-003"
+                  />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                    Date de l'AG *
+                  </label>
+                  <input
+                    type="date"
+                    onChange={(e) => setFormData({...formData, date_ag: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                    Entreprise *
+                  </label>
+                  <select
+                    onChange={(e) => setFormData({...formData, entreprise_id: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner une entreprise</option>
+                    {entreprises.map(e => (
+                      <option key={e.id} value={e.entreprise_id}>{e.nom_entreprise}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+              <button
+                onClick={closeModal}
+                style={{
+                  flex: 1,
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                Créer
+              </button>
+            </div>
           </div>
-
-          {modalType === 'createAG' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Entreprise</label>
-                <select style={{
-                  width: '100%',
-                  padding: '14px 18px',
-                  border: '2px solid transparent',
-                  borderRadius: '14px',
-                  fontSize: '15px',
-                  outline: 'none',
-                  transition: 'all 0.3s ease',
-                  background: 'rgba(241, 245, 249, 0.8)',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#667eea';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
-                  e.currentTarget.style.background = '#ffffff';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-                }}>
-                  <option>Sélectionner une entreprise</option>
-                  <option>SGCI Holding</option>
-                  <option>Tech Solutions SA</option>
-                  <option>Finance Corp</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date de l'AG</label>
-                <input 
-                  type="date" 
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px',
-                    border: '2px solid transparent',
-                    borderRadius: '14px',
-                    fontSize: '15px',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    background: 'rgba(241, 245, 249, 0.8)',
-                    fontWeight: '500'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#667eea';
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
-                    e.currentTarget.style.background = '#ffffff';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Informations entreprise (JSON)</label>
-                <textarea 
-                  rows="4"
-                  placeholder='{"entreprise_id": 0, "nom_entreprise": "string"}'
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px',
-                    border: '2px solid transparent',
-                    borderRadius: '14px',
-                    fontSize: '14px',
-                    fontFamily: 'monospace',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    background: 'rgba(241, 245, 249, 0.8)',
-                    resize: 'vertical'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#667eea';
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
-                    e.currentTarget.style.background = '#ffffff';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '14px', paddingTop: '12px' }}>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '14px 24px',
-                    background: 'rgba(100, 116, 139, 0.1)',
-                    color: '#475569',
-                    borderRadius: '14px',
-                    border: 'none',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}>
-                  Annuler
-                </button>
-                <button style={{
-                  flex: 1,
-                  padding: '14px 24px',
-                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                  color: '#ffffff',
-                  borderRadius: '14px',
-                  border: 'none',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-                }}>
-                  <Check style={{ width: '20px', height: '20px' }} />
-                  Créer l'AG
-                </button>
-              </div>
-            </div>
-          )}
-
-          {modalType === 'uploadFile' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AG concernée</label>
-                <select style={{
-                  width: '100%',
-                  padding: '14px 18px',
-                  border: '2px solid transparent',
-                  borderRadius: '14px',
-                  fontSize: '15px',
-                  outline: 'none',
-                  transition: 'all 0.3s ease',
-                  background: 'rgba(241, 245, 249, 0.8)',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#10b981';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.1)';
-                  e.currentTarget.style.background = '#ffffff';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-                }}>
-                  <option>Sélectionner une AG</option>
-                  {recentAGs.map(ag => (
-                    <option key={ag.id}>{ag.company} - {ag.date}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{
-                border: '3px dashed #cbd5e1',
-                borderRadius: '16px',
-                padding: '40px',
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, rgba(241, 245, 249, 0.5), rgba(226, 232, 240, 0.5))',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#10b981';
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05))';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#cbd5e1';
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(241, 245, 249, 0.5), rgba(226, 232, 240, 0.5))';
-              }}>
-                <Upload style={{ width: '56px', height: '56px', color: '#94a3b8', margin: '0 auto 20px' }} />
-                <p style={{ color: '#475569', fontWeight: '600', marginBottom: '8px', fontSize: '16px' }}>Glissez-déposez vos fichiers ici</p>
-                <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>ou cliquez pour sélectionner</p>
-                <button style={{
-                  padding: '10px 28px',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: '#ffffff',
-                  borderRadius: '12px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '700',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-                }}>
-                  Parcourir
-                </button>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '16px' }}>Formats acceptés: CSV, XLSX (max 10MB)</p>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Informations SGI (optionnel)</label>
-                <textarea 
-                  rows="3"
-                  placeholder='{"sgi_id": 5, "nom_sgi": "Nom SGI"}'
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px',
-                    border: '2px solid transparent',
-                    borderRadius: '14px',
-                    fontSize: '14px',
-                    fontFamily: 'monospace',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    background: 'rgba(241, 245, 249, 0.8)',
-                    resize: 'vertical'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#10b981';
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.1)';
-                    e.currentTarget.style.background = '#ffffff';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '14px', paddingTop: '12px' }}>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '14px 24px',
-                    background: 'rgba(100, 116, 139, 0.1)',
-                    color: '#475569',
-                    borderRadius: '14px',
-                    border: 'none',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}>
-                  Annuler
-                </button>
-                <button style={{
-                  flex: 1,
-                  padding: '14px 24px',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: '#ffffff',
-                  borderRadius: '14px',
-                  border: 'none',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
-                }}>
-                  <Upload style={{ width: '20px', height: '20px' }} />
-                  Uploader
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
   };
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'ag', label: 'Assemblées Générales', icon: Calendar },
-    { id: 'companies', label: 'Entreprises', icon: Building2 },
-    { id: 'files', label: 'Fichiers SGI', icon: FileText },
-    { id: 'participants', label: 'Participants', icon: Users },
-    { id: 'reports', label: 'Rapports', icon: BarChart3 },
-    { id: 'settings', label: 'Paramètres', icon: Settings },
-  ];
+  // Participants View
+  const ParticipantsView = () => (
+    <div style={{ padding: '40px' }}>
+      <h2 style={{ fontSize: '28px', marginBottom: '30px', color: '#1a202c' }}>
+        Gestion des Participants
+      </h2>
+      
+      <div style={{
+        background: 'white',
+        padding: '30px',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+            Sélectionner une AG
+          </label>
+          <select style={{
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb',
+            fontSize: '14px',
+            outline: 'none',
+            width: '100%',
+            maxWidth: '400px'
+          }}>
+            <option value="">Choisir une assemblée générale</option>
+            {ags.map(ag => (
+              <option key={ag.id} value={ag.code_ag}>
+                {ag.code_ag} - {ag.nom_entreprise}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ 
+          display: 'flex', 
+          gap: '15px',
+          marginTop: '20px'
+        }}>
+          <button style={{
+            background: '#10b981',
+            color: 'white',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            <Download size={18} />
+            Exporter en Excel
+          </button>
+          <button style={{
+            background: '#ef4444',
+            color: 'white',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            <Download size={18} />
+            Exporter en PDF
+          </button>
+        </div>
+
+        <div style={{ 
+          marginTop: '30px',
+          padding: '40px',
+          background: '#f9fafb',
+          borderRadius: '8px',
+          textAlign: 'center',
+          color: '#6b7280'
+        }}>
+          <Users size={48} color="#9ca3af" style={{ margin: '0 auto 15px' }} />
+          <p>Sélectionnez une AG pour voir la liste des participants</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Rapports View
+  const RapportsView = () => (
+    <div style={{ padding: '40px' }}>
+      <h2 style={{ fontSize: '28px', marginBottom: '30px', color: '#1a202c' }}>
+        Génération des Rapports
+      </h2>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+        gap: '20px' 
+      }}>
+        {[
+          { 
+            title: 'Liste des Actionnaires',
+            description: 'Exporter la liste des actionnaires par SGI',
+            icon: Users,
+            color: '#667eea'
+          },
+          {
+            title: 'Rapport de Présence',
+            description: 'Générer le rapport de présence de l\'AG',
+            icon: FileText,
+            color: '#10b981'
+          },
+          {
+            title: 'Résultats des Votes',
+            description: 'Consulter les résultats des votes',
+            icon: TrendingUp,
+            color: '#f59e0b'
+          }
+        ].map((rapport, index) => (
+          <div key={index} style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{
+              background: `${rapport.color}20`,
+              width: '60px',
+              height: '60px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px'
+            }}>
+              <rapport.icon size={30} color={rapport.color} />
+            </div>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a202c', marginBottom: '10px' }}>
+              {rapport.title}
+            </h3>
+            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px' }}>
+              {rapport.description}
+            </p>
+            <button style={{
+              background: rapport.color,
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              width: '100%',
+              fontWeight: '500'
+            }}>
+              Générer
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      position: 'relative',
-      overflow: 'hidden'
+      background: '#f3f4f6',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     }}>
-      <div style={{
-        position: 'absolute',
-        top: '-10%',
-        right: '-5%',
-        width: '40%',
-        height: '40%',
-        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(60px)'
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '-15%',
-        left: '-8%',
-        width: '45%',
-        height: '45%',
-        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)'
-      }} />
-
-      <div style={{
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100%',
-        width: '280px',
-        background: 'rgba(30, 41, 59, 0.95)',
-        backdropFilter: 'blur(20px)',
-        color: '#ffffff',
-        padding: '32px 24px',
-        boxShadow: '0 10px 60px rgba(0, 0, 0, 0.3)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-        zIndex: 10
-      }}>
-        <div style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              borderRadius: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-            }}>
-              <Zap style={{ width: '28px', height: '28px', color: '#ffffff' }} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '2px' }}>AG Online</h1>
-              <p style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500' }}>Gestion d'Assemblées</p>
-            </div>
-          </div>
-        </div>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 18px',
-                  borderRadius: '14px',
-                  border: 'none',
-                  background: isActive ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
-                  color: isActive ? '#ffffff' : '#cbd5e1',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: isActive ? '0 4px 16px rgba(102, 126, 234, 0.4)' : 'none'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(100, 116, 139, 0.2)';
-                    e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.transform = 'translateX(4px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#cbd5e1';
-                    e.currentTarget.style.transform = 'translateX(0)';
-                  }
-                }}>
-                <Icon style={{ width: '22px', height: '22px' }} />
-                <span style={{ fontWeight: '600', fontSize: '15px' }}>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div style={{
-          position: 'absolute',
-          bottom: '32px',
-          left: '24px',
-          right: '24px'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '-20px',
-              right: '-20px',
-              width: '100px',
-              height: '100px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50%',
-              filter: 'blur(30px)'
-            }} />
-            <Sparkles style={{ width: '24px', height: '24px', marginBottom: '12px', position: 'relative', zIndex: 1 }} />
-            <p style={{ fontSize: '14px', fontWeight: '700', marginBottom: '6px', position: 'relative', zIndex: 1 }}>Besoin d'aide ?</p>
-            <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '14px', position: 'relative', zIndex: 1 }}>Consultez notre documentation</p>
-            <button style={{
-              width: '100%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(10px)',
-              color: '#ffffff',
-              padding: '10px 16px',
-              borderRadius: '10px',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              fontSize: '14px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              zIndex: 1
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-              e.currentTarget.style.transform = 'scale(1.03)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}>
-              Documentation
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{
-        marginLeft: '280px', 
-        padding: '40px',
-        minHeight: '100vh',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(40px)',
-          borderRadius: '32px',
-          padding: '40px',
-          minHeight: 'calc(100vh - 80px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.15)'
-        }}>
-          {activeTab === 'dashboard' && <DashboardView />}
-          {activeTab === 'files' && <FilesView />}
-          {activeTab === 'companies' && <CompaniesView />}
-          {activeTab === 'ag' && (
-            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
-              <Calendar style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
-              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des AG</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
-            </div>
-          )}
-          {activeTab === 'participants' && (
-            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
-              <Users style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
-              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Gestion des Participants</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
-            </div>
-          )}
-          {activeTab === 'reports' && (
-            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
-              <BarChart3 style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
-              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Rapports et Analyses</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
-            </div>
-          )}
-          {activeTab === 'settings' && (
-            <div style={{ textAlign: 'center', paddingTop: '100px', paddingBottom: '100px' }}>
-              <Settings style={{ width: '80px', height: '80px', color: 'rgba(255, 255, 255, 0.3)', margin: '0 auto 24px' }} />
-              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '12px' }}>Paramètres</h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>Cette section est en cours de développement</p>
-            </div>
-          )}
-        </div>
-      </div>
-
+      <Navigation />
+      
+      {currentView === 'dashboard' && <Dashboard />}
+      {currentView === 'entreprises' && <EntreprisesView />}
+      {currentView === 'ags' && <AGsView />}
+      {currentView === 'participants' && <ParticipantsView />}
+      {currentView === 'rapports' && <RapportsView />}
+      
       <Modal />
     </div>
   );
 };
 
-export default AGManagement;
+export default App;
