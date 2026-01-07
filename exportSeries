@@ -73,6 +73,7 @@ const App = () => {
           { id: 'dashboard', icon: Home, label: 'Dashboard' },
           { id: 'entreprises', icon: Building2, label: 'Entreprises' },
           { id: 'ags', icon: Calendar, label: 'Assemblées' },
+          { id: 'actionnaires', icon: TrendingUp, label: 'Actionnaires' },
           { id: 'participants', icon: Users, label: 'Participants' },
           { id: 'rapports', icon: FileText, label: 'Rapports' }
         ].map(item => (
@@ -1403,6 +1404,696 @@ const App = () => {
     );
   };
 
+  // Actionnaires View
+  const ActionnairesView = () => {
+    const [selectedAgForActionnaires, setSelectedAgForActionnaires] = useState(null);
+    const [actionnaires, setActionnaires] = useState([]);
+    const [loadingActionnaires, setLoadingActionnaires] = useState(false);
+    const [viewMode, setViewMode] = useState('analytics'); // 'analytics' or 'list'
+    const [searchGlobal, setSearchGlobal] = useState('');
+    const [selectedFilter, setSelectedFilter] = useState('all'); // 'all' or sgi_id
+
+    const handleAgSelectForActionnaires = (ag) => {
+      setSelectedAgForActionnaires(ag);
+      setViewMode('analytics');
+      setSearchGlobal('');
+      setSelectedFilter('all');
+      setLoadingActionnaires(true);
+      
+      // Simulated API call: GET /api/automation_ag/liste_actionnaires_ag/actionnaires-par-sgi?code_ag={code_ag}
+      setTimeout(() => {
+        setActionnaires({
+          details: [
+            { nom_client: "Dupont Jean", nombre_actions: 1500, sgi_id: "SGI001", user_id: 1, nom_sgi: "SGI Alpha Investments" },
+            { nom_client: "Martin Sophie", nombre_actions: 2300, sgi_id: "SGI001", user_id: 2, nom_sgi: "SGI Alpha Investments" },
+            { nom_client: "Bernard Pierre", nombre_actions: 1800, sgi_id: "SGI001", user_id: 3, nom_sgi: "SGI Alpha Investments" },
+            { nom_client: "Petit Marie", nombre_actions: 1000, sgi_id: "SGI001", user_id: 6, nom_sgi: "SGI Alpha Investments" },
+            { nom_client: "Dubois Marie", nombre_actions: 3200, sgi_id: "SGI002", user_id: 4, nom_sgi: "SGI Beta Finance" },
+            { nom_client: "Laurent Thomas", nombre_actions: 2700, sgi_id: "SGI002", user_id: 5, nom_sgi: "SGI Beta Finance" },
+            { nom_client: "Simon Lucas", nombre_actions: 1900, sgi_id: "SGI003", user_id: 8, nom_sgi: "SGI Gamma Capital" },
+            { nom_client: "Roux Emma", nombre_actions: 2100, sgi_id: "SGI003", user_id: 9, nom_sgi: "SGI Gamma Capital" }
+          ],
+          entreprise_id: ag.entreprise_id,
+          totaux: [
+            { nom_sgi: "SGI Alpha Investments", sgi_id: "SGI001", total_actions: 6600 },
+            { nom_sgi: "SGI Beta Finance", sgi_id: "SGI002", total_actions: 5900 },
+            { nom_sgi: "SGI Gamma Capital", sgi_id: "SGI003", total_actions: 4000 }
+          ]
+        });
+        setLoadingActionnaires(false);
+      }, 500);
+    };
+
+    const handleDownloadActionnaires = (format) => {
+      if (!selectedAgForActionnaires) return;
+      // API call: GET /api/automation_ag/liste_actionnaires_ag/actionnaires-par-sgi?code_ag={code_ag}&download=true&format={format}
+      console.log(`Downloading actionnaires for ${selectedAgForActionnaires.code_ag} in ${format} format`);
+      alert(`Téléchargement du fichier ${format.toUpperCase()} en cours...`);
+    };
+
+    const handleBackToAgSelection = () => {
+      setSelectedAgForActionnaires(null);
+      setActionnaires([]);
+      setSelectedSgiActionnaires(null);
+      setSearchSgiActionnaires('');
+      setSearchActionnaire('');
+    };
+
+    const handleSgiActionnaireClick = (sgi) => {
+      setSelectedSgiActionnaires(sgi);
+      setSearchActionnaire('');
+    };
+
+    const handleBackToSgiActionnaires = () => {
+      setSelectedSgiActionnaires(null);
+      setSearchActionnaire('');
+    };
+
+    const filteredSgiActionnaires = actionnaires.totaux?.filter(sgi =>
+      sgi.nom_sgi.toLowerCase().includes(searchSgiActionnaires.toLowerCase())
+    ) || [];
+
+    const filteredActionnaires = selectedSgiActionnaires
+      ? actionnaires.details.filter(a => 
+          a.sgi_id === selectedSgiActionnaires.sgi_id &&
+          a.nom_client.toLowerCase().includes(searchActionnaire.toLowerCase())
+        )
+      : [];
+
+    // Vue détaillée d'un SGI spécifique
+    if (selectedAgForActionnaires && selectedSgiActionnaires) {
+      const colors = [
+        { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', light: '#e0e7ff', text: '#4338ca' },
+        { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', light: '#fce7f3', text: '#be185d' },
+        { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', light: '#dbeafe', text: '#0369a1' },
+        { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', light: '#d1fae5', text: '#065f46' },
+        { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', light: '#fef3c7', text: '#92400e' }
+      ];
+      const sgiIndex = actionnaires.totaux.findIndex(s => s.sgi_id === selectedSgiActionnaires.sgi_id);
+      const colorScheme = colors[sgiIndex % colors.length];
+
+      return (
+        <div style={{ padding: '40px' }}>
+          <button
+            onClick={handleBackToSgiActionnaires}
+            style={{
+              background: '#f3f4f6',
+              color: '#374151',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            ← Retour aux SGI
+          </button>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
+          }}>
+            <div style={{
+              background: colorScheme.bg,
+              padding: '25px',
+              borderRadius: '12px',
+              marginBottom: '25px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.3)',
+                    padding: '15px',
+                    borderRadius: '12px'
+                  }}>
+                    <TrendingUp size={30} color="white" />
+                  </div>
+                  <div>
+                    <h2 style={{ 
+                      color: 'white', 
+                      fontWeight: '700', 
+                      fontSize: '24px',
+                      margin: 0,
+                      marginBottom: '6px'
+                    }}>
+                      {selectedSgiActionnaires.nom_sgi}
+                    </h2>
+                    <div style={{
+                      color: 'rgba(255,255,255,0.9)',
+                      fontSize: '14px'
+                    }}>
+                      {filteredActionnaires.length} actionnaires
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(10px)',
+                  padding: '15px 25px',
+                  borderRadius: '12px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px', marginBottom: '4px' }}>
+                    Total Actions
+                  </div>
+                  <div style={{ color: 'white', fontSize: '24px', fontWeight: '700' }}>
+                    {selectedSgiActionnaires.total_actions.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ position: 'relative', marginBottom: '25px' }}>
+              <Search size={20} color="#9ca3af" style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)' 
+              }} />
+              <input
+                type="text"
+                placeholder="Rechercher un actionnaire..."
+                value={searchActionnaire}
+                onChange={(e) => setSearchActionnaire(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 45px',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = colorScheme.text}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {filteredActionnaires.length > 0 ? (
+                filteredActionnaires.map((actionnaire, index) => (
+                  <div key={index} style={{
+                    background: '#fafafa',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    transition: 'all 0.3s ease',
+                    border: '2px solid transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = colorScheme.light;
+                    e.currentTarget.style.transform = 'translateX(5px)';
+                    e.currentTarget.style.borderColor = colorScheme.text;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#fafafa';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                      <div style={{
+                        width: '55px',
+                        height: '55px',
+                        borderRadius: '50%',
+                        background: colorScheme.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '18px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}>
+                        {actionnaire.nom_client.split(' ').map(n => n.charAt(0)).join('')}
+                      </div>
+                      <div>
+                        <div style={{ 
+                          fontWeight: '700', 
+                          color: '#1a202c', 
+                          fontSize: '17px',
+                          marginBottom: '5px'
+                        }}>
+                          {actionnaire.nom_client}
+                        </div>
+                        <div style={{ 
+                          fontSize: '13px', 
+                          color: '#6b7280',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <TrendingUp size={14} color="#10b981" />
+                          {actionnaire.nombre_actions.toLocaleString()} actions
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{
+                      background: colorScheme.light,
+                      color: colorScheme.text,
+                      padding: '10px 18px',
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '11px', opacity: 0.7 }}>ID</div>
+                      <div>{actionnaire.user_id}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '50px',
+                  color: '#6b7280',
+                  fontSize: '15px'
+                }}>
+                  <TrendingUp size={48} color="#d1d5db" style={{ margin: '0 auto 15px' }} />
+                  Aucun actionnaire trouvé
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Vue des cartes SGI avec actionnaires
+    if (selectedAgForActionnaires) {
+      const totalActions = actionnaires.totaux?.reduce((acc, sgi) => acc + sgi.total_actions, 0) || 0;
+
+      return (
+        <div style={{ padding: '40px' }}>
+          <button
+            onClick={handleBackToAgSelection}
+            style={{
+              background: '#f3f4f6',
+              color: '#374151',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            ← Retour à la sélection AG
+          </button>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '28px', color: '#1a202c', marginBottom: '10px' }}>
+                  Actionnaires - {selectedAgForActionnaires.code_ag}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Building2 size={18} color="#667eea" />
+                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
+                      {selectedAgForActionnaires.nom_entreprise}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Calendar size={18} color="#10b981" />
+                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
+                      {new Date(selectedAgForActionnaires.date_ag).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => handleDownloadActionnaires('xlsx')}
+                  style={{
+                    background: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <Download size={16} />
+                  Excel
+                </button>
+                <button
+                  onClick={() => handleDownloadActionnaires('csv')}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <Download size={16} />
+                  CSV
+                </button>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '20px',
+              marginTop: '20px'
+            }}>
+              <div style={{
+                background: '#f0fdf4',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#15803d', marginBottom: '5px' }}>
+                  Total Actions
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#14532d' }}>
+                  {totalActions.toLocaleString()}
+                </div>
+              </div>
+              <div style={{
+                background: '#f9fafb',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '5px' }}>
+                  Total Actionnaires
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c' }}>
+                  {actionnaires.details?.length || 0}
+                </div>
+              </div>
+              <div style={{
+                background: '#f9fafb',
+                padding: '20px',
+                borderRadius: '8px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '5px' }}>
+                  SGI représentés
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c' }}>
+                  {actionnaires.totaux?.length || 0}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{ fontSize: '20px', color: '#1a202c', marginBottom: '20px' }}>
+              SGI et leurs actionnaires
+            </h3>
+
+            <div style={{ position: 'relative', marginBottom: '25px' }}>
+              <Search size={20} color="#9ca3af" style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)' 
+              }} />
+              <input
+                type="text"
+                placeholder="Rechercher un SGI..."
+                value={searchSgiActionnaires}
+                onChange={(e) => setSearchSgiActionnaires(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 45px',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  outline: 'none',
+                  transition: 'border 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+
+            {loadingActionnaires ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px',
+                color: '#6b7280'
+              }}>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  border: '4px solid #f3f4f6',
+                  borderTop: '4px solid #667eea',
+                  borderRadius: '50%',
+                  margin: '0 auto 20px',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                Chargement des actionnaires...
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                gap: '20px' 
+              }}>
+                {filteredSgiActionnaires.length > 0 ? (
+                  filteredSgiActionnaires.map((sgi, index) => {
+                    const colors = [
+                      { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', light: '#e0e7ff', text: '#4338ca' },
+                      { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', light: '#fce7f3', text: '#be185d' },
+                      { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', light: '#dbeafe', text: '#0369a1' },
+                      { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', light: '#d1fae5', text: '#065f46' },
+                      { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', light: '#fef3c7', text: '#92400e' }
+                    ];
+                    const colorScheme = colors[index % colors.length];
+                    const sgiActionnaires = actionnaires.details.filter(a => a.sgi_id === sgi.sgi_id);
+                    const percentageOfTotal = ((sgi.total_actions / totalActions) * 100).toFixed(1);
+
+                    return (
+                      <div 
+                        key={index}
+                        onClick={() => handleSgiActionnaireClick(sgi)}
+                        style={{
+                          background: 'white',
+                          border: `2px solid ${colorScheme.light}`,
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-8px)';
+                          e.currentTarget.style.boxShadow = `0 12px 24px ${colorScheme.light}`;
+                          e.currentTarget.style.borderColor = colorScheme.text;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.borderColor = colorScheme.light;
+                        }}
+                      >
+                        <div style={{
+                          background: colorScheme.bg,
+                          padding: '25px',
+                          position: 'relative'
+                        }}>
+                          <div style={{
+                            background: 'rgba(255,255,255,0.3)',
+                            backdropFilter: 'blur(10px)',
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '15px'
+                          }}>
+                            <TrendingUp size={30} color="white" />
+                          </div>
+                          <h4 style={{
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: 'white',
+                            marginBottom: '8px',
+                            margin: 0
+                          }}>
+                            {sgi.nom_sgi}
+                          </h4>
+                          <div style={{
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '13px',
+                            marginTop: '8px'
+                          }}>
+                            {sgiActionnaires.length} actionnaires
+                          </div>
+                        </div>
+
+                        <div style={{ padding: '25px' }}>
+                          <div style={{
+                            background: colorScheme.light,
+                            padding: '20px',
+                            borderRadius: '12px',
+                            marginBottom: '15px'
+                          }}>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: colorScheme.text,
+                              fontWeight: '600',
+                              marginBottom: '8px'
+                            }}>
+                              Total Actions
+                            </div>
+                            <div style={{
+                              fontSize: '28px',
+                              fontWeight: '700',
+                              color: colorScheme.text,
+                              marginBottom: '6px'
+                            }}>
+                              {sgi.total_actions.toLocaleString()}
+                            </div>
+                            <div style={{
+                              fontSize: '13px',
+                              color: colorScheme.text,
+                              opacity: 0.8
+                            }}>
+                              {percentageOfTotal}% du total
+                            </div>
+                          </div>
+
+                          <div style={{
+                            padding: '15px',
+                            background: '#f9fafb',
+                            borderRadius: '10px',
+                            marginBottom: '15px'
+                          }}>
+                            <div style={{ 
+                              fontSize: '12px', 
+                              color: '#6b7280',
+                              fontWeight: '600',
+                              marginBottom: '8px'
+                            }}>
+                              Aperçu des actionnaires
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              {sgiActionnaires.slice(0, 5).map((a, i) => (
+                                <div 
+                                  key={i}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: colorScheme.bg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '11px',
+                                    fontWeight: '700',
+                                    border: '2px solid white',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  {a.nom_client.split(' ').map(n => n.charAt(0)).join('')}
+                                </div>
+                              ))}
+                              {sgiActionnaires.length > 5 && (
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: '#f3f4f6',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#6b7280',
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  border: '2px solid white'
+                                }}>
+                                  +{sgiActionnaires.length - 5}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            color: colorScheme.text,
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            paddingTop: '10px',
+                            borderTop: `1px solid ${colorScheme.light}`
+                          }}>
+                            <Eye size={16} />
+                            Voir tous les actionnaires
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '50px',
+                    color: '#6b7280',
+                    fontSize: '15px'
+                  }}>
+                    <TrendingUp size={48} color="#d1d5db" style={{ margin: '0 auto 15px' }} />
+                    Aucun SGI trouvé
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // Participants View
   const ParticipantsView = () => (
     <div style={{ padding: '40px' }}>
@@ -1583,6 +2274,7 @@ const App = () => {
       {currentView === 'dashboard' && <Dashboard />}
       {currentView === 'entreprises' && <EntreprisesView />}
       {currentView === 'ags' && <AGsView />}
+      {currentView === 'actionnaires' && <ActionnairesView />}
       {currentView === 'participants' && <ParticipantsView />}
       {currentView === 'rapports' && <RapportsView />}
       
