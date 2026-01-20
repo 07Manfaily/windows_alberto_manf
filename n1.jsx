@@ -28,6 +28,11 @@ export default function AGListView() {
   const [editMode, setEditMode] = useState(false);
   const [selectedAgForEdit, setSelectedAgForEdit] = useState(null);
   
+  // États pour le modal d'upload de fichier
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [selectedSgiForUpload, setSelectedSgiForUpload] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+  
   // Sélection entreprise
   const [companyOption, setCompanyOption] = useState(null);
   const [dateAg, setDateAg] = useState("");
@@ -39,6 +44,7 @@ export default function AGListView() {
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [downloadingFile, setDownloadingFile] = useState(false);
+  const [deletingFile, setDeletingFile] = useState(false);
   
   // Données
   const [companies, setCompanies] = useState([]);
@@ -282,15 +288,17 @@ export default function AGListView() {
     }
   };
 
-  // Upload de fichier
-  const uploadFile = async (file, agId) => {
+  // Upload de fichier avec SGI
+  const handleFileUploadWithSgi = async () => {
+    if (!uploadFile || !selectedSgiForUpload || !selectedAgDetails) return;
+    
     setUploadingFile(true);
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('ag_id', agId);
+    formData.append('file', uploadFile);
+    formData.append('sgi_info', selectedSgiForUpload);
 
     try {
-      const response = await fetch('/api/automation_ag/upload_file', {
+      const response = await fetch(`/api/automation_ag/add_file/${selectedAgDetails.ag_id}/files-sgi`, {
         method: 'POST',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -304,11 +312,48 @@ export default function AGListView() {
       }
 
       // Refresh la liste des fichiers
-      await fetchAgFiles(agId);
+      await fetchAgFiles(selectedAgDetails.ag_id);
+      
+      // Reset et fermer le modal
+      setUploadModalOpen(false);
+      setSelectedSgiForUpload(null);
+      setUploadFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       console.error("Erreur réseau (upload):", error);
     } finally {
       setUploadingFile(false);
+    }
+  };
+
+  // Supprimer un fichier
+  const deleteFile = async (fileId) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce fichier ?")) {
+      return;
+    }
+
+    setDeletingFile(true);
+    try {
+      const response = await fetch(`/api/automation_ag/delete_file_ag/${fileId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Erreur lors de la suppression du fichier");
+        return;
+      }
+
+      // Refresh la liste des fichiers
+      await fetchAgFiles(selectedAgDetails.ag_id);
+    } catch (error) {
+      console.error("Erreur réseau (suppression):", error);
+    } finally {
+      setDeletingFile(false);
     }
   };
 
@@ -388,7 +433,7 @@ export default function AGListView() {
     // Charger les participants et les fichiers en parallèle
     await Promise.all([
       fetchParticipants(ag.code_ag),
-      fetchAgFiles(ag.code_ag)
+      fetchAgFiles(ag.ag_id)
     ]);
   };
 
@@ -415,10 +460,33 @@ export default function AGListView() {
     setOpen(true);
   };
 
-  const handleFileUpload = (event) => {
+  const handleOpenUploadModal = () => {
+    setUploadModalOpen(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setUploadModalOpen(false);
+    setSelectedSgiForUpload(null);
+    setUploadFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && selectedAgDetails) {
-      uploadFile(file, selectedAgDetails.code_ag);
+    if (file) {
+      // Vérifier que le fichier est CSV ou XLSX
+      const allowedTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      const allowedExtensions = ['.csv', '.xlsx'];
+      const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      
+      if (allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension)) {
+        setUploadFile(file);
+      } else {
+        alert("Seuls les fichiers CSV et XLSX sont autorisés.");
+        event.target.value = '';
+      }
     }
   };
 
@@ -438,6 +506,15 @@ export default function AGListView() {
     [companies]
   );
 
+  const sgiOptions = useMemo(
+    () =>
+      participants?.result?.map((sgi, index) => ({
+        label: sgi?.nom_sgi ?? "",
+        value: index.toString(),
+      })) || [],
+    [participants]
+  );
+
   const filteredParticipants = participants?.result?.filter((sgi) =>
     sgi.nom_sgi.toLowerCase().includes(searchSgi.toLowerCase())
   );
@@ -447,6 +524,184 @@ export default function AGListView() {
         p.nom_prenom.toLowerCase().includes(searchParticipant.toLowerCase())
       )
     : [];
+
+  // ---- Modal d'upload de fichier ----
+  const UploadModal = () => {
+    if (!uploadModalOpen) return null;
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.6)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 60,
+          padding: "20px",
+          animation: "fadeIn 0.3s ease-out",
+        }}
+      >
+        <div
+          style={{
+            background: "white",
+            borderRadius: "24px",
+            padding: "32px",
+            maxWidth: "500px",
+            width: "100%",
+            boxShadow: "0 20px 80px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "24px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "24px",
+                fontWeight: "700",
+                background: "linear-gradient(135deg, #667eea, #764ba2)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Charger un fichier
+            </h3>
+            <button
+              onClick={handleCloseUploadModal}
+              style={{
+                padding: "10px",
+                background: "rgba(100, 116, 139, 0.1)",
+                border: "none",
+                borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              <X style={{ width: "24px", height: "24px", color: "#6b7280" }} />
+            </button>
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Champ AG (disabled) */}
+            <div>
+              <label className="labelStyle">AG concernée</label>
+              <input
+                value={selectedAgDetails?.code_ag || ""}
+                disabled
+                className="inputStyle"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "2px solid #e5e7eb",
+                  outline: "none",
+                  backgroundColor: "#f9fafb",
+                  color: "#6b7280",
+                }}
+              />
+            </div>
+            
+            {/* Sélection SGI */}
+            <div>
+              <label className="labelStyle">SGI</label>
+              <CustomSelect
+                placeholder="Sélectionner une SGI"
+                options={sgiOptions}
+                value={selectedSgiForUpload}
+                onChange={setSelectedSgiForUpload}
+                searchPlaceholder="Rechercher une SGI..."
+              />
+            </div>
+            
+            {/* Upload de fichier */}
+            <div>
+              <label className="labelStyle">Fichier (CSV ou XLSX)</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.xlsx"
+                onChange={handleFileChange}
+                className="inputStyle"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "2px solid #e5e7eb",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              />
+              {uploadFile && (
+                <div style={{ 
+                  marginTop: "8px", 
+                  fontSize: "14px", 
+                  color: "#10b981",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}>
+                  <Check size={16} />
+                  {uploadFile.name}
+                </div>
+              )}
+            </div>
+            
+            <div style={{ display: "flex", gap: "12px", paddingTop: "16px" }}>
+              <button
+                onClick={handleCloseUploadModal}
+                style={{
+                  flex: 1,
+                  padding: "12px 24px",
+                  background: "#f3f4f6",
+                  color: "#374151",
+                  borderRadius: "12px",
+                  border: "none",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                }}
+              >
+                Annuler
+              </button>
+              
+              <button
+                onClick={handleFileUploadWithSgi}
+                disabled={uploadingFile || !selectedSgiForUpload || !uploadFile}
+                style={{
+                  flex: 1,
+                  padding: "12px 24px",
+                  background: "linear-gradient(135deg, #667eea, #764ba2)",
+                  color: "white",
+                  borderRadius: "12px",
+                  border: "none",
+                  fontWeight: "500",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  opacity: uploadingFile || !selectedSgiForUpload || !uploadFile ? 0.7 : 1,
+                }}
+              >
+                {uploadingFile ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Upload style={{ width: "20px", height: "20px" }} />
+                )}
+                {uploadingFile ? "Upload..." : "Charger le fichier"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // ---- Modal des participants SGI ----
   if (isOpen && selectedAgDetails && selectedSgi) {
@@ -835,6 +1090,8 @@ export default function AGListView() {
   if (selectedAgDetails) {
     return (
       <div style={{ padding: "40px" }}>
+        <UploadModal />
+        
         {/* Bouton retour */}
         <button
           onClick={handleBackToList}
@@ -909,16 +1166,8 @@ export default function AGListView() {
             
             {/* Actions */}
             <div style={{ display: "flex", gap: "10px" }}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls,.pdf,.doc,.docx"
-                onChange={handleFileUpload}
-                style={{ display: "none" }}
-              />
-              
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={handleOpenUploadModal}
                 disabled={uploadingFile}
                 style={{
                   background: "#3b82f6",
@@ -935,8 +1184,8 @@ export default function AGListView() {
                   opacity: uploadingFile ? 0.7 : 1,
                 }}
               >
-                {uploadingFile ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                {uploadingFile ? "Upload..." : "Charger un fichier"}
+                <Upload size={16} />
+                Charger un fichier
               </button>
               
               <button
@@ -1105,21 +1354,39 @@ export default function AGListView() {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => downloadFile(file.id, file.name)}
-                    disabled={downloadingFile}
-                    style={{
-                      background: "#10b981",
-                      color: "white",
-                      border: "none",
-                      padding: "8px",
-                      borderRadius: "6px",
-                      cursor: downloadingFile ? "not-allowed" : "pointer",
-                      opacity: downloadingFile ? 0.7 : 1,
-                    }}
-                  >
-                    {downloadingFile ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <button
+                      onClick={() => downloadFile(file.id, file.name)}
+                      disabled={downloadingFile}
+                      style={{
+                        background: "#10b981",
+                        color: "white",
+                        border: "none",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        cursor: downloadingFile ? "not-allowed" : "pointer",
+                        opacity: downloadingFile ? 0.7 : 1,
+                      }}
+                    >
+                      {downloadingFile ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                    </button>
+                    
+                    <button
+                      onClick={() => deleteFile(file.id)}
+                      disabled={deletingFile}
+                      style={{
+                        background: "#ef4444",
+                        color: "white",
+                        border: "none",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        cursor: deletingFile ? "not-allowed" : "pointer",
+                        opacity: deletingFile ? 0.7 : 1,
+                      }}
+                    >
+                      {deletingFile ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
