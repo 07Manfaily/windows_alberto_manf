@@ -73,6 +73,7 @@ export default function AGListView() {
   // États de recherche
   const [searchSgi, setSearchSgi] = useState("");
   const [searchParticipant, setSearchParticipant] = useState("");
+  const [searchAg, setSearchAg] = useState("");
   
   // Références
   const fileInputRef = useRef(null);
@@ -559,6 +560,7 @@ export default function AGListView() {
     setSelectedSgi(null);
     setSearchSgi("");
     setSearchParticipant("");
+    setSearchAg(""); // Réinitialiser la recherche AG
     setActionnairesSgiData(null);
   };
 
@@ -668,6 +670,14 @@ export default function AGListView() {
   const filteredParticipants = participants?.result?.filter((sgi) =>
     sgi.nom_sgi.toLowerCase().includes(searchSgi.toLowerCase())
   );
+
+  const filteredAgs = ags.filter((ag) => {
+    const searchTerm = searchAg.toLowerCase();
+    return (
+      ag.code_ag?.toLowerCase().includes(searchTerm) ||
+      ag.entreprise?.nom_entreprise?.toLowerCase().includes(searchTerm)
+    );
+  });
 
   const filteredSgiParticipants = selectedSgi
     ? selectedSgi.participants?.filter((p) =>
@@ -1326,7 +1336,7 @@ export default function AGListView() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 50,
+          zIndex: 100,
           padding: "20px",
           animation: "fadeIn 0.3s ease-out",
         }}
@@ -2661,14 +2671,64 @@ export default function AGListView() {
             </button>
           </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))",
-              gap: "32px",
-            }}
-          >
-            {ags.map((ag, index) => (
+          <>
+            {/* Barre de recherche des AG */}
+            <div style={{ 
+              position: "relative", 
+              marginBottom: "40px",
+              maxWidth: "600px",
+              margin: "0 auto 40px auto"
+            }}>
+              <Search
+                size={24}
+                color="#94a3b8"
+                style={{
+                  position: "absolute",
+                  left: "24px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Rechercher une AG par code ou entreprise..."
+                value={searchAg}
+                onChange={(e) => setSearchAg(e.target.value)}
+                style={{
+                  width: "calc(100% - 48px)",
+                  padding: "20px 24px 20px 64px",
+                  borderRadius: "20px",
+                  border: "2px solid rgba(226, 232, 240, 0.8)",
+                  fontSize: "18px",
+                  outline: "none",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  background: "rgba(248, 250, 252, 0.8)",
+                  backdropFilter: "blur(20px)",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#667eea";
+                  e.target.style.background = "white";
+                  e.target.style.boxShadow = "0 0 0 4px rgba(102, 126, 234, 0.1)";
+                  e.target.style.transform = "scale(1.02)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "rgba(226, 232, 240, 0.8)";
+                  e.target.style.background = "rgba(248, 250, 252, 0.8)";
+                  e.target.style.boxShadow = "none";
+                  e.target.style.transform = "scale(1)";
+                }}
+              />
+            </div>
+            
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))",
+                gap: "32px",
+              }}
+            >
+              {filteredAgs.length > 0 ? (
+                filteredAgs.map((ag, index) => (
               <div
                 key={ag.entreprise?.entreprise_id || index}
                 onClick={() => handleAgClick(ag)}
@@ -2900,8 +2960,63 @@ export default function AGListView() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            <div style={{ 
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              padding: "80px",
+              color: "#64748b" 
+            }}>
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #f1f5f9, #e2e8f0)",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 24px",
+                }}
+              >
+                <Search size={48} color="#94a3b8" />
+              </div>
+              <h3 style={{ 
+                margin: "0 0 12px 0", 
+                color: "#374151",
+                fontSize: "24px",
+                fontWeight: "700"
+              }}>
+                Aucune AG trouvée
+              </h3>
+              <p style={{ 
+                margin: "0 0 20px 0",
+                fontSize: "16px",
+                lineHeight: "1.6"
+              }}>
+                Aucune assemblée générale ne correspond à votre recherche "{searchAg}"
+              </p>
+              <button
+                onClick={() => setSearchAg("")}
+                style={{
+                  background: "linear-gradient(135deg, #667eea, #764ba2)",
+                  color: "white",
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  border: "none",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                Effacer la recherche
+              </button>
+            </div>
+          )}
+        </div>
+      </>
         )}
       </div>
     </div>
