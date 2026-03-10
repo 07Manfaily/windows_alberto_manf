@@ -1,1642 +1,767 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Building2, Users, FileText, Plus, Search, Download, Edit, Eye, Trash2, Home, TrendingUp, Upload, File, FolderOpen, Save, RefreshCw, FileSpreadsheet, FileImage, ChevronLeft, ChevronRight, Filter, ArrowLeft, UserCheck, DollarSign } from 'lucide-react';
+import { useState } from "react";
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from "recharts";
 
-const API_BASE_URL = 'http://10.9.100.115:5010/api/automation_ag';
+// ── PALETTE ───────────────────────────────────────────────────────────────────
+// Fond blanc pur, texte bleu marine profond, accents rouge SG et or subtil
+const C = {
+  bg:        "#FFFFFF",
+  bgSoft:    "#F7F8FC",
+  bgCard:    "#FFFFFF",
+  navy:      "#020235",       // bleu marine profond
+  navyMid:   "#0A0A6E",
+  navyLight: "#1A1A9E",
+  red:       "#E2001A",       // rouge SG officiel
+  redLight:  "#FF3347",
+  redPale:   "#FFF0F1",
+  gold:      "#C9882A",       // or accent
+  goldLight: "#F5D97A",
+  border:    "#E8EAF2",
+  borderMid: "#C8CBE0",
+  text:      "#020235",
+  textMid:   "#4A4E7A",
+  textMute:  "#9296B8",
+  white:     "#FFFFFF",
+};
 
-const App = () => {
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [entreprises, setEntreprises] = useState([]);
-  const [ags, setAgs] = useState([]);
-  const [selectedAg, setSelectedAg] = useState(null);
-  const [selectedSgi, setSelectedSgi] = useState(null);
-  const [agActiveTab, setAgActiveTab] = useState('participants'); // participants, actionnaires, fichiers
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [loading, setLoading] = useState(false);
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const actionsParModalite = [
+  { modalite: "Présentiel", actions: 142 },
+  { modalite: "E-learning", actions: 98 },
+  { modalite: "Blended", actions: 67 },
+  { modalite: "MOOC", actions: 34 },
+  { modalite: "Virtuel", actions: 55 },
+];
+const collabParCategorie = [
+  { categorie: "Cadres", nombre: 210 },
+  { categorie: "Techniciens", nombre: 185 },
+  { categorie: "Agents", nombre: 320 },
+  { categorie: "Managers", nombre: 95 },
+  { categorie: "Dirigeants", nombre: 40 },
+];
+const collabParGenre = [
+  { name: "Hommes", value: 58 },
+  { name: "Femmes", value: 42 },
+];
+const collabParModalite = [
+  { modalite: "Présentiel", collab: 480 },
+  { modalite: "E-learning", collab: 310 },
+  { modalite: "Blended", collab: 180 },
+  { modalite: "Virtuel", collab: 120 },
+];
+const budgetData = [
+  { mois: "Jan", budget: 45, consomme: 38 },
+  { mois: "Fév", budget: 50, consomme: 47 },
+  { mois: "Mar", budget: 60, consomme: 55 },
+  { mois: "Avr", budget: 55, consomme: 42 },
+  { mois: "Mai", budget: 70, consomme: 68 },
+  { mois: "Jun", budget: 65, consomme: 60 },
+];
+const efficacite = [
+  { formation: "Leadership", score: 88 },
+  { formation: "Digital", score: 92 },
+  { formation: "Risque", score: 75 },
+  { formation: "Conformité", score: 95 },
+  { formation: "Commercial", score: 82 },
+];
+const diffusion = [
+  { type: "Interne", nombre: 78 },
+  { type: "Externe", nombre: 45 },
+  { type: "Inter-ent.", nombre: 32 },
+  { type: "En ligne", nombre: 110 },
+];
+const investissements = [
+  { annee: "2020", invest: 120 },
+  { annee: "2021", invest: 145 },
+  { annee: "2022", invest: 168 },
+  { annee: "2023", invest: 195 },
+  { annee: "2024", invest: 230 },
+];
+const coutType = [
+  { type: "Présentiel", cout: 95 },
+  { type: "E-learning", cout: 28 },
+  { type: "Blended", cout: 62 },
+  { type: "Virtuel", cout: 35 },
+];
+const formationsOGF = [
+  { ogf: "Paris", formations: 42 },
+  { ogf: "Lyon", formations: 28 },
+  { ogf: "Abidjan", formations: 65 },
+  { ogf: "Dakar", formations: 31 },
+  { ogf: "Casablanca", formations: 22 },
+];
+const participantsOGF = [
+  { ogf: "Paris", participants: 320, collab: 280 },
+  { ogf: "Lyon", participants: 180, collab: 155 },
+  { ogf: "Abidjan", participants: 540, collab: 490 },
+  { ogf: "Dakar", participants: 220, collab: 200 },
+  { ogf: "Casablanca", participants: 160, collab: 140 },
+];
+const participantsType = [
+  { type: "Technique", participants: 420, collab: 380 },
+  { type: "Management", participants: 290, collab: 260 },
+  { type: "Réglementaire", participants: 510, collab: 470 },
+  { type: "Soft skills", participants: 230, collab: 200 },
+];
+const elearning = [
+  { groupe: "Retail", p: 85 },
+  { groupe: "Corporate", p: 72 },
+  { groupe: "IT", p: 91 },
+  { groupe: "RH", p: 88 },
+  { groupe: "Finance", p: 79 },
+];
+const presentielOGF = [
+  { ogf: "Abidjan", participants: 310, collab: 285 },
+  { ogf: "Paris", participants: 220, collab: 200 },
+  { ogf: "Dakar", participants: 140, collab: 125 },
+  { ogf: "Lyon", participants: 95, collab: 88 },
+];
+const presentielType = [
+  { type: "Technique", p: 280 },
+  { type: "Managériale", p: 195 },
+  { type: "Réglementaire", p: 340 },
+  { type: "Métier", p: 215 },
+];
+const coutOGF = [
+  { ogf: "Abidjan", cout: 48 },
+  { ogf: "Paris", cout: 72 },
+  { ogf: "Dakar", cout: 31 },
+  { ogf: "Lyon", cout: 25 },
+  { ogf: "Casablanca", cout: 18 },
+];
+const reporting = [
+  { subject: "Complétion", A: 87 },
+  { subject: "Satisfaction", A: 82 },
+  { subject: "ROI", A: 74 },
+  { subject: "Couverture", A: 91 },
+  { subject: "Délai", A: 78 },
+  { subject: "Budget", A: 85 },
+];
+const programme = [
+  { name: "Obligatoire", value: 35 },
+  { name: "Développement", value: 28 },
+  { name: "Métier", value: 22 },
+  { name: "Leadership", value: 15 },
+];
 
-  // États pour les données selon les APIs
-  const [participants, setParticipants] = useState([]); // list_users_ag/{code_ag}
-  const [actionnaires, setActionnaires] = useState([]); // liste_actionnaires_ag
-  const [fichiers, setFichiers] = useState([]); // get_list_file_ag/{ag_id}/files
-  const [sgiList, setSgiList] = useState([]); // liste_sgi_ag
-
-  // États pour pagination et filtrage
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
-  const [filterType, setFilterType] = useState('all');
-
-  // Simulated data loading selon structure API
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
-    // Simulation des appels API
-    
-    // GET /liste_entreprises
-    setEntreprises([
-      { id: 1, nom_entreprise: "TechCorp SA", entreprise_id: 1, created_at: "2024-01-15" },
-      { id: 2, nom_entreprise: "InnoVest Partners", entreprise_id: 2, created_at: "2024-02-20" }
-    ]);
-    
-    // GET /list_ags
-    setAgs([
-      { 
-        id: 1, 
-        code_ag: "AG2026-001", 
-        date_ag: "2026-03-15", 
-        entreprise_id: 1,
-        nom_entreprise: "TechCorp SA"
-      },
-      { 
-        id: 2, 
-        code_ag: "AG2026-002", 
-        date_ag: "2026-04-20", 
-        entreprise_id: 1,
-        nom_entreprise: "TechCorp SA"
-      }
-    ]);
-
-    // GET /liste_sgi_ag
-    setSgiList([
-      {
-        id: 1,
-        nom_sgi: "SGI Alpha Investments",
-        sgi_id: "SGI001",
-        status: "active"
-      },
-      {
-        id: 2,
-        nom_sgi: "SGI Beta Finance",
-        sgi_id: "SGI002", 
-        status: "active"
-      },
-      {
-        id: 3,
-        nom_sgi: "SGI Gamma Capital",
-        sgi_id: "SGI003",
-        status: "active"
-      }
-    ]);
-  };
-
-  // Fonction pour charger les données d'une AG selon les APIs
-  const loadAgData = async (ag) => {
-    setLoading(true);
-    setSelectedAg(ag);
-    
-    try {
-      // API: GET /list_users_ag/{code_ag} - Participants regroupés par SGI
-      setTimeout(() => {
-        setParticipants([
-          {
-            nom_sgi: "SGI Alpha Investments",
-            sgi_id: "SGI001",
-            participants: [
-              { nom_client: "Dupont Jean", user_id: 1, statut_presence: "present" },
-              { nom_client: "Martin Sophie", user_id: 2, statut_presence: "present" },
-              { nom_client: "Bernard Pierre", user_id: 3, statut_presence: "absent" },
-              { nom_client: "Petit Marie", user_id: 6, statut_presence: "present" }
-            ]
-          },
-          {
-            nom_sgi: "SGI Beta Finance", 
-            sgi_id: "SGI002",
-            participants: [
-              { nom_client: "Dubois Marie", user_id: 4, statut_presence: "present" },
-              { nom_client: "Laurent Thomas", user_id: 5, statut_presence: "present" },
-              { nom_client: "Moreau Claire", user_id: 7, statut_presence: "present" }
-            ]
-          },
-          {
-            nom_sgi: "SGI Gamma Capital",
-            sgi_id: "SGI003", 
-            participants: [
-              { nom_client: "Simon Lucas", user_id: 8, statut_presence: "present" },
-              { nom_client: "Roux Emma", user_id: 9, statut_presence: "absent" }
-            ]
-          }
-        ]);
-
-        // API: GET /liste_actionnaires_ag - Actionnaires avec détails
-        setActionnaires([
-          {
-            nom_sgi: "SGI Alpha Investments",
-            sgi_id: "SGI001", 
-            actionnaires: [
-              { nom_client: "Dupont Jean", user_id: 1, nombre_actions: 1500, valeur_actions: 45000 },
-              { nom_client: "Martin Sophie", user_id: 2, nombre_actions: 2300, valeur_actions: 69000 },
-              { nom_client: "Bernard Pierre", user_id: 3, nombre_actions: 1800, valeur_actions: 54000 }
-            ],
-            total_actions: 5600,
-            total_valeur: 168000
-          },
-          {
-            nom_sgi: "SGI Beta Finance",
-            sgi_id: "SGI002",
-            actionnaires: [
-              { nom_client: "Dubois Marie", user_id: 4, nombre_actions: 3200, valeur_actions: 96000 },
-              { nom_client: "Laurent Thomas", user_id: 5, nombre_actions: 2700, valeur_actions: 81000 }
-            ],
-            total_actions: 5900,
-            total_valeur: 177000
-          },
-          {
-            nom_sgi: "SGI Gamma Capital", 
-            sgi_id: "SGI003",
-            actionnaires: [
-              { nom_client: "Simon Lucas", user_id: 8, nombre_actions: 1900, valeur_actions: 57000 },
-              { nom_client: "Roux Emma", user_id: 9, nombre_actions: 2100, valeur_actions: 63000 }
-            ],
-            total_actions: 4000,
-            total_valeur: 120000
-          }
-        ]);
-
-        // API: GET /get_list_file_ag/{ag_id}/files - Fichiers de l'AG
-        const mockFiles = [];
-        for (let i = 1; i <= 25; i++) {
-          mockFiles.push({
-            fichier_id: i,
-            nom_fichier: `fichier_ag_${ag.id}_${i.toString().padStart(3, '0')}.${['xlsx', 'csv', 'pdf'][Math.floor(Math.random() * 3)]}`,
-            type_fichier: ['liste_actionnaires', 'rapport_presence', 'proces_verbal', 'convocation'][Math.floor(Math.random() * 4)],
-            taille: `${(Math.random() * 5 + 0.1).toFixed(1)} MB`,
-            date_upload: new Date(2026, 0, Math.floor(Math.random() * 30) + 1).toISOString(),
-            statut: Math.random() > 0.2 ? "processed" : "processing",
-            uploader_name: "Admin User"
-          });
-        }
-        setFichiers(mockFiles);
-        
-        setLoading(false);
-      }, 1000);
-
-    } catch (error) {
-      console.error('Erreur lors du chargement des données AG:', error);
-      setLoading(false);
-    }
-  };
-
-  const openModal = (type) => {
-    setModalType(type);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setModalType('');
-  };
-
-  // Navigation Component
-  const Navigation = () => (
-    <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px 40px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <Calendar size={32} color="white" />
-        <h1 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
-          AG Online Pro
-        </h1>
-      </div>
-      <div style={{ display: 'flex', gap: '20px' }}>
-        {[
-          { id: 'dashboard', icon: Home, label: 'Dashboard' },
-          { id: 'entreprises', icon: Building2, label: 'Entreprises' },
-          { id: 'ags', icon: Calendar, label: 'Assemblées' },
-          { id: 'sgi', icon: TrendingUp, label: 'SGI' },
-          { id: 'rapports', icon: FileText, label: 'Rapports' }
-        ].map(item => (
-          <button
-            key={item.id}
-            onClick={() => {
-              setCurrentView(item.id);
-              setSelectedAg(null);
-              setSelectedSgi(null);
-            }}
-            style={{
-              background: currentView === item.id ? 'rgba(255,255,255,0.3)' : 'transparent',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
-            onMouseLeave={(e) => e.target.style.background = currentView === item.id ? 'rgba(255,255,255,0.3)' : 'transparent'}
-          >
-            <item.icon size={18} />
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Breadcrumb Component  
-  const Breadcrumb = () => {
-    if (!selectedAg && !selectedSgi) return null;
-
-    return (
-      <div style={{
-        background: 'white',
-        padding: '15px 40px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px',
-        borderBottom: '1px solid #e5e7eb',
-        fontSize: '14px'
-      }}>
-        <button
-          onClick={() => {
-            if (selectedSgi) {
-              setSelectedSgi(null);
-            } else if (selectedAg) {
-              setSelectedAg(null);
-            }
-          }}
-          style={{
-            background: '#f3f4f6',
-            color: '#374151',
-            border: 'none',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '14px'
-          }}
-        >
-          <ArrowLeft size={16} />
-          Retour
-        </button>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#6b7280' }}>
-          <Calendar size={16} />
-          <span>Assemblées</span>
-          {selectedAg && (
-            <>
-              <span>›</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Calendar size={16} />
-                <span style={{ color: '#1a202c', fontWeight: '500' }}>{selectedAg.code_ag}</span>
-              </div>
-            </>
-          )}
-          {selectedSgi && (
-            <>
-              <span>›</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <TrendingUp size={16} />
-                <span style={{ color: '#1a202c', fontWeight: '500' }}>{selectedSgi.nom_sgi}</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Dashboard Component
-  const Dashboard = () => (
-    <div style={{ padding: '40px' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '30px', color: '#1a202c' }}>
-        Tableau de Bord
-      </h2>
-      
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-        gap: '20px',
-        marginBottom: '40px'
-      }}>
-        {[
-          { icon: Building2, label: 'Entreprises', value: entreprises.length, color: '#667eea', bg: '#e0e7ff' },
-          { icon: Calendar, label: 'AG Planifiées', value: ags.length, color: '#f59e0b', bg: '#fef3c7' },
-          { icon: TrendingUp, label: 'SGI Actifs', value: sgiList.length, color: '#10b981', bg: '#d1fae5' },
-          { icon: Users, label: 'Total Participants', value: '245', color: '#ef4444', bg: '#fee2e2' }
-        ].map((stat, index) => (
-          <div key={index} style={{
-            background: 'white',
-            padding: '25px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-            transition: 'transform 0.3s ease',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          >
-            <div style={{
-              background: stat.bg,
-              padding: '15px',
-              borderRadius: '10px'
-            }}>
-              <stat.icon size={28} color={stat.color} />
-            </div>
-            <div>
-              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '5px' }}>
-                {stat.label}
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a202c' }}>
-                {stat.value}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ 
-        background: 'white', 
-        padding: '30px', 
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <h3 style={{ fontSize: '20px', marginBottom: '20px', color: '#1a202c' }}>
-          Prochaines Assemblées Générales
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {ags.slice(0, 5).map(ag => (
-            <div key={ag.id} style={{
-              padding: '20px',
-              background: '#f9fafb',
-              borderRadius: '8px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1a202c', marginBottom: '5px' }}>
-                  {ag.code_ag}
-                </div>
-                <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                  {ag.nom_entreprise} • {new Date(ag.date_ag).toLocaleDateString('fr-FR')}
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  setCurrentView('ags');
-                  loadAgData(ag);
-                }}
-                style={{
-                  background: '#667eea',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Voir détails
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Vue détaillée SGI (participants + actionnaires de cette SGI)
-  const SGIDetailView = () => {
-    const sgiParticipants = participants.find(p => p.sgi_id === selectedSgi.sgi_id)?.participants || [];
-    const sgiActionnaires = actionnaires.find(a => a.sgi_id === selectedSgi.sgi_id) || { actionnaires: [], total_actions: 0, total_valeur: 0 };
-
-    return (
-      <div style={{ padding: '40px' }}>
-        <Breadcrumb />
-        
-        {/* Header SGI */}
-        <div style={{
-          background: 'white',
-          padding: '30px',
-          borderRadius: '12px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          marginBottom: '30px'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            padding: '25px',
-            borderRadius: '12px',
-            marginBottom: '25px',
-            color: 'white'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: '28px', margin: 0, marginBottom: '10px' }}>
-                  {selectedSgi.nom_sgi}
-                </h2>
-                <div style={{ opacity: 0.9, fontSize: '14px' }}>
-                  ID: {selectedSgi.sgi_id} • AG: {selectedAg.code_ag}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '20px'
-          }}>
-            <div style={{ background: '#f0f9ff', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1d4ed8' }}>
-                {sgiParticipants.length}
-              </div>
-              <div style={{ fontSize: '14px', color: '#2563eb' }}>Participants</div>
-            </div>
-            <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#166534' }}>
-                {sgiParticipants.filter(p => p.statut_presence === 'present').length}
-              </div>
-              <div style={{ fontSize: '14px', color: '#16a34a' }}>Présents</div>
-            </div>
-            <div style={{ background: '#fef3c7', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706' }}>
-                {sgiActionnaires.total_actions?.toLocaleString() || 0}
-              </div>
-              <div style={{ fontSize: '14px', color: '#f59e0b' }}>Actions</div>
-            </div>
-            <div style={{ background: '#f3e8ff', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#7c3aed' }}>
-                {(sgiActionnaires.total_valeur / 1000)?.toFixed(0) || 0}K€
-              </div>
-              <div style={{ fontSize: '14px', color: '#8b5cf6' }}>Valeur</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs Participants / Actionnaires */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
-            {[
-              { id: 'participants', label: 'Participants', icon: UserCheck, count: sgiParticipants.length },
-              { id: 'actionnaires', label: 'Actionnaires', icon: DollarSign, count: sgiActionnaires.actionnaires.length }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setAgActiveTab(tab.id)}
-                style={{
-                  flex: 1,
-                  padding: '20px',
-                  background: agActiveTab === tab.id ? '#f9fafb' : 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  color: agActiveTab === tab.id ? '#667eea' : '#6b7280',
-                  borderBottom: agActiveTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <tab.icon size={20} />
-                {tab.label}
-                <div style={{
-                  background: agActiveTab === tab.id ? '#667eea' : '#e5e7eb',
-                  color: agActiveTab === tab.id ? 'white' : '#6b7280',
-                  padding: '4px 10px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}>
-                  {tab.count}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div style={{ padding: '30px' }}>
-            {agActiveTab === 'participants' ? (
-              <div>
-                <h3 style={{ fontSize: '20px', marginBottom: '20px', color: '#1a202c' }}>
-                  Participants de {selectedSgi.nom_sgi}
-                </h3>
-                
-                <div style={{ 
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                  gap: '15px'
-                }}>
-                  {sgiParticipants.map((participant, index) => (
-                    <div key={index} style={{
-                      background: '#fafafa',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      transition: 'all 0.3s ease',
-                      border: '2px solid transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f0f9ff';
-                      e.currentTarget.style.borderColor = '#667eea';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#fafafa';
-                      e.currentTarget.style.borderColor = 'transparent';
-                    }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <div style={{
-                          width: '50px',
-                          height: '50px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '16px'
-                        }}>
-                          {participant.nom_client.split(' ').map(n => n.charAt(0)).join('')}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#1a202c', fontSize: '16px' }}>
-                            {participant.nom_client}
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                            ID: {participant.user_id}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        background: participant.statut_presence === 'present' ? '#d1fae5' : '#fee2e2',
-                        color: participant.statut_presence === 'present' ? '#065f46' : '#991b1b',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>
-                        {participant.statut_presence === 'present' ? 'Présent' : 'Absent'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h3 style={{ fontSize: '20px', marginBottom: '20px', color: '#1a202c' }}>
-                  Actionnaires de {selectedSgi.nom_sgi}
-                </h3>
-                
-                <div style={{ 
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                  gap: '15px'
-                }}>
-                  {sgiActionnaires.actionnaires.map((actionnaire, index) => (
-                    <div key={index} style={{
-                      background: '#fafafa',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      transition: 'all 0.3s ease',
-                      border: '2px solid transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f0fdf4';
-                      e.currentTarget.style.borderColor = '#10b981';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#fafafa';
-                      e.currentTarget.style.borderColor = 'transparent';
-                    }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-                        <div style={{
-                          width: '50px',
-                          height: '50px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '16px'
-                        }}>
-                          {actionnaire.nom_client.split(' ').map(n => n.charAt(0)).join('')}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#1a202c', fontSize: '16px' }}>
-                            {actionnaire.nom_client}
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                            ID: {actionnaire.user_id}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div style={{ 
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '10px'
-                      }}>
-                        <div style={{
-                          background: '#e0f2fe',
-                          padding: '12px',
-                          borderRadius: '8px',
-                          textAlign: 'center'
-                        }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0369a1' }}>
-                            {actionnaire.nombre_actions.toLocaleString()}
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#0284c7' }}>Actions</div>
-                        </div>
-                        <div style={{
-                          background: '#f0fdf4',
-                          padding: '12px',
-                          borderRadius: '8px',
-                          textAlign: 'center'
-                        }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#166534' }}>
-                            {(actionnaire.valeur_actions / 1000).toFixed(0)}K€
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#16a34a' }}>Valeur</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Vue Assemblées Générales avec structure API correcte  
-  const AGsView = () => {
-    // Vue détaillée SGI
-    if (selectedSgi) {
-      return <SGIDetailView />;
-    }
-
-    // Vue détaillée AG avec 3 tabs
-    if (selectedAg) {
-      const renderParticipantsTab = () => (
-        <div style={{ padding: '30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-            <h3 style={{ fontSize: '20px', color: '#1a202c' }}>
-              Participants par SGI
-            </h3>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                style={{
-                  background: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '14px'
-                }}
-              >
-                <Download size={16} />
-                Export Excel
-              </button>
-              <button
-                style={{
-                  background: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '14px'
-                }}
-              >
-                <Download size={16} />
-                Export PDF
-              </button>
-            </div>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-            gap: '20px' 
-          }}>
-            {participants.map((sgi, index) => {
-              const colors = [
-                { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', light: '#e0e7ff', text: '#4338ca' },
-                { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', light: '#fce7f3', text: '#be185d' },
-                { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', light: '#dbeafe', text: '#0369a1' }
-              ];
-              const colorScheme = colors[index % colors.length];
-              const presentsCount = sgi.participants.filter(p => p.statut_presence === 'present').length;
-
-              return (
-                <div 
-                  key={index}
-                  onClick={() => {
-                    const sgiInfo = sgiList.find(s => s.sgi_id === sgi.sgi_id);
-                    setSelectedSgi(sgiInfo);
-                  }}
-                  style={{
-                    background: 'white',
-                    border: `2px solid ${colorScheme.light}`,
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = `0 12px 24px ${colorScheme.light}`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{
-                    background: colorScheme.bg,
-                    padding: '25px',
-                    position: 'relative'
-                  }}>
-                    <div style={{
-                      background: 'rgba(255,255,255,0.3)',
-                      backdropFilter: 'blur(10px)',
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '15px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '15px'
-                    }}>
-                      <UserCheck size={30} color="white" />
-                    </div>
-                    <h4 style={{
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: 'white',
-                      marginBottom: '8px'
-                    }}>
-                      {sgi.nom_sgi}
-                    </h4>
-                    <div style={{
-                      color: 'rgba(255,255,255,0.9)',
-                      fontSize: '13px'
-                    }}>
-                      {sgi.participants.length} participants inscrits
-                    </div>
-                  </div>
-
-                  <div style={{ padding: '25px' }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '15px',
-                      marginBottom: '20px'
-                    }}>
-                      <div style={{
-                        background: colorScheme.light,
-                        padding: '15px',
-                        borderRadius: '10px',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: colorScheme.text }}>
-                          {presentsCount}
-                        </div>
-                        <div style={{ fontSize: '12px', color: colorScheme.text, fontWeight: '500' }}>
-                          Présents
-                        </div>
-                      </div>
-                      <div style={{
-                        background: '#f9fafb',
-                        padding: '15px',
-                        borderRadius: '10px',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>
-                          {sgi.participants.length - presentsCount}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500' }}>
-                          Absents
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      color: colorScheme.text,
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      paddingTop: '15px',
-                      borderTop: `1px solid ${colorScheme.light}`
-                    }}>
-                      <Eye size={16} />
-                      Voir le détail
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-
-      const renderActionnairesTab = () => (
-        <div style={{ padding: '30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-            <h3 style={{ fontSize: '20px', color: '#1a202c' }}>
-              Actionnaires par SGI
-            </h3>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                style={{
-                  background: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '14px'
-                }}
-              >
-                <Download size={16} />
-                Export CSV
-              </button>
-              <button
-                style={{
-                  background: '#667eea',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '14px'
-                }}
-              >
-                <Download size={16} />
-                Export XLSX
-              </button>
-            </div>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-            gap: '20px' 
-          }}>
-            {actionnaires.map((sgi, index) => {
-              const colors = [
-                { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', light: '#d1fae5', text: '#065f46' },
-                { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', light: '#fef3c7', text: '#92400e' },
-                { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', light: '#f3e8ff', text: '#6b21a8' }
-              ];
-              const colorScheme = colors[index % colors.length];
-
-              return (
-                <div 
-                  key={index}
-                  onClick={() => {
-                    const sgiInfo = sgiList.find(s => s.sgi_id === sgi.sgi_id);
-                    setSelectedSgi(sgiInfo);
-                  }}
-                  style={{
-                    background: 'white',
-                    border: `2px solid ${colorScheme.light}`,
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = `0 12px 24px ${colorScheme.light}`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{
-                    background: colorScheme.bg,
-                    padding: '25px',
-                    position: 'relative'
-                  }}>
-                    <div style={{
-                      background: 'rgba(255,255,255,0.3)',
-                      backdropFilter: 'blur(10px)',
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '15px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '15px'
-                    }}>
-                      <DollarSign size={30} color="white" />
-                    </div>
-                    <h4 style={{
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: 'white',
-                      marginBottom: '8px'
-                    }}>
-                      {sgi.nom_sgi}
-                    </h4>
-                    <div style={{
-                      color: 'rgba(255,255,255,0.9)',
-                      fontSize: '13px'
-                    }}>
-                      {sgi.actionnaires.length} actionnaires
-                    </div>
-                  </div>
-
-                  <div style={{ padding: '25px' }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '15px',
-                      marginBottom: '20px'
-                    }}>
-                      <div style={{
-                        background: colorScheme.light,
-                        padding: '15px',
-                        borderRadius: '10px',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: colorScheme.text }}>
-                          {sgi.total_actions.toLocaleString()}
-                        </div>
-                        <div style={{ fontSize: '12px', color: colorScheme.text, fontWeight: '500' }}>
-                          Actions
-                        </div>
-                      </div>
-                      <div style={{
-                        background: colorScheme.light,
-                        padding: '15px',
-                        borderRadius: '10px',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: colorScheme.text }}>
-                          {(sgi.total_valeur / 1000).toFixed(0)}K€
-                        </div>
-                        <div style={{ fontSize: '12px', color: colorScheme.text, fontWeight: '500' }}>
-                          Valeur
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      color: colorScheme.text,
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      paddingTop: '15px',
-                      borderTop: `1px solid ${colorScheme.light}`
-                    }}>
-                      <Eye size={16} />
-                      Voir le détail
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-
-      const renderFichiersTab = () => (
-        <div style={{ padding: '30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-            <h3 style={{ fontSize: '20px', color: '#1a202c' }}>
-              Fichiers de l'AG ({fichiers.length})
-            </h3>
-            <button
-              onClick={() => openModal('upload-file')}
-              style={{
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
-            >
-              <Upload size={18} />
-              Upload Fichier
-            </button>
-          </div>
-
-          {/* Barre de filtres */}
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr',
-            gap: '15px',
-            marginBottom: '25px',
-            alignItems: 'end'
-          }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={20} color="#9ca3af" style={{ 
-                position: 'absolute', 
-                left: '12px', 
-                top: '50%', 
-                transform: 'translateY(-50%)' 
-              }} />
-              <input
-                type="text"
-                placeholder="Rechercher un fichier..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 12px 12px 45px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '14px',
-                  outline: 'none'
-                }}
-              />
-            </div>
-            
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              style={{
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            >
-              <option value="all">Tous les types</option>
-              <option value="liste_actionnaires">Listes actionnaires</option>
-              <option value="rapport_presence">Rapports présence</option>
-              <option value="proces_verbal">Procès-verbaux</option>
-              <option value="convocation">Convocations</option>
-            </select>
-          </div>
-
-          {/* Liste des fichiers */}
-          <div style={{
-            background: '#fafafa',
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '3fr 1fr 1fr 1fr 1fr 2fr',
-              gap: '15px',
-              padding: '15px',
-              background: '#f3f4f6',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#374151'
-            }}>
-              <div>Fichier</div>
-              <div>Type</div>
-              <div>Taille</div>
-              <div>Statut</div>
-              <div>Uploadé par</div>
-              <div>Actions</div>
-            </div>
-
-            {fichiers
-              .filter(file => {
-                const matchesSearch = file.nom_fichier.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesFilter = filterType === 'all' || file.type_fichier === filterType;
-                return matchesSearch && matchesFilter;
-              })
-              .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-              .map(file => (
-                <div key={file.fichier_id} style={{
-                  display: 'grid',
-                  gridTemplateColumns: '3fr 1fr 1fr 1fr 1fr 2fr',
-                  gap: '15px',
-                  padding: '15px',
-                  borderBottom: '1px solid #e5e7eb',
-                  alignItems: 'center',
-                  fontSize: '14px',
-                  background: 'white',
-                  transition: 'background 0.3s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <FileText size={20} color="#667eea" />
-                    <div>
-                      <div style={{ fontWeight: '500', color: '#1a202c' }}>
-                        {file.nom_fichier}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                        {new Date(file.date_upload).toLocaleDateString('fr-FR')}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{
-                    background: '#e0e7ff',
-                    color: '#4338ca',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    textAlign: 'center'
-                  }}>
-                    {file.type_fichier}
-                  </div>
-
-                  <div style={{ color: '#6b7280' }}>
-                    {file.taille}
-                  </div>
-
-                  <div style={{
-                    background: file.statut === 'processed' ? '#d1fae5' : '#fef3c7',
-                    color: file.statut === 'processed' ? '#065f46' : '#92400e',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    textAlign: 'center'
-                  }}>
-                    {file.statut === 'processed' ? 'Traité' : 'En cours'}
-                  </div>
-
-                  <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                    {file.uploader_name}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      style={{
-                        background: '#667eea',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '11px'
-                      }}
-                    >
-                      <Eye size={12} />
-                    </button>
-                    <button
-                      style={{
-                        background: '#10b981',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '11px'
-                      }}
-                    >
-                      <Download size={12} />
-                    </button>
-                    <button
-                      style={{
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '11px'
-                      }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      );
-
-      return (
-        <div style={{ padding: '40px' }}>
-          <Breadcrumb />
-          
-          {/* Header AG */}
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            marginBottom: '30px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div>
-                <h2 style={{ fontSize: '28px', color: '#1a202c', marginBottom: '10px' }}>
-                  {selectedAg.code_ag}
-                </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Building2 size={18} color="#667eea" />
-                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
-                      {selectedAg.nom_entreprise}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={18} color="#10b981" />
-                    <span style={{ fontSize: '16px', color: '#6b7280' }}>
-                      {new Date(selectedAg.date_ag).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '20px'
-            }}>
-              <div style={{ background: '#f0f9ff', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1d4ed8' }}>
-                  {participants.reduce((acc, sgi) => acc + sgi.participants.length, 0)}
-                </div>
-                <div style={{ fontSize: '14px', color: '#2563eb' }}>Total Participants</div>
-              </div>
-              <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#166534' }}>
-                  {participants.reduce((acc, sgi) => acc + sgi.participants.filter(p => p.statut_presence === 'present').length, 0)}
-                </div>
-                <div style={{ fontSize: '14px', color: '#16a34a' }}>Présents</div>
-              </div>
-              <div style={{ background: '#fef3c7', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706' }}>
-                  {actionnaires.reduce((acc, sgi) => acc + sgi.total_actions, 0).toLocaleString()}
-                </div>
-                <div style={{ fontSize: '14px', color: '#f59e0b' }}>Actions Totales</div>
-              </div>
-              <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#374151' }}>
-                  {fichiers.length}
-                </div>
-                <div style={{ fontSize: '14px', color: '#6b7280' }}>Fichiers</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs Navigation selon APIs */}
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            overflow: 'hidden'
-          }}>
-            <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
-              {[
-                { 
-                  id: 'participants', 
-                  label: 'Participants', 
-                  icon: UserCheck, 
-                  count: participants.reduce((acc, sgi) => acc + sgi.participants.length, 0),
-                  api: 'list_users_ag'
-                },
-                { 
-                  id: 'actionnaires', 
-                  label: 'Actionnaires', 
-                  icon: DollarSign, 
-                  count: actionnaires.reduce((acc, sgi) => acc + sgi.actionnaires.length, 0),
-                  api: 'liste_actionnaires_ag'
-                },
-                { 
-                  id: 'fichiers', 
-                  label: 'Fichiers', 
-                  icon: FolderOpen, 
-                  count: fichiers.length,
-                  api: 'get_list_file_ag'
-                }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setAgActiveTab(tab.id)}
-                  style={{
-                    flex: 1,
-                    padding: '20px',
-                    background: agActiveTab === tab.id ? '#f9fafb' : 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    color: agActiveTab === tab.id ? '#667eea' : '#6b7280',
-                    borderBottom: agActiveTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <tab.icon size={20} />
-                  {tab.label}
-                  <div style={{
-                    background: agActiveTab === tab.id ? '#667eea' : '#e5e7eb',
-                    color: agActiveTab === tab.id ? 'white' : '#6b7280',
-                    padding: '4px 10px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}>
-                    {tab.count}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {loading ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px',
-                color: '#6b7280'
-              }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  border: '4px solid #f3f4f6',
-                  borderTop: '4px solid #667eea',
-                  borderRadius: '50%',
-                  margin: '0 auto 20px',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
-                Chargement des données...
-              </div>
-            ) : (
-              <>
-                {agActiveTab === 'participants' && renderParticipantsTab()}
-                {agActiveTab === 'actionnaires' && renderActionnairesTab()}
-                {agActiveTab === 'fichiers' && renderFichiersTab()}
-              </>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Vue principale des AG (liste)
-    return (
-      <div style={{ padding: '40px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '28px', color: '#1a202c' }}>Assemblées Générales</h2>
-          <button
-            onClick={() => openModal('create-ag')}
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-            }}
-          >
-            <Plus size={18} />
-            Nouvelle AG
-          </button>
-        </div>
-
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-          gap: '25px' 
-        }}>
-          {ags.map((ag) => (
-            <div 
-              key={ag.id} 
-              onClick={() => loadAgData(ag)}
-              style={{
-                background: 'white',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-              }}
-            >
-              <div style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                padding: '25px',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  background: 'rgba(255,255,255,0.2)',
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  color: 'white',
-                  fontWeight: '500'
-                }}>
-                  {new Date(ag.date_ag).toLocaleDateString('fr-FR')}
-                </div>
-                <div style={{
-                  background: 'white',
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '15px'
-                }}>
-                  <Calendar size={30} color="#667eea" />
-                </div>
-                <h3 style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  marginBottom: '8px'
-                }}>
-                  {ag.code_ag}
-                </h3>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  color: 'rgba(255,255,255,0.9)',
-                  fontSize: '14px'
-                }}>
-                  <Building2 size={16} />
-                  {ag.nom_entreprise}
-                </div>
-              </div>
-
-              <div style={{ padding: '25px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  color: '#667eea',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  paddingTop: '10px',
-                  borderTop: '1px solid #e5e7eb'
-                }}>
-                  <Eye size={16} />
-                  Voir les participants, actionnaires et fichiers
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Modal simplifié
-  const Modal = () => {
-    if (!showModal) return null;
-
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-      }}
-      onClick={() => setShowModal(false)}
-      >
-        <div 
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '30px',
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h3 style={{ fontSize: '24px', marginBottom: '20px', color: '#1a202c' }}>
-            {modalType === 'create-ag' ? 'Créer une AG' : 
-             modalType === 'upload-file' ? 'Upload Fichier' : 'Modal'}
-          </h3>
-          
-          <p style={{ color: '#6b7280' }}>
-            Fonctionnalité à implémenter avec les vraies APIs
-          </p>
-          
-          <button
-            onClick={() => setShowModal(false)}
-            style={{
-              background: '#667eea',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginTop: '20px'
-            }}
-          >
-            Fermer
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Autres vues simplifiées
-  const EntreprisesView = () => <div style={{ padding: '40px' }}><h2>Entreprises - À implémenter avec API /liste_entreprises</h2></div>;
-  const SGIView = () => <div style={{ padding: '40px' }}><h2>SGI - À implémenter avec API /liste_sgi</h2></div>;
-  const RapportsView = () => <div style={{ padding: '40px' }}><h2>Rapports - À implémenter avec API /exports_listes</h2></div>;
-
+// ── COMPOSANTS ────────────────────────────────────────────────────────────────
+const KPICard = ({ label, value, sub, icon, accent }) => {
+  const color = accent || C.red;
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: '#f3f4f6',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    <div style={{
+      background: C.bgCard,
+      border: `1.5px solid ${C.border}`,
+      borderRadius: 14,
+      padding: "20px 22px",
+      position: "relative",
+      overflow: "hidden",
+      boxShadow: `0 2px 16px rgba(2,2,53,0.07)`,
     }}>
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-      
-      <Navigation />
-      <Breadcrumb />
-      
-      {currentView === 'dashboard' && <Dashboard />}
-      {currentView === 'entreprises' && <EntreprisesView />}
-      {currentView === 'ags' && <AGsView />}
-      {currentView === 'sgi' && <SGIView />}
-      {currentView === 'rapports' && <RapportsView />}
-      
-      <Modal />
+      {/* bande couleur haut */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: color }} />
+      {/* cercle déco */}
+      <div style={{
+        position: "absolute", top: -18, right: -18, width: 80, height: 80,
+        borderRadius: "50%", background: color, opacity: 0.06,
+      }} />
+      <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
+      <div style={{ color: C.textMute, fontSize: 9, fontFamily: "'Trebuchet MS', sans-serif", letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+      <div style={{ color: C.navy, fontSize: 30, fontWeight: 800, fontFamily: "Georgia, serif", lineHeight: 1, marginBottom: 4 }}>{value}</div>
+      {sub && <div style={{ color: C.textMid, fontSize: 11, fontFamily: "'Trebuchet MS', sans-serif" }}>{sub}</div>}
+      {/* barre bas */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, height: 2, width: "40%", background: `linear-gradient(90deg, ${color}60, transparent)` }} />
     </div>
   );
 };
 
-export default App;
+const SectionTitle = ({ children, num, color }) => {
+  const col = color || C.red;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: 6,
+        background: `linear-gradient(135deg, ${col}, ${col}AA)`,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        boxShadow: `0 2px 8px ${col}40`,
+      }}>
+        <span style={{ color: C.white, fontSize: 10, fontWeight: 800, fontFamily: "'Trebuchet MS'" }}>{num}</span>
+      </div>
+      <h2 style={{ margin: 0, color: C.navy, fontSize: 12, fontFamily: "'Trebuchet MS', sans-serif", fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
+        {children}
+      </h2>
+      <div style={{ flex: 1, height: 1.5, background: `linear-gradient(90deg, ${col}40, transparent)` }} />
+    </div>
+  );
+};
+
+const Box = ({ children, title, accent }) => {
+  const col = accent || C.navy;
+  return (
+    <div style={{
+      background: C.bgCard,
+      border: `1.5px solid ${C.border}`,
+      borderRadius: 12,
+      padding: "16px 18px",
+      boxShadow: "0 2px 12px rgba(2,2,53,0.05)",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {title && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+          <div style={{ width: 3, height: 14, background: col, borderRadius: 2, flexShrink: 0 }} />
+          <p style={{ margin: 0, color: C.textMid, fontSize: 9.5, fontFamily: "'Trebuchet MS', sans-serif", letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 600 }}>
+            {title}
+          </p>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+};
+
+const Tip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: C.navy,
+      border: `1px solid ${C.navyLight}`,
+      borderRadius: 8,
+      padding: "8px 14px",
+      boxShadow: "0 4px 16px rgba(2,2,53,0.3)",
+    }}>
+      <p style={{ margin: "0 0 4px", color: C.goldLight, fontSize: 10, fontFamily: "'Trebuchet MS'", letterSpacing: 1 }}>{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ margin: 0, color: C.white, fontSize: 12, fontFamily: "'Trebuchet MS'" }}>
+          <span style={{ color: p.color }}>{p.name}: </span>
+          {p.value > 999 ? `${(p.value / 1000).toFixed(0)}k` : p.value}
+        </p>
+      ))}
+    </div>
+  );
+};
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [tab, setTab] = useState("all");
+  const tabs = [
+    { id: "all",       label: "Vue Globale" },
+    { id: "collab",    label: "Collaborateurs" },
+    { id: "budget",    label: "Budget & Coûts" },
+    { id: "ogf",       label: "Par OGF" },
+    { id: "reporting", label: "Reporting" },
+  ];
+  const show = (id) => tab === "all" || tab === id;
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.bgSoft, fontFamily: "Georgia, serif" }}>
+
+      {/* ── HEADER ── */}
+      <div style={{
+        background: C.navy,
+        padding: "0 36px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        boxShadow: "0 4px 24px rgba(2,2,53,0.35)",
+      }}>
+        {/* Logo + titre */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0" }}>
+          {/* Carré SG */}
+          <div style={{ display: "flex", borderRadius: 6, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.4)" }}>
+            <div style={{ background: C.red, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: C.white, fontSize: 14, fontWeight: 900, fontFamily: "'Trebuchet MS', sans-serif", letterSpacing: -0.5 }}>SG</span>
+            </div>
+            <div style={{ background: "#0D0D5A", width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: C.white, fontSize: 12, fontWeight: 800, fontFamily: "'Trebuchet MS', sans-serif" }}>CI</span>
+            </div>
+          </div>
+          <div>
+            <div style={{ color: C.white, fontSize: 16, fontWeight: 700, fontFamily: "'Trebuchet MS', sans-serif", letterSpacing: 0.5 }}>
+              Tableau de Bord Formation
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+              <div style={{ width: 20, height: 1.5, background: C.red }} />
+              <span style={{ color: "#8888CC", fontSize: 9, fontFamily: "'Trebuchet MS', sans-serif", letterSpacing: 2, textTransform: "uppercase" }}>
+                Société Générale Côte d'Ivoire · DRH
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Badge année */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            background: "rgba(226,0,26,0.15)",
+            border: `1px solid ${C.red}50`,
+            borderRadius: 8,
+            padding: "4px 12px",
+          }}>
+            <span style={{ color: C.red, fontSize: 11, fontFamily: "'Trebuchet MS'", fontWeight: 700, letterSpacing: 1 }}>2024</span>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 3 }}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                background: tab === t.id ? C.red : "rgba(255,255,255,0.06)",
+                border: `1px solid ${tab === t.id ? C.red : "rgba(255,255,255,0.12)"}`,
+                borderRadius: 6,
+                color: tab === t.id ? C.white : "#8888CC",
+                padding: "6px 13px",
+                fontSize: 10,
+                fontFamily: "'Trebuchet MS', sans-serif",
+                letterSpacing: 0.5,
+                cursor: "pointer",
+                fontWeight: tab === t.id ? 700 : 400,
+                transition: "all 0.15s",
+              }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SOUS-HEADER bande déco ── */}
+      <div style={{
+        background: `linear-gradient(90deg, ${C.navy} 0%, ${C.navyLight} 40%, ${C.red} 100%)`,
+        height: 4,
+      }} />
+
+      <div style={{ padding: "28px 36px 60px", display: "flex", flexDirection: "column", gap: 32 }}>
+
+        {/* ── KPI ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
+          <KPICard label="Actions de formation" value="396"     sub="Toutes modalités"    icon="🎯" accent={C.red} />
+          <KPICard label="Collaborateurs formés" value="850"    sub="+12% vs N-1"         icon="👥" accent={C.navy} />
+          <KPICard label="Budget consommé"        value="87%"   sub="308 M / 354 M FCFA"  icon="💰" accent={C.gold} />
+          <KPICard label="Taux de satisfaction"   value="82%"   sub="Évaluation à chaud"  icon="⭐" accent={C.navyLight} />
+          <KPICard label="Heures de formation"    value="12 840" sub="Moy. 15h/collab"    icon="⏱" accent={C.red} />
+        </div>
+
+        {/* ── 01 – ACTIONS & CATÉGORIES ── */}
+        {show("collab") && (
+          <div>
+            <SectionTitle num="01" color={C.red}>Nombre d'actions de formation par modalité</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <Box title="Actions réalisées par modalité" accent={C.red}>
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={actionsParModalite} barSize={36}>
+                    <defs>
+                      <linearGradient id="g_red" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.red} stopOpacity={1} />
+                        <stop offset="100%" stopColor="#7B000D" stopOpacity={1} />
+                      </linearGradient>
+                      <linearGradient id="g_navy" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.navyLight} stopOpacity={1} />
+                        <stop offset="100%" stopColor={C.navy} stopOpacity={1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="modalite" tick={{ fill: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="actions" name="Actions" radius={[6, 6, 0, 0]}>
+                      {actionsParModalite.map((_, i) => (
+                        <Cell key={i} fill={i % 2 === 0 ? "url(#g_red)" : "url(#g_navy)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Collaborateurs formés par catégorie" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={collabParCategorie} layout="vertical" barSize={16}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false} />
+                    <XAxis type="number" tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="categorie" tick={{ fill: C.text, fontSize: 10, fontFamily: "'Trebuchet MS'" }} width={82} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <defs>
+                      <linearGradient id="g_navy_h" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor={C.navy} />
+                        <stop offset="100%" stopColor={C.navyLight} />
+                      </linearGradient>
+                    </defs>
+                    <Bar dataKey="nombre" name="Collaborateurs" fill="url(#g_navy_h)" radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+          </div>
+        )}
+
+        {/* ── 02 – GENRE & MODALITÉ ── */}
+        {show("collab") && (
+          <div>
+            <SectionTitle num="02" color={C.navy}>Collaborateurs formés par genre et modalité</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
+              <Box title="Répartition par genre" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={210}>
+                  <PieChart>
+                    <defs>
+                      <linearGradient id="g_pie_r" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={C.red} />
+                        <stop offset="100%" stopColor="#7B000D" />
+                      </linearGradient>
+                      <linearGradient id="g_pie_n" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={C.navyLight} />
+                        <stop offset="100%" stopColor={C.navy} />
+                      </linearGradient>
+                    </defs>
+                    <Pie data={collabParGenre} cx="50%" cy="50%" innerRadius={52} outerRadius={78}
+                      dataKey="value" paddingAngle={4}
+                      label={({ name, value }) => `${name} ${value}%`}
+                      labelLine={{ stroke: C.borderMid }}>
+                      <Cell fill="url(#g_pie_n)" stroke="white" strokeWidth={2} />
+                      <Cell fill="url(#g_pie_r)" stroke="white" strokeWidth={2} />
+                    </Pie>
+                    <Tooltip content={<Tip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Collaborateurs formés par modalité" accent={C.red}>
+                <ResponsiveContainer width="100%" height={210}>
+                  <BarChart data={collabParModalite} barSize={50}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="modalite" tick={{ fill: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="collab" name="Collaborateurs" radius={[8, 8, 0, 0]}>
+                      {collabParModalite.map((_, i) => (
+                        <Cell key={i} fill={i % 2 === 0 ? "url(#g_red)" : "url(#g_navy)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+          </div>
+        )}
+
+        {/* ── 03 – BUDGET ── */}
+        {show("budget") && (
+          <div>
+            <SectionTitle num="03" color={C.gold}>Consommation budget &amp; Efficacité</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
+              <Box title="Consommation mensuelle du budget (M FCFA)" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={230}>
+                  <AreaChart data={budgetData}>
+                    <defs>
+                      <linearGradient id="areaNavy" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.navy} stopOpacity={0.18} />
+                        <stop offset="100%" stopColor={C.navy} stopOpacity={0.01} />
+                      </linearGradient>
+                      <linearGradient id="areaRed" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.red} stopOpacity={0.18} />
+                        <stop offset="100%" stopColor={C.red} stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="mois" tick={{ fill: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Legend wrapperStyle={{ fontSize: 10, color: C.textMid }} />
+                    <Area type="monotone" dataKey="budget"   name="Budget alloué" stroke={C.navy}  strokeWidth={2.5} fill="url(#areaNavy)" dot={{ fill: C.navy, r: 3, strokeWidth: 0 }} />
+                    <Area type="monotone" dataKey="consomme" name="Consommé"      stroke={C.red}   strokeWidth={2.5} fill="url(#areaRed)"  dot={{ fill: C.red,  r: 3, strokeWidth: 0 }} strokeDasharray="5 3" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Efficacité vs coût par formation" accent={C.gold}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 4 }}>
+                  {efficacite.map((d, i) => (
+                    <div key={i}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span style={{ color: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }}>{d.formation}</span>
+                        <span style={{ color: C.navy, fontSize: 10, fontWeight: 700, fontFamily: "'Trebuchet MS'" }}>{d.score}%</span>
+                      </div>
+                      <div style={{ height: 7, background: C.bgSoft, borderRadius: 4, overflow: "hidden", border: `1px solid ${C.border}` }}>
+                        <div style={{
+                          height: "100%",
+                          width: `${d.score}%`,
+                          background: d.score >= 90
+                            ? `linear-gradient(90deg, ${C.navy}, ${C.navyLight})`
+                            : `linear-gradient(90deg, #7B000D, ${C.red})`,
+                          borderRadius: 4,
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{
+                  marginTop: 16,
+                  background: `linear-gradient(135deg, ${C.navy}10, ${C.red}10)`,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                }}>
+                  <span style={{ display: "block", color: C.textMute, fontSize: 8, fontFamily: "'Trebuchet MS'", letterSpacing: 2, textTransform: "uppercase" }}>Score efficacité moyen</span>
+                  <span style={{ display: "block", color: C.navy, fontSize: 26, fontWeight: 800, fontFamily: "Georgia, serif", marginTop: 2 }}>86.4%</span>
+                </div>
+              </Box>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginTop: 14 }}>
+              <Box title="Formations par modalité de diffusion" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={185}>
+                  <PieChart>
+                    <Pie data={diffusion} cx="50%" cy="50%" outerRadius={65} dataKey="nombre" nameKey="type" paddingAngle={3}>
+                      <Cell fill={C.navy}      stroke="white" strokeWidth={2} />
+                      <Cell fill={C.red}       stroke="white" strokeWidth={2} />
+                      <Cell fill={C.navyLight} stroke="white" strokeWidth={2} />
+                      <Cell fill={C.gold}      stroke="white" strokeWidth={2} />
+                    </Pie>
+                    <Tooltip content={<Tip />} />
+                    <Legend wrapperStyle={{ fontSize: 9, color: C.textMid }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Investissements 2020–2024 (M FCFA)" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={185}>
+                  <BarChart data={investissements} barSize={28}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="annee" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="invest" name="M FCFA" radius={[5, 5, 0, 0]}>
+                      {investissements.map((_, i) => (
+                        <Cell key={i} fill={i === 4 ? "url(#g_red)" : "url(#g_navy)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Coûts par type de formation (M FCFA)" accent={C.red}>
+                <ResponsiveContainer width="100%" height={185}>
+                  <BarChart data={coutType} barSize={28}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="type" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="cout" name="Coût (M FCFA)" fill="url(#g_red)" radius={[5, 5, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+          </div>
+        )}
+
+        {/* ── 04 – OGF ── */}
+        {show("ogf") && (
+          <div>
+            <SectionTitle num="04" color={C.navyLight}>Formations &amp; Participants par OGF</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <Box title="Formations par OGF" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={210}>
+                  <BarChart data={formationsOGF} barSize={38}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="ogf" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="formations" name="Formations" radius={[6, 6, 0, 0]}>
+                      {formationsOGF.map((e, i) => (
+                        <Cell key={i} fill={e.ogf === "Abidjan" ? "url(#g_red)" : "url(#g_navy)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Participants & Collaborateurs par OGF" accent={C.red}>
+                <ResponsiveContainer width="100%" height={210}>
+                  <BarChart data={participantsOGF} barSize={16}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="ogf" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Legend wrapperStyle={{ fontSize: 9, color: C.textMid }} />
+                    <Bar dataKey="participants" name="Participants"   fill={C.red}  radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="collab"       name="Collaborateurs" fill={C.navy} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginTop: 14 }}>
+              <Box title="Participants par type de formation" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={195}>
+                  <BarChart data={participantsType} barSize={13}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="type" tick={{ fill: C.textMid, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="participants" name="Participants"   fill={C.red}  radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="collab"       name="Collaborateurs" fill={C.navy} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="E-learning obligatoire par groupe (%)" accent={C.navyLight}>
+                <ResponsiveContainer width="100%" height={195}>
+                  <BarChart data={elearning} barSize={26}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="groupe" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="p" name="Taux %" radius={[5, 5, 0, 0]}>
+                      {elearning.map((d) => (
+                        <Cell key={d.groupe} fill={d.p >= 85 ? "url(#g_navy)" : "url(#g_red)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Présentiel par OGF" accent={C.red}>
+                <ResponsiveContainer width="100%" height={195}>
+                  <BarChart data={presentielOGF} barSize={14}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="ogf" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="participants" name="Participants"   fill={C.red}  radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="collab"       name="Collaborateurs" fill={C.navy} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
+              <Box title="Présentiel par type de formation" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={195}>
+                  <BarChart data={presentielType} barSize={44}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="type" tick={{ fill: C.textMid, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.textMute, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tip />} />
+                    <Bar dataKey="p" name="Participants" radius={[7, 7, 0, 0]}>
+                      {presentielType.map((d, i) => (
+                        <Cell key={i} fill={d.p > 250 ? "url(#g_red)" : "url(#g_navy)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Répartition des coûts par OGF (M FCFA)" accent={C.gold}>
+                <ResponsiveContainer width="100%" height={195}>
+                  <PieChart>
+                    <Pie data={coutOGF} cx="50%" cy="50%" outerRadius={70} dataKey="cout" nameKey="ogf" paddingAngle={3}
+                      label={({ ogf, cout }) => `${ogf}: ${cout}M`}
+                      labelLine={{ stroke: C.borderMid }}>
+                      {[C.navy, C.red, C.navyLight, C.gold, "#7B000D"].map((color, i) => (
+                        <Cell key={i} fill={color} stroke="white" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<Tip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </div>
+          </div>
+        )}
+
+        {/* ── 05 – REPORTING ── */}
+        {show("reporting") && (
+          <div>
+            <SectionTitle num="05" color={C.red}>Reporting formation &amp; Types de programme</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <Box title="Indicateurs de performance — Radar" accent={C.navy}>
+                <ResponsiveContainer width="100%" height={270}>
+                  <RadarChart data={reporting}>
+                    <defs>
+                      <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={C.navy} stopOpacity={0.25} />
+                        <stop offset="100%" stopColor={C.red} stopOpacity={0.15} />
+                      </linearGradient>
+                    </defs>
+                    <PolarGrid stroke={C.border} />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }} />
+                    <Radar name="Score" dataKey="A" stroke={C.navy} fill="url(#radarFill)" strokeWidth={2.5} />
+                    <Tooltip content={<Tip />} />
+                    <Legend wrapperStyle={{ fontSize: 10, color: C.textMid }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box title="Type de programme de formation" accent={C.red}>
+                <ResponsiveContainer width="100%" height={175}>
+                  <PieChart>
+                    <Pie data={programme} cx="50%" cy="50%" innerRadius={44} outerRadius={70}
+                      dataKey="value" nameKey="name" paddingAngle={4}
+                      label={({ name, value }) => `${name} ${value}%`}
+                      labelLine={{ stroke: C.borderMid }}>
+                      {[C.navy, C.red, C.navyLight, C.gold].map((col, i) => (
+                        <Cell key={i} fill={col} stroke="white" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<Tip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+                  {programme.map((d, i) => {
+                    const cols = [C.navy, C.red, C.navyLight, C.gold];
+                    return (
+                      <div key={i} style={{
+                        background: `${cols[i]}08`,
+                        border: `1.5px solid ${cols[i]}25`,
+                        borderLeft: `4px solid ${cols[i]}`,
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}>
+                        <span style={{ color: C.textMid, fontSize: 10, fontFamily: "'Trebuchet MS'" }}>{d.name}</span>
+                        <span style={{ color: cols[i], fontSize: 16, fontWeight: 800, fontFamily: "Georgia, serif" }}>{d.value}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Box>
+            </div>
+          </div>
+        )}
+
+        {/* ── FOOTER ── */}
+        <div style={{
+          borderTop: `2px solid ${C.border}`,
+          paddingTop: 18,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ background: C.red, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ color: "white", fontSize: 6, fontWeight: 900, fontFamily: "'Trebuchet MS'" }}>SG</span>
+              </div>
+              <div style={{ background: C.navy, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ color: "white", fontSize: 6, fontWeight: 800, fontFamily: "'Trebuchet MS'" }}>CI</span>
+              </div>
+            </div>
+            <span style={{ color: C.textMute, fontSize: 9, fontFamily: "'Trebuchet MS'", letterSpacing: 1 }}>
+              Direction des Ressources Humaines · Données à titre de démonstration
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ height: 2, width: 30, background: `linear-gradient(90deg, ${C.navy}, ${C.red})`, borderRadius: 1 }} />
+            <span style={{ color: C.textMute, fontSize: 9, fontFamily: "'Trebuchet MS'", letterSpacing: 1.5 }}>
+              TABLEAU DE BORD FORMATION · 2024
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
