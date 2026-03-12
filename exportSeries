@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import {
   BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
@@ -139,8 +140,8 @@ const pieGenre = (data) => {
   return Object.entries(t).map(([name,value]) => ({ name, value }));
 };
 
-// ── FETCH HOOK ────────────────────────────────────────────────────────────────
-const useFetch = (url) => {
+// ── AXIOS HOOK ──────────────────────────────────────────────────────────────
+const useAxios = (url) => {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
@@ -149,13 +150,14 @@ const useFetch = (url) => {
   const run = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(url, { headers:{ accept:"application/json" } });
-      if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
-      const json = await res.json();
+      const { data: json } = await axios.get(url);
       setData(json.data || json);
       setTs(new Date().toLocaleTimeString("fr-FR"));
     } catch(e) {
-      setError(e.message||"Erreur réseau");
+      const msg = e.response
+        ? `HTTP ${e.response.status} — ${e.response.statusText || "Erreur serveur"}`
+        : e.message || "Erreur réseau";
+      setError(msg);
     } finally { setLoading(false); }
   }, [url]);
 
@@ -258,23 +260,23 @@ export default function App() {
   // ── VRAIS FETCH — 5 APIs réelles ──────────────────────────────────────────
   // GET /api/action/realise/collaborateur/modalite
   // → { data: [{ classe_virtuelle, cumul, e_learning, matricule_participant, month, multimodal, presentiel, total }] }
-  const collab = useFetch(ENDPOINTS.collabModalite);
+  const collab = useAxios(ENDPOINTS.collabModalite);
 
   // GET /api/conso/budget/formation
   // → { data: [{ code_session[], cost_by_month, cumul_cost, month_, name_month }] }
-  const budget = useFetch(ENDPOINTS.budgetFormation);
+  const budget = useAxios(ENDPOINTS.budgetFormation);
 
   // GET /api/investissement/formation
   // → { data: [{ cout_moyen_par_participant, heure_formation_moyen_par_etp, mois }] }
-  const invest = useFetch(ENDPOINTS.investissement);
+  const invest = useAxios(ENDPOINTS.investissement);
 
   // GET /api/cumul/mode/distribution
   // → { data: [{ diffusion_mode, nb_formations, pourcentage_formations, total_heures_formation }] }
-  const modeDist = useFetch(ENDPOINTS.modeDistribution);
+  const modeDist = useAxios(ENDPOINTS.modeDistribution);
 
   // GET /api/collab/forme/genre
   // → { data: [{ mois_num, nombre_de_collaborateurs_forme, pourcentage, sexe }] }
-  const genre = useFetch(ENDPOINTS.collabGenre);
+  const genre = useAxios(ENDPOINTS.collabGenre);
 
   // Raccourci données budget triées
   const budgetData = (budget.data||[]).sort((a,b)=>a.month_-b.month_);
