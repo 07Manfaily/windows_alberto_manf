@@ -6,104 +6,37 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 
-// ── PALETTE SGCI ──────────────────────────────────────────────────────────────
-const C = {
-  bg:        "#FFFFFF",
-  bgSoft:    "#F7F8FC",
-  bgCard:    "#FFFFFF",
-  navy:      "#020235",
-  navyMid:   "#0A0A6E",
-  navyLight: "#1A1A9E",
-  red:       "#E2001A",
-  redLight:  "#FF3347",
-  redPale:   "#FFF0F1",
-  gold:      "#C9882A",
-  goldLight: "#F5D97A",
-  border:    "#E8EAF2",
-  borderMid: "#C8CBE0",
-  text:      "#020235",
-  textMid:   "#4A4E7A",
-  textMute:  "#9296B8",
-  white:     "#FFFFFF",
-  success:   "#0B6E4F",
-  successBg: "#E8F5F0",
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const BASE = "http://10.9.100.115:5020/api";
+const ENDPOINTS = {
+  collabModalite:   `${BASE}/action/realise/collaborateur/modalite`,
+  budgetFormation:  `${BASE}/conso/budget/formation`,
+  investissement:   `${BASE}/investissement/formation`,
+  modeDistribution: `${BASE}/cumul/mode/distribution`,
+  collabGenre:      `${BASE}/collab/forme/genre`,
 };
 
-const MONTH_NAMES = {
+// ── PALETTE SGCI ──────────────────────────────────────────────────────────────
+const C = {
+  bg:"#FFFFFF", bgSoft:"#F7F8FC", bgCard:"#FFFFFF",
+  navy:"#020235", navyMid:"#0A0A6E", navyLight:"#1A1A9E",
+  red:"#E2001A", redLight:"#FF3347", redPale:"#FFF0F1",
+  gold:"#C9882A", goldLight:"#F5D97A",
+  border:"#E8EAF2", borderMid:"#C8CBE0",
+  text:"#020235", textMid:"#4A4E7A", textMute:"#9296B8",
+  white:"#FFFFFF", success:"#0B6E4F", successBg:"#E8F5F0",
+};
+
+const MONTH_FR = {
+  1:"Jan",2:"Fév",3:"Mar",4:"Avr",5:"Mai",6:"Jun",
+  7:"Jul",8:"Aoû",9:"Sep",10:"Oct",11:"Nov",12:"Déc",
+};
+const MONTH_STR = {
   "01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
   "07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc",
 };
 
-// ── FAKE DATA — même structure que les APIs réelles ───────────────────────────
-
-// /api/action/realise/collaborateur/modalite
-const FAKE_COLLAB = [
-  { classe_virtuelle:2, cumul:5,  e_learning:3, matricule_participant:"0815", month:"2025-01", multimodal:0, presentiel:14, total:19 },
-  { classe_virtuelle:1, cumul:8,  e_learning:2, matricule_participant:"0815", month:"2025-02", multimodal:1, presentiel:17, total:21 },
-  { classe_virtuelle:0, cumul:10, e_learning:4, matricule_participant:"0815", month:"2025-03", multimodal:0, presentiel:22, total:26 },
-  { classe_virtuelle:2, cumul:14, e_learning:3, matricule_participant:"0815", month:"2025-04", multimodal:2, presentiel:18, total:25 },
-  { classe_virtuelle:1, cumul:17, e_learning:5, matricule_participant:"0815", month:"2025-05", multimodal:0, presentiel:20, total:26 },
-  { classe_virtuelle:0, cumul:20, e_learning:2, matricule_participant:"0815", month:"2025-06", multimodal:1, presentiel:15, total:18 },
-  { classe_virtuelle:3, cumul:24, e_learning:6, matricule_participant:"0815", month:"2025-07", multimodal:0, presentiel:12, total:21 },
-  { classe_virtuelle:1, cumul:27, e_learning:4, matricule_participant:"0815", month:"2025-08", multimodal:2, presentiel:16, total:23 },
-  { classe_virtuelle:0, cumul:30, e_learning:3, matricule_participant:"0815", month:"2025-09", multimodal:0, presentiel:19, total:22 },
-  { classe_virtuelle:2, cumul:33, e_learning:5, matricule_participant:"0815", month:"2025-10", multimodal:1, presentiel:21, total:29 },
-  { classe_virtuelle:1, cumul:36, e_learning:4, matricule_participant:"0815", month:"2025-11", multimodal:0, presentiel:18, total:23 },
-  { classe_virtuelle:0, cumul:38, e_learning:2, matricule_participant:"0815", month:"2025-12", multimodal:0, presentiel:14, total:16 },
-  { classe_virtuelle:1, cumul:4,  e_learning:5, matricule_participant:"1042", month:"2025-01", multimodal:2, presentiel:11, total:19 },
-  { classe_virtuelle:2, cumul:9,  e_learning:3, matricule_participant:"1042", month:"2025-02", multimodal:0, presentiel:14, total:19 },
-  { classe_virtuelle:0, cumul:12, e_learning:6, matricule_participant:"1042", month:"2025-03", multimodal:1, presentiel:16, total:23 },
-  { classe_virtuelle:3, cumul:16, e_learning:4, matricule_participant:"1042", month:"2025-04", multimodal:0, presentiel:13, total:20 },
-  { classe_virtuelle:1, cumul:19, e_learning:2, matricule_participant:"1042", month:"2025-05", multimodal:2, presentiel:17, total:22 },
-  { classe_virtuelle:2, cumul:23, e_learning:7, matricule_participant:"1042", month:"2025-06", multimodal:0, presentiel:19, total:28 },
-  { classe_virtuelle:0, cumul:25, e_learning:3, matricule_participant:"1042", month:"2025-07", multimodal:1, presentiel:10, total:14 },
-  { classe_virtuelle:2, cumul:29, e_learning:5, matricule_participant:"1042", month:"2025-08", multimodal:0, presentiel:15, total:22 },
-  { classe_virtuelle:1, cumul:32, e_learning:4, matricule_participant:"1042", month:"2025-09", multimodal:2, presentiel:12, total:19 },
-  { classe_virtuelle:0, cumul:34, e_learning:2, matricule_participant:"1042", month:"2025-10", multimodal:0, presentiel:18, total:20 },
-  { classe_virtuelle:3, cumul:38, e_learning:6, matricule_participant:"1042", month:"2025-11", multimodal:1, presentiel:16, total:26 },
-  { classe_virtuelle:1, cumul:40, e_learning:3, matricule_participant:"1042", month:"2025-12", multimodal:0, presentiel:11, total:15 },
-  { classe_virtuelle:0, cumul:3,  e_learning:2, matricule_participant:"2301", month:"2025-01", multimodal:1, presentiel:9,  total:12 },
-  { classe_virtuelle:2, cumul:7,  e_learning:4, matricule_participant:"2301", month:"2025-02", multimodal:0, presentiel:13, total:19 },
-  { classe_virtuelle:1, cumul:11, e_learning:3, matricule_participant:"2301", month:"2025-03", multimodal:2, presentiel:17, total:23 },
-  { classe_virtuelle:0, cumul:14, e_learning:5, matricule_participant:"2301", month:"2025-04", multimodal:0, presentiel:14, total:19 },
-  { classe_virtuelle:3, cumul:18, e_learning:2, matricule_participant:"2301", month:"2025-05", multimodal:1, presentiel:11, total:17 },
-  { classe_virtuelle:1, cumul:21, e_learning:6, matricule_participant:"2301", month:"2025-06", multimodal:0, presentiel:16, total:23 },
-  { classe_virtuelle:2, cumul:25, e_learning:4, matricule_participant:"2301", month:"2025-07", multimodal:2, presentiel:12, total:20 },
-  { classe_virtuelle:0, cumul:28, e_learning:3, matricule_participant:"2301", month:"2025-08", multimodal:0, presentiel:14, total:17 },
-  { classe_virtuelle:1, cumul:31, e_learning:5, matricule_participant:"2301", month:"2025-09", multimodal:1, presentiel:18, total:25 },
-  { classe_virtuelle:3, cumul:35, e_learning:2, matricule_participant:"2301", month:"2025-10", multimodal:0, presentiel:15, total:20 },
-  { classe_virtuelle:0, cumul:37, e_learning:4, matricule_participant:"2301", month:"2025-11", multimodal:2, presentiel:13, total:19 },
-  { classe_virtuelle:2, cumul:40, e_learning:3, matricule_participant:"2301", month:"2025-12", multimodal:1, presentiel:11, total:17 },
-];
-
-// /api/conso/budget/formation
-const FAKE_BUDGET = [
-  { code_session:["P25018S03","P25001S02","P25001S03"], cost_by_month:7221771.5,  cumul_cost:7221771.5,   month_:1,  name_month:"Janvier"  },
-  { code_session:["P25018S01","P25003S01","P25018S02","P25001S01"], cost_by_month:9843200.0,  cumul_cost:17064971.5,  month_:2,  name_month:"Février"  },
-  { code_session:["P25020S01","P25005S02","P25012S01"], cost_by_month:12540000.0, cumul_cost:29604971.5,  month_:3,  name_month:"Mars"     },
-  { code_session:["P25022S01","P25008S01","P25015S02","P25009S01"], cost_by_month:8760500.0,  cumul_cost:38365471.5,  month_:4,  name_month:"Avril"    },
-  { code_session:["P25030S01","P25011S02"], cost_by_month:15320000.0, cumul_cost:53685471.5,  month_:5,  name_month:"Mai"      },
-  { code_session:["P25035S01","P25016S03","P25021S01","P25004S02"], cost_by_month:11980000.0, cumul_cost:65665471.5,  month_:6,  name_month:"Juin"     },
-  { code_session:["P25040S01","P25025S02"], cost_by_month:6450000.0,  cumul_cost:72115471.5,  month_:7,  name_month:"Juillet"  },
-  { code_session:["P25042S01","P25031S01","P25028S02"], cost_by_month:18200000.0, cumul_cost:90315471.5,  month_:8,  name_month:"Août"     },
-  { code_session:["P25018S03","P25001S02","P25001S03","P25018S01","P25003S01","P25018S02","P25001S01"], cost_by_month:7221771.5, cumul_cost:97537243.0, month_:9, name_month:"Septembre"},
-  { code_session:["P25050S01","P25044S02","P25037S01"], cost_by_month:13670000.0, cumul_cost:111207243.0, month_:10, name_month:"Octobre"  },
-  { code_session:["P25055S01","P25048S01","P25052S02"], cost_by_month:10950000.0, cumul_cost:122157243.0, month_:11, name_month:"Novembre" },
-  { code_session:["P25060S01","P25058S02"], cost_by_month:8340000.0,  cumul_cost:130497243.0, month_:12, name_month:"Décembre" },
-];
-
-// Données supplémentaires (OGF, genre, efficacité, etc.)
-const FAKE_COLLAB_GENRE = [
-  { name:"Hommes", value:58 },
-  { name:"Femmes", value:42 },
-];
-const FAKE_COLLAB_CATEGORIE = [
-  { categorie:"Cadres", nombre:210 },
-  { categorie:"Techniciens", nombre:185 },
-  { categorie:"Agents", nombre:320 },
-  { categorie:"Managers", nombre:95 },
-  { categorie:"Dirigeants", nombre:40 },
-];
+// ── FAKE DATA — uniquement pour sections sans API connue (OGF, Reporting) ─────
 const FAKE_FORMATIONS_OGF = [
   { ogf:"Abidjan",    formations:65, participants:540, collab:490, cout:48000000 },
   { ogf:"Paris",      formations:42, participants:320, collab:280, cout:72000000 },
@@ -111,11 +44,11 @@ const FAKE_FORMATIONS_OGF = [
   { ogf:"Lyon",       formations:28, participants:180, collab:155, cout:25000000 },
   { ogf:"Casablanca", formations:22, participants:160, collab:140, cout:18000000 },
 ];
-const FAKE_PRESENTIEL_OGF = [
-  { ogf:"Abidjan",    participants:310, collab:285 },
-  { ogf:"Paris",      participants:220, collab:200 },
-  { ogf:"Dakar",      participants:140, collab:125 },
-  { ogf:"Lyon",       participants:95,  collab:88  },
+const FAKE_PRESENTIEL_OGF  = [
+  { ogf:"Abidjan", participants:310, collab:285 },
+  { ogf:"Paris",   participants:220, collab:200 },
+  { ogf:"Dakar",   participants:140, collab:125 },
+  { ogf:"Lyon",    participants:95,  collab:88  },
 ];
 const FAKE_PRESENTIEL_TYPE = [
   { type:"Technique",     p:280 },
@@ -123,11 +56,9 @@ const FAKE_PRESENTIEL_TYPE = [
   { type:"Réglementaire", p:340 },
   { type:"Métier",        p:215 },
 ];
-const FAKE_ELEARNING_GROUPES = [
-  { groupe:"Retail",    p:85 },
-  { groupe:"Corporate", p:72 },
-  { groupe:"IT",        p:91 },
-  { groupe:"RH",        p:88 },
+const FAKE_ELEARNING = [
+  { groupe:"Retail",    p:85 }, { groupe:"Corporate", p:72 },
+  { groupe:"IT",        p:91 }, { groupe:"RH",        p:88 },
   { groupe:"Finance",   p:79 },
 ];
 const FAKE_PARTICIPANTS_TYPE = [
@@ -136,43 +67,31 @@ const FAKE_PARTICIPANTS_TYPE = [
   { type:"Réglementaire", participants:510, collab:470 },
   { type:"Soft skills",   participants:230, collab:200 },
 ];
-const FAKE_DIFFUSION = [
-  { type:"Interne",     nombre:78  },
-  { type:"Externe",     nombre:45  },
-  { type:"Inter-ent.",  nombre:32  },
-  { type:"En ligne",    nombre:110 },
-];
-const FAKE_EFFICACITE = [
-  { formation:"Leadership", score:88 },
-  { formation:"Digital",    score:92 },
-  { formation:"Risque",     score:75 },
-  { formation:"Conformité", score:95 },
-  { formation:"Commercial", score:82 },
-];
-const FAKE_INVESTISSEMENTS = [
-  { annee:"2021", invest:89000000  },
-  { annee:"2022", invest:112000000 },
-  { annee:"2023", invest:138000000 },
-  { annee:"2024", invest:162000000 },
-  { annee:"2025", invest:195000000 },
+const FAKE_COLLAB_CATEGORIE = [
+  { categorie:"Cadres",      nombre:210 }, { categorie:"Techniciens", nombre:185 },
+  { categorie:"Agents",      nombre:320 }, { categorie:"Managers",    nombre:95  },
+  { categorie:"Dirigeants",  nombre:40  },
 ];
 const FAKE_REPORTING = [
-  { subject:"Complétion",  A:87 },
-  { subject:"Satisfaction",A:82 },
-  { subject:"ROI",         A:74 },
-  { subject:"Couverture",  A:91 },
-  { subject:"Délai",       A:78 },
-  { subject:"Budget",      A:85 },
+  { subject:"Complétion",   A:87 }, { subject:"Satisfaction", A:82 },
+  { subject:"ROI",          A:74 }, { subject:"Couverture",   A:91 },
+  { subject:"Délai",        A:78 }, { subject:"Budget",       A:85 },
 ];
 const FAKE_PROGRAMME = [
-  { name:"Obligatoire",   value:35 },
-  { name:"Développement", value:28 },
-  { name:"Métier",        value:22 },
-  { name:"Leadership",    value:15 },
+  { name:"Obligatoire",   value:35 }, { name:"Développement", value:28 },
+  { name:"Métier",        value:22 }, { name:"Leadership",    value:15 },
 ];
 
-// ── TRANSFORMATIONS ───────────────────────────────────────────────────────────
-const aggregateByMonth = (data) => {
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const fmt = (n) => {
+  if (n===undefined||n===null) return "—";
+  if (n>=1_000_000) return `${(n/1_000_000).toFixed(2)}M`;
+  if (n>=1_000)     return `${(n/1_000).toFixed(0)}k`;
+  return String(Math.round(n));
+};
+const fmtFCFA = (n) => n ? `${fmt(n)} FCFA` : "—";
+
+const aggregateCollabByMonth = (data) => {
   const map = {};
   (data||[]).forEach(d => {
     const k = d.month||"??";
@@ -184,38 +103,90 @@ const aggregateByMonth = (data) => {
     map[k].total            += d.total||0;
   });
   return Object.values(map).sort((a,b)=>a.month.localeCompare(b.month))
-    .map(d => ({ ...d, label: MONTH_NAMES[d.month?.slice(5)] || d.month }));
+    .map(d => ({ ...d, label: MONTH_STR[d.month?.slice(5)] || d.month }));
 };
 
-const aggregateByModalite = (data) => {
-  const t = { Présentiel:0,"E-learning":0,"Cl. Virtuelle":0,Multimodal:0 };
+const aggregateCollabByModalite = (data) => {
+  const t = { Présentiel:0, "E-learning":0, "Cl. Virtuelle":0, Multimodal:0 };
   (data||[]).forEach(d => {
-    t["Présentiel"]     += d.presentiel||0;
-    t["E-learning"]     += d.e_learning||0;
-    t["Cl. Virtuelle"]  += d.classe_virtuelle||0;
-    t["Multimodal"]     += d.multimodal||0;
+    t["Présentiel"]    += d.presentiel||0;
+    t["E-learning"]    += d.e_learning||0;
+    t["Cl. Virtuelle"] += d.classe_virtuelle||0;
+    t["Multimodal"]    += d.multimodal||0;
   });
   return Object.entries(t).map(([name,value]) => ({ name, value }));
 };
 
-const fmt = (n) => {
-  if (n===undefined||n===null) return "—";
-  if (n>=1_000_000) return `${(n/1_000_000).toFixed(1)}M`;
-  if (n>=1_000)     return `${(n/1_000).toFixed(0)}k`;
-  return String(n);
+// Transformer /collab/forme/genre → pivot par sexe/mois
+const pivotGenre = (data) => {
+  const map = {};
+  (data||[]).forEach(d => {
+    const k = d.mois_num;
+    if (!map[k]) map[k] = { mois_num:k, label:MONTH_FR[k]||`M${k}`, Masculin:0, Feminin:0 };
+    if (d.sexe==="Masculin")  map[k].Masculin  += d.nombre_de_collaborateurs_forme||0;
+    else                       map[k].Feminin   += d.nombre_de_collaborateurs_forme||0;
+  });
+  return Object.values(map).sort((a,b)=>a.mois_num-b.mois_num);
 };
 
-const fmtFCFA = (n) => {
-  if (!n) return "—";
-  if (n>=1_000_000) return `${(n/1_000_000).toFixed(2)}M FCFA`;
-  return `${(n/1_000).toFixed(0)}k FCFA`;
+// Pie genre global depuis /collab/forme/genre
+const pieGenre = (data) => {
+  const t = { Masculin:0, Feminin:0 };
+  (data||[]).forEach(d => {
+    if (d.sexe==="Masculin") t.Masculin += d.nombre_de_collaborateurs_forme||0;
+    else                      t.Feminin  += d.nombre_de_collaborateurs_forme||0;
+  });
+  return Object.entries(t).map(([name,value]) => ({ name, value }));
 };
 
-// ── COMPOSANTS ────────────────────────────────────────────────────────────────
+// ── FETCH HOOK ────────────────────────────────────────────────────────────────
+const useFetch = (url) => {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+  const [ts,      setTs]      = useState(null);
+
+  const run = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch(url, { headers:{ accept:"application/json" } });
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+      const json = await res.json();
+      setData(json.data || json);
+      setTs(new Date().toLocaleTimeString("fr-FR"));
+    } catch(e) {
+      setError(e.message||"Erreur réseau");
+    } finally { setLoading(false); }
+  }, [url]);
+
+  useEffect(() => { run(); }, [run]);
+  return { data, loading, error, refetch:run, ts };
+};
+
+// ── COMPOSANTS UI ─────────────────────────────────────────────────────────────
 const Spinner = () => (
-  <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,padding:40 }}>
-    <div style={{ width:36,height:36,borderRadius:"50%",border:`4px solid ${C.border}`,borderTop:`4px solid ${C.red}`,animation:"spin 0.8s linear infinite" }} />
-    <span style={{ color:C.textMute,fontSize:12,fontFamily:"'Trebuchet MS'" }}>Chargement…</span>
+  <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,padding:32 }}>
+    <div style={{ width:32,height:32,borderRadius:"50%",border:`4px solid ${C.border}`,borderTop:`4px solid ${C.red}`,animation:"spin 0.8s linear infinite" }} />
+    <span style={{ color:C.textMute,fontSize:11,fontFamily:"'Trebuchet MS'" }}>Chargement API…</span>
+  </div>
+);
+
+const APIBadge = ({ label, loading, error, ts }) => (
+  <div style={{ display:"flex",alignItems:"center",gap:5,background:error?C.redPale:loading?"#FFF9E6":C.successBg,border:`1px solid ${error?C.red:loading?C.gold:C.success}30`,borderRadius:20,padding:"3px 10px" }}>
+    <div style={{ width:6,height:6,borderRadius:"50%",background:error?C.red:loading?C.gold:C.success,animation:loading?"pulse 1s ease-in-out infinite":"none" }} />
+    <span style={{ color:error?C.red:loading?C.gold:C.success,fontSize:8,fontFamily:"'Trebuchet MS'",fontWeight:700,letterSpacing:0.8 }}>
+      {error?"ERR":loading?"…":ts} · {label}
+    </span>
+  </div>
+);
+
+const ErrorBox = ({ msg, onRetry }) => (
+  <div style={{ background:C.redPale,border:`1px solid ${C.red}30`,borderLeft:`4px solid ${C.red}`,borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
+    <div>
+      <div style={{ color:C.red,fontSize:12,fontWeight:700,fontFamily:"'Trebuchet MS'",marginBottom:2 }}>⚠ Erreur API</div>
+      <div style={{ color:C.textMid,fontSize:11,fontFamily:"'Trebuchet MS'" }}>{msg}</div>
+    </div>
+    {onRetry&&<button onClick={onRetry} style={{ background:C.red,color:C.white,border:"none",borderRadius:6,padding:"5px 12px",fontSize:10,fontFamily:"'Trebuchet MS'",cursor:"pointer",fontWeight:700 }}>Réessayer</button>}
   </div>
 );
 
@@ -224,11 +195,11 @@ const KPICard = ({ label, value, sub, icon, accent, loading }) => {
   return (
     <div style={{ background:C.bgCard,border:`1.5px solid ${C.border}`,borderTop:`3px solid ${color}`,borderRadius:14,padding:"18px 20px",position:"relative",overflow:"hidden",boxShadow:`0 2px 16px rgba(2,2,53,0.07)` }}>
       <div style={{ position:"absolute",top:-16,right:-16,width:72,height:72,borderRadius:"50%",background:color,opacity:0.05 }} />
-      <div style={{ fontSize:20,marginBottom:6 }}>{icon}</div>
+      <div style={{ fontSize:18,marginBottom:6 }}>{icon}</div>
       <div style={{ color:C.textMute,fontSize:9,fontFamily:"'Trebuchet MS'",letterSpacing:2,textTransform:"uppercase",marginBottom:4 }}>{label}</div>
       {loading
-        ? <div style={{ height:32,background:C.bgSoft,borderRadius:6,animation:"pulse 1.2s ease-in-out infinite" }} />
-        : <div style={{ color:C.navy,fontSize:26,fontWeight:800,fontFamily:"Georgia, serif",lineHeight:1,marginBottom:4 }}>{value}</div>
+        ? <div style={{ height:30,background:C.bgSoft,borderRadius:6,animation:"pulse 1.2s ease-in-out infinite" }} />
+        : <div style={{ color:C.navy,fontSize:26,fontWeight:800,fontFamily:"Georgia,serif",lineHeight:1,marginBottom:4 }}>{value}</div>
       }
       {sub&&!loading&&<div style={{ color:C.textMid,fontSize:11,fontFamily:"'Trebuchet MS'" }}>{sub}</div>}
       <div style={{ position:"absolute",bottom:0,left:0,height:2,width:"45%",background:`linear-gradient(90deg,${color}60,transparent)` }} />
@@ -236,14 +207,15 @@ const KPICard = ({ label, value, sub, icon, accent, loading }) => {
   );
 };
 
-const SectionTitle = ({ children, num, color }) => {
+const SectionTitle = ({ children, num, color, apiLabel }) => {
   const col = color||C.red;
   return (
     <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
       <div style={{ width:28,height:28,borderRadius:6,flexShrink:0,background:`linear-gradient(135deg,${col},${col}AA)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 2px 8px ${col}40` }}>
         <span style={{ color:C.white,fontSize:10,fontWeight:800,fontFamily:"'Trebuchet MS'" }}>{num}</span>
       </div>
-      <h2 style={{ margin:0,color:C.navy,fontSize:12,fontFamily:"'Trebuchet MS', sans-serif",fontWeight:700,letterSpacing:2,textTransform:"uppercase" }}>{children}</h2>
+      <h2 style={{ margin:0,color:C.navy,fontSize:12,fontFamily:"'Trebuchet MS',sans-serif",fontWeight:700,letterSpacing:2,textTransform:"uppercase" }}>{children}</h2>
+      {apiLabel&&<span style={{ color:C.textMute,fontSize:9,fontFamily:"'Courier New',monospace",background:C.bgSoft,border:`1px solid ${C.border}`,borderRadius:4,padding:"2px 7px" }}>{apiLabel}</span>}
       <div style={{ flex:1,height:1.5,background:`linear-gradient(90deg,${col}40,transparent)` }} />
     </div>
   );
@@ -272,53 +244,62 @@ const Tip = ({ active, payload, label }) => {
       {payload.map((p,i)=>(
         <p key={i} style={{ margin:0,color:C.white,fontSize:12,fontFamily:"'Trebuchet MS'" }}>
           <span style={{ color:p.color }}>{p.name}: </span>
-          {typeof p.value==="number"&&p.value>9999?fmtFCFA(p.value):p.value}
+          {typeof p.value==="number"&&p.value>9999?fmtFCFA(p.value):typeof p.value==="number"?p.value.toLocaleString("fr-FR"):p.value}
         </p>
       ))}
     </div>
   );
 };
 
-const StatusBadge = ({ ok, count }) => (
-  <div style={{ display:"flex",alignItems:"center",gap:5,background:ok?C.successBg:C.redPale,border:`1px solid ${ok?C.success:C.red}30`,borderRadius:20,padding:"3px 10px" }}>
-    <div style={{ width:6,height:6,borderRadius:"50%",background:ok?C.success:C.red }} />
-    <span style={{ color:ok?C.success:C.red,fontSize:9,fontFamily:"'Trebuchet MS'",fontWeight:700,letterSpacing:1 }}>
-      {ok?`${count} enreg.`:"Hors ligne"}
-    </span>
-  </div>
-);
-
 // ── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("all");
-  const [collabData, setCollabData] = useState(null);
-  const [budgetData, setBudgetData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(null);
 
-  const fetchAll = useCallback(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setCollabData(FAKE_COLLAB);
-      setBudgetData(FAKE_BUDGET);
-      setLastRefresh(new Date().toLocaleTimeString("fr-FR"));
-      setLoading(false);
-    }, 700);
-  }, []);
+  // ── VRAIS FETCH — 5 APIs réelles ──────────────────────────────────────────
+  // GET /api/action/realise/collaborateur/modalite
+  // → { data: [{ classe_virtuelle, cumul, e_learning, matricule_participant, month, multimodal, presentiel, total }] }
+  const collab = useFetch(ENDPOINTS.collabModalite);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  // GET /api/conso/budget/formation
+  // → { data: [{ code_session[], cost_by_month, cumul_cost, month_, name_month }] }
+  const budget = useFetch(ENDPOINTS.budgetFormation);
 
-  const byMonth     = aggregateByMonth(collabData);
-  const byModalite  = aggregateByModalite(collabData);
-  const budgetSorted = (budgetData||[]).sort((a,b)=>a.month_-b.month_);
+  // GET /api/investissement/formation
+  // → { data: [{ cout_moyen_par_participant, heure_formation_moyen_par_etp, mois }] }
+  const invest = useFetch(ENDPOINTS.investissement);
 
-  const totalActions  = collabData?collabData.reduce((s,d)=>s+(d.total||0),0):null;
-  const totalCollabs  = collabData?new Set(collabData.map(d=>d.matricule_participant)).size:null;
-  const totalBudget   = budgetData?Math.max(...budgetData.map(d=>d.cumul_cost||0)):null;
-  const totalSessions = budgetData?new Set(budgetData.flatMap(d=>d.code_session||[])).size:null;
+  // GET /api/cumul/mode/distribution
+  // → { data: [{ diffusion_mode, nb_formations, pourcentage_formations, total_heures_formation }] }
+  const modeDist = useFetch(ENDPOINTS.modeDistribution);
+
+  // GET /api/collab/forme/genre
+  // → { data: [{ mois_num, nombre_de_collaborateurs_forme, pourcentage, sexe }] }
+  const genre = useFetch(ENDPOINTS.collabGenre);
+
+  // Raccourci données budget triées
+  const budgetData = (budget.data||[]).sort((a,b)=>a.month_-b.month_);
+
+  // ── TRANSFORMATIONS ──
+  const byMonth       = aggregateCollabByMonth(collab.data);
+  const byModalite    = aggregateCollabByModalite(collab.data);
+  const investSorted  = (invest.data||[]).sort((a,b)=>a.mois-b.mois)
+    .map(d => ({ ...d, label: MONTH_FR[d.mois]||`M${d.mois}` }));
+  const genreByMonth  = pivotGenre(genre.data);
+  const genrePie      = pieGenre(genre.data);
+  const modData       = (modeDist.data||[]).map(d => ({
+    ...d,
+    name: d.diffusion_mode,
+    value: d.nb_formations,
+  }));
+
+  // KPIs
+  const totalActions = collab.data?.reduce((s,d)=>s+(d.total||0),0) ?? null;
+  const totalCollabs = collab.data ? new Set(collab.data.map(d=>d.matricule_participant)).size : null;
+  const totalBudget  = budgetData.length ? Math.max(...budgetData.map(d=>d.cumul_cost||0)) : null;
+  const coutMoyenLast = invest.data?.length ? invest.data[invest.data.length-1].cout_moyen_par_participant : null;
+  const heureMoyenne  = invest.data?.length ? (invest.data.reduce((s,d)=>s+(d.heure_formation_moyen_par_etp||0),0)/invest.data.length).toFixed(1) : null;
 
   const show = (id) => tab==="all"||tab===id;
-
   const tabs = [
     { id:"all",       label:"Vue Globale"    },
     { id:"collab",    label:"Collaborateurs" },
@@ -328,35 +309,41 @@ export default function App() {
   ];
 
   return (
-    <div style={{ minHeight:"100vh",background:C.bgSoft,fontFamily:"Georgia, serif" }}>
+    <div style={{ minHeight:"100vh",background:C.bgSoft,fontFamily:"Georgia,serif" }}>
 
       {/* ── HEADER ── */}
-      <div style={{ background:C.navy,padding:"0 36px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 24px rgba(2,2,53,0.35)" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:16,padding:"14px 0" }}>
+      <div style={{ background:C.navy,padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100,boxShadow:"0 4px 24px rgba(2,2,53,0.35)" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:14,padding:"12px 0" }}>
           <div style={{ display:"flex",borderRadius:6,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.4)" }}>
-            <div style={{ background:C.red,width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center" }}>
-              <span style={{ color:C.white,fontSize:14,fontWeight:900,fontFamily:"'Trebuchet MS'",letterSpacing:-0.5 }}>SG</span>
+            <div style={{ background:C.red,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <span style={{ color:C.white,fontSize:13,fontWeight:900,fontFamily:"'Trebuchet MS'",letterSpacing:-0.5 }}>SG</span>
             </div>
-            <div style={{ background:"#0D0D5A",width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center" }}>
-              <span style={{ color:C.white,fontSize:12,fontWeight:800,fontFamily:"'Trebuchet MS'" }}>CI</span>
+            <div style={{ background:"#0D0D5A",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <span style={{ color:C.white,fontSize:11,fontWeight:800,fontFamily:"'Trebuchet MS'" }}>CI</span>
             </div>
           </div>
           <div>
-            <div style={{ color:C.white,fontSize:16,fontWeight:700,fontFamily:"'Trebuchet MS'",letterSpacing:0.5 }}>Tableau de Bord Formation</div>
+            <div style={{ color:C.white,fontSize:15,fontWeight:700,fontFamily:"'Trebuchet MS'",letterSpacing:0.5 }}>Tableau de Bord Formation</div>
             <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:2 }}>
-              <div style={{ width:20,height:1.5,background:C.red }} />
-              <span style={{ color:"#8888CC",fontSize:9,fontFamily:"'Trebuchet MS'",letterSpacing:2,textTransform:"uppercase" }}>Société Générale Côte d'Ivoire · DRH</span>
+              <div style={{ width:18,height:1.5,background:C.red }} />
+              <span style={{ color:"#8888CC",fontSize:8,fontFamily:"'Trebuchet MS'",letterSpacing:2,textTransform:"uppercase" }}>Société Générale Côte d'Ivoire · DRH</span>
             </div>
           </div>
         </div>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <StatusBadge ok={!!collabData} count={collabData?.length} />
-          <StatusBadge ok={!!budgetData} count={budgetData?.length} />
-          <button onClick={fetchAll} title="Actualiser" style={{ background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:6,color:C.white,padding:"5px 10px",fontSize:14,cursor:"pointer" }}>⟳</button>
-          {lastRefresh&&<span style={{ color:"#6666AA",fontSize:9,fontFamily:"'Trebuchet MS'" }}>{lastRefresh}</span>}
-          <div style={{ display:"flex",gap:3,marginLeft:6 }}>
+
+        <div style={{ display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end" }}>
+          {/* Statuts API en temps réel */}
+          <div style={{ display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end" }}>
+            <APIBadge label="collab/modalite"   loading={collab.loading}   error={collab.error}   ts={collab.ts}   />
+            <APIBadge label="budget/formation"  loading={budget.loading}   error={budget.error}   ts={budget.ts}   />
+            <APIBadge label="investissement"    loading={invest.loading}   error={invest.error}   ts={invest.ts}   />
+            <APIBadge label="mode/distribution" loading={modeDist.loading} error={modeDist.error} ts={modeDist.ts} />
+            <APIBadge label="collab/genre"      loading={genre.loading}    error={genre.error}    ts={genre.ts}    />
+          </div>
+          {/* Tabs */}
+          <div style={{ display:"flex",gap:3 }}>
             {tabs.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{ background:tab===t.id?C.red:"rgba(255,255,255,0.06)",border:`1px solid ${tab===t.id?C.red:"rgba(255,255,255,0.12)"}`,borderRadius:6,color:tab===t.id?C.white:"#8888CC",padding:"6px 12px",fontSize:10,fontFamily:"'Trebuchet MS'",letterSpacing:0.5,cursor:"pointer",fontWeight:tab===t.id?700:400 }}>{t.label}</button>
+              <button key={t.id} onClick={()=>setTab(t.id)} style={{ background:tab===t.id?C.red:"rgba(255,255,255,0.06)",border:`1px solid ${tab===t.id?C.red:"rgba(255,255,255,0.12)"}`,borderRadius:6,color:tab===t.id?C.white:"#8888CC",padding:"5px 11px",fontSize:10,fontFamily:"'Trebuchet MS'",cursor:"pointer",fontWeight:tab===t.id?700:400 }}>{t.label}</button>
             ))}
           </div>
         </div>
@@ -365,26 +352,32 @@ export default function App() {
       {/* Bande déco */}
       <div style={{ background:`linear-gradient(90deg,${C.navy},${C.navyLight} 40%,${C.red})`,height:4 }} />
 
-      <div style={{ padding:"26px 36px 60px",display:"flex",flexDirection:"column",gap:32 }}>
+      <div style={{ padding:"24px 32px 60px",display:"flex",flexDirection:"column",gap:28 }}>
 
         {/* ── KPIs ── */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:13 }}>
-          <KPICard label="Actions de formation"     value={totalActions!==null?fmt(totalActions):"—"}       sub={collabData?`${collabData.length} enregistrements`:"…"} icon="🎯" accent={C.red}       loading={loading&&!collabData} />
-          <KPICard label="Collaborateurs distincts"  value={totalCollabs!==null?totalCollabs:"—"}            sub="Matricules uniques"                                     icon="👥" accent={C.navy}      loading={loading&&!collabData} />
-          <KPICard label="Coût cumulé formation"     value={totalBudget!==null?fmtFCFA(totalBudget):"—"}    sub="Cumul toutes sessions"                                  icon="💰" accent={C.gold}      loading={loading&&!budgetData} />
-          <KPICard label="Sessions de formation"     value={totalSessions!==null?totalSessions:"—"}          sub="Codes session uniques"                                  icon="📚" accent={C.navyLight} loading={loading&&!budgetData} />
-          <KPICard label="OGF couverts"              value="5"                                                sub="Abidjan · Paris · Dakar…"                               icon="🌍" accent={C.red}       loading={false} />
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12 }}>
+          <KPICard label="Actions de formation"    value={totalActions!==null?totalActions.toLocaleString("fr-FR"):"—"}  sub={collab.data?`${collab.data.length} enreg.`:"…"}  icon="🎯" accent={C.red}       loading={collab.loading&&!collab.data} />
+          <KPICard label="Collaborateurs distincts" value={totalCollabs!==null?totalCollabs:"—"}                          sub="Matricules uniques"                               icon="👥" accent={C.navy}      loading={collab.loading&&!collab.data} />
+          <KPICard label="Coût cumulé"              value={totalBudget!==null?fmtFCFA(totalBudget):"—"}                sub="Cumul toutes sessions"                            icon="💰" accent={C.gold}      loading={budget.loading&&!budget.data} />
+          <KPICard label="Coût moyen/participant"   value={coutMoyenLast!==null?fmtFCFA(coutMoyenLast):"—"}              sub="Dernier mois disponible"                          icon="📊" accent={C.navyLight} loading={invest.loading&&!invest.data} />
+          <KPICard label="Heure moy./ETP"           value={heureMoyenne!==null?`${heureMoyenne}h`:"—"}                   sub="Moyenne sur les mois"                             icon="⏱" accent={C.red}       loading={invest.loading&&!invest.data} />
         </div>
 
         {/* ══════════════ SECTION 01 – COLLABORATEURS ══════════════ */}
         {show("collab") && (
           <div>
-            <SectionTitle num="01" color={C.red}>Actions réalisées par collaborateur &amp; modalité</SectionTitle>
-            {loading&&!collabData?<Box><Spinner /></Box>:(
+            <SectionTitle num="01" color={C.red} apiLabel="GET /api/action/realise/collaborateur/modalite">
+              Actions réalisées par collaborateur &amp; modalité
+            </SectionTitle>
+
+            {/* Erreur */}
+            {collab.error && <ErrorBox msg={collab.error} onRetry={collab.refetch} />}
+
+            {collab.loading&&!collab.data ? <Box><Spinner /></Box> : (
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
 
                 {/* Barres groupées mensuel */}
-                <Box title="Évolution mensuelle par modalité de formation" accent={C.navy}>
+                <Box title="Évolution mensuelle par modalité" accent={C.navy}>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={byMonth} barSize={11} barCategoryGap="25%">
                       <defs>
@@ -393,73 +386,89 @@ export default function App() {
                         <linearGradient id="gGold"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.goldLight}/><stop offset="100%" stopColor={C.gold}/></linearGradient>
                         <linearGradient id="gSlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7A7EAA"/><stop offset="100%" stopColor="#3A3E6A"/></linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
-                      <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<Tip />} />
-                      <Legend wrapperStyle={{ fontSize:10,color:C.textMid }} />
-                      <Bar dataKey="presentiel"       name="Présentiel"       fill="url(#gRed)"   radius={[4,4,0,0]} />
-                      <Bar dataKey="e_learning"       name="E-learning"       fill="url(#gNavy)"  radius={[4,4,0,0]} />
-                      <Bar dataKey="classe_virtuelle" name="Cl. Virtuelle"    fill="url(#gGold)"  radius={[4,4,0,0]} />
-                      <Bar dataKey="multimodal"       name="Multimodal"       fill="url(#gSlate)" radius={[4,4,0,0]} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                      <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<Tip />}/>
+                      <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                      <Bar dataKey="presentiel"       name="Présentiel"    fill="url(#gRed)"   radius={[4,4,0,0]}/>
+                      <Bar dataKey="e_learning"       name="E-learning"    fill="url(#gNavy)"  radius={[4,4,0,0]}/>
+                      <Bar dataKey="classe_virtuelle" name="Cl. Virtuelle" fill="url(#gGold)"  radius={[4,4,0,0]}/>
+                      <Bar dataKey="multimodal"       name="Multimodal"    fill="url(#gSlate)" radius={[4,4,0,0]}/>
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
 
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14 }}>
                   {/* Pie modalités */}
-                  <Box title="Répartition totale par modalité" accent={C.red}>
-                    <ResponsiveContainer width="100%" height={210}>
+                  <Box title="Répartition par modalité" accent={C.red}>
+                    <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
                         <Pie data={byModalite.filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={48} outerRadius={78} dataKey="value" nameKey="name" paddingAngle={4}
                           label={({name,percent})=>`${(percent*100).toFixed(0)}%`} labelLine={{ stroke:C.borderMid }}>
                           {[C.red,C.navy,C.gold,C.navyLight].map((col,i)=><Cell key={i} fill={col} stroke="white" strokeWidth={2}/>)}
                         </Pie>
-                        <Tooltip content={<Tip />} />
-                        <Legend wrapperStyle={{ fontSize:10,color:C.textMid }} />
+                        <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:9,color:C.textMid }}/>
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
 
-                  {/* Collab par genre */}
-                  <Box title="Collaborateurs formés par genre" accent={C.navy}>
-                    <ResponsiveContainer width="100%" height={210}>
-                      <PieChart>
-                        <Pie data={FAKE_COLLAB_GENRE} cx="50%" cy="50%" innerRadius={48} outerRadius={78} dataKey="value" nameKey="name" paddingAngle={4}
-                          label={({name,value})=>`${name} ${value}%`} labelLine={{ stroke:C.borderMid }}>
-                          <Cell fill={C.navy}  stroke="white" strokeWidth={2}/>
-                          <Cell fill={C.red}   stroke="white" strokeWidth={2}/>
-                        </Pie>
-                        <Tooltip content={<Tip />} />
-                        <Legend wrapperStyle={{ fontSize:10,color:C.textMid }} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  {/* Genre depuis API réelle */}
+                  <Box title={`Collaborateurs par genre · GET /api/collab/forme/genre`} accent={C.navy}>
+                    {genre.error && <ErrorBox msg={genre.error} onRetry={genre.refetch} />}
+                    {genre.loading&&!genre.data ? <Spinner /> : (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie data={genrePie.filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={48} outerRadius={78} dataKey="value" nameKey="name" paddingAngle={4}
+                            label={({name,value})=>`${name}: ${value}`} labelLine={{ stroke:C.borderMid }}>
+                            <Cell fill={C.navy} stroke="white" strokeWidth={2}/>
+                            <Cell fill={C.red}  stroke="white" strokeWidth={2}/>
+                          </Pie>
+                          <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:9,color:C.textMid }}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
                   </Box>
 
-                  {/* Total mensuel area */}
+                  {/* Total area */}
                   <Box title="Total actions — courbe mensuelle" accent={C.navy}>
-                    <ResponsiveContainer width="100%" height={210}>
+                    <ResponsiveContainer width="100%" height={220}>
                       <AreaChart data={byMonth}>
                         <defs>
                           <linearGradient id="areaTot" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={C.navy} stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor={C.navy} stopOpacity={0.01}/>
+                            <stop offset="0%" stopColor={C.navy} stopOpacity={0.2}/><stop offset="100%" stopColor={C.navy} stopOpacity={0.01}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                        <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
+                        <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                         <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
                         <Tooltip content={<Tip />}/>
-                        <Area type="monotone" dataKey="total" name="Total actions" stroke={C.navy} fill="url(#areaTot)" strokeWidth={2.5} dot={{ fill:C.navy,r:3,strokeWidth:0 }}/>
+                        <Area type="monotone" dataKey="total" name="Total" stroke={C.navy} fill="url(#areaTot)" strokeWidth={2.5} dot={{ fill:C.navy,r:3,strokeWidth:0 }}/>
                       </AreaChart>
                     </ResponsiveContainer>
                   </Box>
                 </div>
 
-                {/* Collab par catégorie */}
+                {/* Genre par mois barres - API réelle */}
+                {genreByMonth.length > 0 && (
+                  <Box title="Collaborateurs formés par genre et par mois · API réelle" accent={C.navy}>
+                    <ResponsiveContainer width="100%" height={210}>
+                      <BarChart data={genreByMonth} barSize={22}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                        <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
+                        <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                        <Bar dataKey="Masculin" name="Masculin" fill={C.navy} radius={[4,4,0,0]}/>
+                        <Bar dataKey="Feminin"  name="Féminin"  fill={C.red}  radius={[4,4,0,0]}/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Box>
+                )}
+
+                {/* Catégorie fake */}
                 <Box title="Collaborateurs formés par catégorie" accent={C.navy}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={FAKE_COLLAB_CATEGORIE} layout="vertical" barSize={18}>
+                  <ResponsiveContainer width="100%" height={190}>
+                    <BarChart data={FAKE_COLLAB_CATEGORIE} layout="vertical" barSize={16}>
                       <defs>
                         <linearGradient id="gNavyH" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor={C.navy}/><stop offset="100%" stopColor={C.navyLight}/>
@@ -467,15 +476,15 @@ export default function App() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} horizontal={false}/>
                       <XAxis type="number" tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
-                      <YAxis type="category" dataKey="categorie" tick={{ fill:C.text,fontSize:10,fontFamily:"'Trebuchet MS'" }} width={85} axisLine={false} tickLine={false}/>
+                      <YAxis type="category" dataKey="categorie" tick={{ fill:C.text,fontSize:10 }} width={80} axisLine={false} tickLine={false}/>
                       <Tooltip content={<Tip />}/>
                       <Bar dataKey="nombre" name="Collaborateurs" fill="url(#gNavyH)" radius={[0,6,6,0]}/>
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
 
-                {/* Tableau détail mensuel */}
-                <Box title="Détail mensuel — Actions par modalité" accent={C.navy}>
+                {/* Tableau détail */}
+                <Box title="Détail mensuel — Actions par modalité · API réelle" accent={C.navy}>
                   <div style={{ overflowX:"auto" }}>
                     <table style={{ width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"'Trebuchet MS'" }}>
                       <thead>
@@ -503,9 +512,7 @@ export default function App() {
                         <tr style={{ borderTop:`2px solid ${C.border}`,background:`${C.navy}06` }}>
                           <td style={{ padding:"9px 14px",color:C.navy,fontWeight:800 }}>TOTAL</td>
                           {["presentiel","e_learning","classe_virtuelle","multimodal","total"].map(k=>(
-                            <td key={k} style={{ padding:"9px 14px",color:C.navy,fontWeight:800,textAlign:"right" }}>
-                              {byMonth.reduce((s,d)=>s+(d[k]||0),0)}
-                            </td>
+                            <td key={k} style={{ padding:"9px 14px",color:C.navy,fontWeight:800,textAlign:"right" }}>{byMonth.reduce((s,d)=>s+(d[k]||0),0)}</td>
                           ))}
                         </tr>
                       </tfoot>
@@ -520,137 +527,123 @@ export default function App() {
         {/* ══════════════ SECTION 02 – BUDGET & COÛTS ══════════════ */}
         {show("budget") && (
           <div>
-            <SectionTitle num="02" color={C.gold}>Budget &amp; Coûts de formation</SectionTitle>
-            {loading&&!budgetData?<Box><Spinner /></Box>:(
-              <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+            <SectionTitle num="02" color={C.gold} apiLabel="GET /api/conso/budget/formation + /api/investissement/formation">
+              Budget &amp; Coûts de formation
+            </SectionTitle>
 
-                {/* Area coût mensuel + cumulé */}
-                <Box title="Coût mensuel et coût cumulé (FCFA)" accent={C.gold}>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <AreaChart data={budgetSorted}>
-                      <defs>
-                        <linearGradient id="areaGold" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={C.gold} stopOpacity={0.25}/><stop offset="100%" stopColor={C.gold} stopOpacity={0.01}/>
-                        </linearGradient>
-                        <linearGradient id="areaRed" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={C.red} stopOpacity={0.18}/><stop offset="100%" stopColor={C.red} stopOpacity={0.01}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                      <XAxis dataKey="name_month" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
-                      <YAxis tickFormatter={v=>fmt(v)} tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
-                      <Tooltip content={<Tip />}/>
-                      <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
-                      <Area type="monotone" dataKey="cost_by_month" name="Coût mensuel" stroke={C.gold} fill="url(#areaGold)" strokeWidth={2.5} dot={{ fill:C.gold,r:3 }}/>
-                      <Area type="monotone" dataKey="cumul_cost"    name="Coût cumulé"  stroke={C.red}  fill="url(#areaRed)"  strokeWidth={2.5} dot={{ fill:C.red,r:3 }} strokeDasharray="5 3"/>
-                    </AreaChart>
-                  </ResponsiveContainer>
+            {budget.error && <ErrorBox msg={budget.error} onRetry={budget.refetch} />}
+
+            {budget.loading&&!budget.data ? <Box><Spinner /></Box> : (
+              <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+              {/* Area budget */}
+              <Box title="Coût mensuel et coût cumulé — budget formation" accent={C.gold}>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={budgetData.sort((a,b)=>a.month_-b.month_)}>
+                    <defs>
+                      <linearGradient id="areaGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.gold} stopOpacity={0.25}/><stop offset="100%" stopColor={C.gold} stopOpacity={0.01}/></linearGradient>
+                      <linearGradient id="areaRed"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.red}  stopOpacity={0.18}/><stop offset="100%" stopColor={C.red}  stopOpacity={0.01}/></linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                    <XAxis dataKey="name_month" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
+                    <YAxis tickFormatter={v=>fmt(v)} tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
+                    <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                    <Area type="monotone" dataKey="cost_by_month" name="Coût mensuel" stroke={C.gold} fill="url(#areaGold)" strokeWidth={2.5} dot={{ fill:C.gold,r:3 }}/>
+                    <Area type="monotone" dataKey="cumul_cost"    name="Coût cumulé"  stroke={C.red}  fill="url(#areaRed)"  strokeWidth={2.5} dot={{ fill:C.red,r:3 }} strokeDasharray="5 3"/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
+                {/* Investissement API réelle */}
+                <Box title="Coût moyen/participant & Heures/ETP · GET /api/investissement/formation" accent={C.navyLight}>
+                  {invest.error && <ErrorBox msg={invest.error} onRetry={invest.refetch} />}
+                  {invest.loading&&!invest.data ? <Spinner /> : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={investSorted} barSize={22}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                        <XAxis dataKey="label" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
+                        <YAxis yAxisId="left"  tickFormatter={v=>fmt(v)} tick={{ fill:C.textMute,fontSize:9 }} axisLine={false} tickLine={false}/>
+                        <YAxis yAxisId="right" orientation="right" tick={{ fill:C.textMute,fontSize:9 }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                        <Bar yAxisId="left"  dataKey="cout_moyen_par_participant" name="Coût moyen/participant" fill="url(#gNavy)"  radius={[5,5,0,0]}/>
+                        <Bar yAxisId="right" dataKey="heure_formation_moyen_par_etp" name="Heures moy./ETP"     fill="url(#gGold)"  radius={[5,5,0,0]}/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </Box>
 
-                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                  {/* Barres coût mensuel */}
-                  <Box title="Coût par mois (FCFA)" accent={C.navy}>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={budgetSorted} barSize={32}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                        <XAxis dataKey="name_month" tick={{ fill:C.textMid,fontSize:9,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
-                        <YAxis tickFormatter={v=>fmt(v)} tick={{ fill:C.textMute,fontSize:9 }} axisLine={false} tickLine={false}/>
-                        <Tooltip content={<Tip />}/>
-                        <Bar dataKey="cost_by_month" name="Coût mensuel" radius={[6,6,0,0]}>
-                          {budgetSorted.map((_,i)=><Cell key={i} fill={i%2===0?"url(#gRed)":"url(#gNavy)"}/>)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-
-                  {/* Investissements */}
-                  <Box title="Investissements formation 2021–2025 (FCFA)" accent={C.navyLight}>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={FAKE_INVESTISSEMENTS} barSize={36}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                        <XAxis dataKey="annee" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
-                        <YAxis tickFormatter={v=>fmt(v)} tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
-                        <Tooltip content={<Tip />}/>
-                        <Bar dataKey="invest" name="Investissement" radius={[6,6,0,0]}>
-                          {FAKE_INVESTISSEMENTS.map((_,i)=><Cell key={i} fill={i===4?"url(#gRed)":"url(#gNavy)"}/>)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </div>
-
-                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                  {/* Efficacité */}
-                  <Box title="Efficacité de la formation avec le coût" accent={C.gold}>
-                    <div style={{ display:"flex",flexDirection:"column",gap:10,paddingTop:4 }}>
-                      {FAKE_EFFICACITE.map((d,i)=>(
-                        <div key={i}>
-                          <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                            <span style={{ color:C.textMid,fontSize:11,fontFamily:"'Trebuchet MS'" }}>{d.formation}</span>
-                            <span style={{ color:C.navy,fontSize:11,fontWeight:700,fontFamily:"'Trebuchet MS'" }}>{d.score}%</span>
-                          </div>
-                          <div style={{ height:8,background:C.bgSoft,borderRadius:4,overflow:"hidden",border:`1px solid ${C.border}` }}>
-                            <div style={{ height:"100%",width:`${d.score}%`,background:d.score>=90?`linear-gradient(90deg,${C.navy},${C.navyLight})`:`linear-gradient(90deg,#7B000D,${C.red})`,borderRadius:4 }}/>
-                          </div>
-                        </div>
-                      ))}
-                      <div style={{ marginTop:10,background:`${C.navy}08`,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 14px" }}>
-                        <span style={{ display:"block",color:C.textMute,fontSize:8,fontFamily:"'Trebuchet MS'",letterSpacing:2,textTransform:"uppercase" }}>Score moyen</span>
-                        <span style={{ display:"block",color:C.navy,fontSize:26,fontWeight:800,fontFamily:"Georgia",marginTop:2 }}>86.4%</span>
+                {/* Mode distribution API réelle */}
+                <Box title="Distribution par mode de diffusion · GET /api/cumul/mode/distribution" accent={C.navy}>
+                  {modeDist.error && <ErrorBox msg={modeDist.error} onRetry={modeDist.refetch} />}
+                  {modeDist.loading&&!modeDist.data ? <Spinner /> : (
+                    <>
+                      <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie data={modData} cx="50%" cy="50%" outerRadius={65} dataKey="nb_formations" nameKey="diffusion_mode" paddingAngle={3}
+                            label={({diffusion_mode,pourcentage_formations})=>`${diffusion_mode} ${pourcentage_formations?.toFixed(0)}%`}
+                            labelLine={{ stroke:C.borderMid }}>
+                            {[C.navy,C.red,C.navyLight,C.gold,"#7B000D"].map((col,i)=><Cell key={i} fill={col} stroke="white" strokeWidth={2}/>)}
+                          </Pie>
+                          <Tooltip content={<Tip />}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Mini tableau mode */}
+                      <div style={{ marginTop:8 }}>
+                        {modData.map((d,i)=>{
+                          const cols=[C.navy,C.red,C.navyLight,C.gold,"#7B000D"];
+                          return (
+                            <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"5px 8px",borderBottom:`1px solid ${C.border}`,fontSize:11,fontFamily:"'Trebuchet MS'" }}>
+                              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                                <div style={{ width:8,height:8,borderRadius:2,background:cols[i],flexShrink:0 }}/>
+                                <span style={{ color:C.textMid }}>{d.diffusion_mode}</span>
+                              </div>
+                              <div style={{ display:"flex",gap:12 }}>
+                                <span style={{ color:C.navy,fontWeight:700 }}>{d.nb_formations} form.</span>
+                                <span style={{ color:C.textMute }}>{d.total_heures_formation}h</span>
+                                <span style={{ color:cols[i],fontWeight:700 }}>{d.pourcentage_formations?.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  </Box>
-
-                  {/* Diffusion */}
-                  <Box title="Formations par modalité de diffusion" accent={C.navy}>
-                    <ResponsiveContainer width="100%" height={280}>
-                      <PieChart>
-                        <Pie data={FAKE_DIFFUSION} cx="50%" cy="50%" outerRadius={90} dataKey="nombre" nameKey="type" paddingAngle={3}
-                          label={({type,percent})=>`${type} ${(percent*100).toFixed(0)}%`} labelLine={{ stroke:C.borderMid }}>
-                          {[C.navy,C.red,C.navyLight,C.gold].map((col,i)=><Cell key={i} fill={col} stroke="white" strokeWidth={2}/>)}
-                        </Pie>
-                        <Tooltip content={<Tip />}/>
-                        <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </div>
-
-                {/* Tableau budget */}
-                <Box title="Synthèse mensuelle du budget formation" accent={C.gold}>
-                  <div style={{ overflowX:"auto" }}>
-                    <table style={{ width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"'Trebuchet MS'" }}>
-                      <thead>
-                        <tr style={{ borderBottom:`2px solid ${C.border}` }}>
-                          {["Mois","Nb sessions","Coût mensuel","Coût cumulé"].map(h=>(
-                            <th key={h} style={{ padding:"9px 14px",color:C.textMid,fontSize:9,letterSpacing:1.2,textTransform:"uppercase",textAlign:h==="Mois"?"left":"right",background:C.bgSoft }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {budgetSorted.map((d,i)=>(
-                          <tr key={i} style={{ borderBottom:`1px solid ${C.border}`,background:i%2===0?C.bgSoft:C.white }}>
-                            <td style={{ padding:"8px 14px",color:C.navy,fontWeight:700,textTransform:"capitalize" }}>{d.name_month}</td>
-                            <td style={{ padding:"8px 14px",textAlign:"right" }}>
-                              <span style={{ background:`${C.navy}10`,padding:"2px 8px",borderRadius:10,color:C.navyLight,fontSize:10,fontWeight:700 }}>{(d.code_session||[]).length}</span>
-                            </td>
-                            <td style={{ padding:"8px 14px",color:C.gold,textAlign:"right",fontWeight:700 }}>{fmtFCFA(d.cost_by_month)}</td>
-                            <td style={{ padding:"8px 14px",color:C.red,textAlign:"right" }}>{fmtFCFA(d.cumul_cost)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr style={{ borderTop:`2px solid ${C.border}`,background:`${C.gold}08` }}>
-                          <td style={{ padding:"9px 14px",color:C.navy,fontWeight:800 }}>TOTAL</td>
-                          <td style={{ padding:"9px 14px",color:C.navy,fontWeight:800,textAlign:"right" }}>{budgetSorted.reduce((s,d)=>s+(d.code_session||[]).length,0)}</td>
-                          <td style={{ padding:"9px 14px",color:C.gold,fontWeight:800,textAlign:"right" }}>{fmtFCFA(budgetSorted.reduce((s,d)=>s+(d.cost_by_month||0),0))}</td>
-                          <td style={{ padding:"9px 14px",color:C.red,fontWeight:800,textAlign:"right" }}>{fmtFCFA(Math.max(...budgetSorted.map(d=>d.cumul_cost||0)))}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
+                    </>
+                  )}
                 </Box>
               </div>
+
+              {/* Tableau budget */}
+              <Box title="Synthèse mensuelle — Budget formation" accent={C.gold}>
+                <div style={{ overflowX:"auto" }}>
+                  <table style={{ width:"100%",borderCollapse:"collapse",fontSize:11,fontFamily:"'Trebuchet MS'" }}>
+                    <thead>
+                      <tr style={{ borderBottom:`2px solid ${C.border}` }}>
+                        {["Mois","Nb Sessions","Coût mensuel","Coût cumulé"].map(h=>(
+                          <th key={h} style={{ padding:"9px 14px",color:C.textMid,fontSize:9,letterSpacing:1.2,textTransform:"uppercase",textAlign:h==="Mois"?"left":"right",background:C.bgSoft }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {budgetData.map((d,i)=>(
+                        <tr key={i} style={{ borderBottom:`1px solid ${C.border}`,background:i%2===0?C.bgSoft:C.white }}>
+                          <td style={{ padding:"8px 14px",color:C.navy,fontWeight:700,textTransform:"capitalize" }}>{d.name_month}</td>
+                          <td style={{ padding:"8px 14px",textAlign:"right" }}><span style={{ background:`${C.navy}10`,padding:"2px 8px",borderRadius:10,color:C.navyLight,fontSize:10,fontWeight:700 }}>{(d.code_session||[]).length}</span></td>
+                          <td style={{ padding:"8px 14px",color:C.gold,textAlign:"right",fontWeight:700 }}>{fmtFCFA(d.cost_by_month)}</td>
+                          <td style={{ padding:"8px 14px",color:C.red,textAlign:"right" }}>{fmtFCFA(d.cumul_cost)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ borderTop:`2px solid ${C.border}`,background:`${C.gold}08` }}>
+                        <td style={{ padding:"9px 14px",color:C.navy,fontWeight:800 }}>TOTAL</td>
+                        <td style={{ padding:"9px 14px",color:C.navy,fontWeight:800,textAlign:"right" }}>{budgetData.reduce((s,d)=>s+(d.code_session||[]).length,0)}</td>
+                        <td style={{ padding:"9px 14px",color:C.gold,fontWeight:800,textAlign:"right" }}>{fmtFCFA(budgetData.reduce((s,d)=>s+(d.cost_by_month||0),0))}</td>
+                        <td style={{ padding:"9px 14px",color:C.red,fontWeight:800,textAlign:"right" }}>{fmtFCFA(budgetData.length?Math.max(...budgetData.map(d=>d.cumul_cost||0)):0)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </Box>
+              </div>  
             )}
           </div>
         )}
@@ -660,14 +653,12 @@ export default function App() {
           <div>
             <SectionTitle num="03" color={C.navyLight}>Formations &amp; Participants par OGF</SectionTitle>
             <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-
-              {/* Formations par OGF */}
               <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
                 <Box title="Nombre de formations par OGF" accent={C.navy}>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={FAKE_FORMATIONS_OGF} barSize={40}>
+                  <ResponsiveContainer width="100%" height={210}>
+                    <BarChart data={FAKE_FORMATIONS_OGF} barSize={38}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                      <XAxis dataKey="ogf" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
+                      <XAxis dataKey="ogf" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <Tooltip content={<Tip />}/>
                       <Bar dataKey="formations" name="Formations" radius={[6,6,0,0]}>
@@ -676,41 +667,35 @@ export default function App() {
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
-
                 <Box title="Participants & Collaborateurs par OGF" accent={C.red}>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={FAKE_FORMATIONS_OGF} barSize={18}>
+                  <ResponsiveContainer width="100%" height={210}>
+                    <BarChart data={FAKE_FORMATIONS_OGF} barSize={16}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
-                      <XAxis dataKey="ogf" tick={{ fill:C.textMid,fontSize:10,fontFamily:"'Trebuchet MS'" }} axisLine={false} tickLine={false}/>
+                      <XAxis dataKey="ogf" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
-                      <Tooltip content={<Tip />}/>
-                      <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
-                      <Bar dataKey="participants" name="Participants"   fill={C.red}  radius={[4,4,0,0]}/>
-                      <Bar dataKey="collab"       name="Collaborateurs" fill={C.navy} radius={[4,4,0,0]}/>
+                      <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                      <Bar dataKey="participants" name="Participants"    fill={C.red}  radius={[4,4,0,0]}/>
+                      <Bar dataKey="collab"       name="Collaborateurs"  fill={C.navy} radius={[4,4,0,0]}/>
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
               </div>
-
-              {/* Présentiel OGF + type */}
               <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
-                <Box title="Présentiel par OGF — participants & collaborateurs" accent={C.navy}>
-                  <ResponsiveContainer width="100%" height={210}>
+                <Box title="Présentiel par OGF" accent={C.navy}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={FAKE_PRESENTIEL_OGF} barSize={18}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
                       <XAxis dataKey="ogf" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
-                      <Tooltip content={<Tip />}/>
-                      <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                      <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
                       <Bar dataKey="participants" name="Participants"   fill={C.red}  radius={[4,4,0,0]}/>
                       <Bar dataKey="collab"       name="Collaborateurs" fill={C.navy} radius={[4,4,0,0]}/>
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
-
-                <Box title="Présentiel selon le type de formation" accent={C.red}>
-                  <ResponsiveContainer width="100%" height={210}>
-                    <BarChart data={FAKE_PRESENTIEL_TYPE} barSize={44}>
+                <Box title="Présentiel par type de formation" accent={C.red}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={FAKE_PRESENTIEL_TYPE} barSize={42}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
                       <XAxis dataKey="type" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
@@ -722,27 +707,23 @@ export default function App() {
                   </ResponsiveContainer>
                 </Box>
               </div>
-
               <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14 }}>
-                {/* E-learning obligatoire */}
                 <Box title="E-learning obligatoire par groupe (%)" accent={C.navyLight}>
-                  <ResponsiveContainer width="100%" height={210}>
-                    <BarChart data={FAKE_ELEARNING_GROUPES} barSize={28}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={FAKE_ELEARNING} barSize={26}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
                       <XAxis dataKey="groupe" tick={{ fill:C.textMid,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <YAxis domain={[0,100]} tick={{ fill:C.textMute,fontSize:10 }} axisLine={false} tickLine={false}/>
                       <Tooltip content={<Tip />}/>
                       <Bar dataKey="p" name="Taux %" radius={[5,5,0,0]}>
-                        {FAKE_ELEARNING_GROUPES.map(d=><Cell key={d.groupe} fill={d.p>=85?"url(#gNavy)":"url(#gRed)"}/>)}
+                        {FAKE_ELEARNING.map(d=><Cell key={d.groupe} fill={d.p>=85?"url(#gNavy)":"url(#gRed)"}/>)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
-
-                {/* Participants par type */}
                 <Box title="Participants par type de formation" accent={C.navy}>
-                  <ResponsiveContainer width="100%" height={210}>
-                    <BarChart data={FAKE_PARTICIPANTS_TYPE} barSize={14}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={FAKE_PARTICIPANTS_TYPE} barSize={13}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
                       <XAxis dataKey="type" tick={{ fill:C.textMid,fontSize:9 }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fill:C.textMute,fontSize:9 }} axisLine={false} tickLine={false}/>
@@ -752,12 +733,10 @@ export default function App() {
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
-
-                {/* Coûts par OGF pie */}
-                <Box title="Répartition des coûts par OGF" accent={C.gold}>
-                  <ResponsiveContainer width="100%" height={210}>
+                <Box title="Coûts par OGF" accent={C.gold}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
-                      <Pie data={FAKE_FORMATIONS_OGF} cx="50%" cy="50%" outerRadius={72} dataKey="cout" nameKey="ogf" paddingAngle={3}
+                      <Pie data={FAKE_FORMATIONS_OGF} cx="50%" cy="50%" outerRadius={70} dataKey="cout" nameKey="ogf" paddingAngle={3}
                         label={({ogf,percent})=>`${ogf} ${(percent*100).toFixed(0)}%`} labelLine={{ stroke:C.borderMid }}>
                         {[C.red,C.navy,C.gold,C.navyLight,"#7B000D"].map((col,i)=><Cell key={i} fill={col} stroke="white" strokeWidth={2}/>)}
                       </Pie>
@@ -776,25 +755,22 @@ export default function App() {
             <SectionTitle num="04" color={C.red}>Reporting formation &amp; Types de programme</SectionTitle>
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
               <Box title="Indicateurs de performance — Radar" accent={C.navy}>
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={270}>
                   <RadarChart data={FAKE_REPORTING}>
                     <defs>
                       <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor={C.navy} stopOpacity={0.25}/>
-                        <stop offset="100%" stopColor={C.red} stopOpacity={0.1}/>
+                        <stop offset="0%" stopColor={C.navy} stopOpacity={0.25}/><stop offset="100%" stopColor={C.red} stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
                     <PolarGrid stroke={C.border}/>
                     <PolarAngleAxis dataKey="subject" tick={{ fill:C.textMid,fontSize:11,fontFamily:"'Trebuchet MS'" }}/>
                     <Radar name="Score" dataKey="A" stroke={C.navy} fill="url(#radarFill)" strokeWidth={2.5}/>
-                    <Tooltip content={<Tip />}/>
-                    <Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
+                    <Tooltip content={<Tip />}/><Legend wrapperStyle={{ fontSize:10,color:C.textMid }}/>
                   </RadarChart>
                 </ResponsiveContainer>
               </Box>
-
               <Box title="Type de programme de formation" accent={C.red}>
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={175}>
                   <PieChart>
                     <Pie data={FAKE_PROGRAMME} cx="50%" cy="50%" innerRadius={44} outerRadius={70} dataKey="value" nameKey="name" paddingAngle={4}
                       label={({name,value})=>`${name} ${value}%`} labelLine={{ stroke:C.borderMid }}>
@@ -820,21 +796,17 @@ export default function App() {
         )}
 
         {/* FOOTER */}
-        <div style={{ borderTop:`2px solid ${C.border}`,paddingTop:16,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+        <div style={{ borderTop:`2px solid ${C.border}`,paddingTop:14,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
           <div style={{ display:"flex",alignItems:"center",gap:8 }}>
             <div style={{ display:"flex",borderRadius:3,overflow:"hidden" }}>
-              <div style={{ background:C.red,width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                <span style={{ color:"white",fontSize:5,fontWeight:900,fontFamily:"'Trebuchet MS'" }}>SG</span>
-              </div>
-              <div style={{ background:C.navy,width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                <span style={{ color:"white",fontSize:5,fontWeight:800,fontFamily:"'Trebuchet MS'" }}>CI</span>
-              </div>
+              <div style={{ background:C.red,width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center" }}><span style={{ color:"white",fontSize:5,fontWeight:900,fontFamily:"'Trebuchet MS'" }}>SG</span></div>
+              <div style={{ background:C.navy,width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center" }}><span style={{ color:"white",fontSize:5,fontWeight:800,fontFamily:"'Trebuchet MS'" }}>CI</span></div>
             </div>
-            <span style={{ color:C.textMute,fontSize:9,fontFamily:"'Trebuchet MS'",letterSpacing:1 }}>SGCI · DRH · Données de démonstration — structure API réelle</span>
+            <span style={{ color:C.textMute,fontSize:8,fontFamily:"'Trebuchet MS'",letterSpacing:1 }}>SGCI · DRH · APIs réelles : collab/modalite · budget/formation · investissement · mode/distribution · collab/genre</span>
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-            <div style={{ height:2,width:24,background:`linear-gradient(90deg,${C.navy},${C.red})`,borderRadius:1 }}/>
-            <span style={{ color:C.textMute,fontSize:9,fontFamily:"'Trebuchet MS'",letterSpacing:1.5 }}>TABLEAU DE BORD · {new Date().getFullYear()}</span>
+            <div style={{ height:2,width:20,background:`linear-gradient(90deg,${C.navy},${C.red})`,borderRadius:1 }}/>
+            <span style={{ color:C.textMute,fontSize:8,fontFamily:"'Trebuchet MS'",letterSpacing:1.5 }}>TABLEAU DE BORD · {new Date().getFullYear()}</span>
           </div>
         </div>
       </div>
