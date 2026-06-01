@@ -1,4 +1,130 @@
 import React, { useState } from 'react';
+import './LoginRH.css';
+
+// Icônes SVG documents colorées
+function DocIcon({ color }) {
+  return (
+    <svg width="58" height="68" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="1" width="34" height="44" rx="4"
+        fill={color}
+        fillOpacity="0.12"
+        stroke={color}
+        strokeWidth="2.2"
+      />
+      <line x1="11" y1="18" x2="29" y2="18" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="11" y1="25" x2="29" y2="25" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="11" y1="32" x2="21" y2="32" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+export default function LoginRH() {
+  const [matricule, setMatricule] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert(`Connexion avec matricule : ${matricule}`);
+  };
+
+  const docs = [
+    { label: 'Attestation de\ntravail', color: '#7c5cbf' },
+    { label: 'Attestation de\ncongé', color: '#2db09e' },
+    { label: "Notes\nd'informations", color: '#f4a032' },
+    { label: 'Décisions\nRH', color: '#c8102e' },
+  ];
+
+  return (
+    <div className="login-page">
+
+      {/* ===== PANNEAU GAUCHE ===== */}
+      <div className="login-left">
+
+        {/* Logo */}
+        <div className="login-logo">
+          <div className="portail-text">VOTRE PORTAIL</div>
+          <div className="rh-brand">
+            <span className="rh-text">RH</span>
+            <div className="sg-badge">
+              <span className="sg-sq-red"></span>
+              <span className="sg-sq-dark"></span>
+              <span className="sg-label">SOCIÉTÉ<br />GÉNÉRALE</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Texte descriptif */}
+        <p className="login-subtitle">
+          Cet espace personnel a été conçu pour vous offrir plus
+          d'autonomie, de transparence et de réactivité dans la
+          gestion de votre vie professionnelle au sein de la SGCI.
+        </p>
+
+        {/* Icônes documents */}
+        <div className="login-icons-grid">
+          {docs.map((d, i) => (
+            <div className="login-icon-item" key={i}>
+              <DocIcon color={d.color} />
+              <span>{d.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Séparateur vertical */}
+      <div className="login-divider"></div>
+
+      {/* ===== PANNEAU DROIT ===== */}
+      <div className="login-right">
+        <div className="login-form-box">
+          <h2>Connexion Espace salarié</h2>
+
+          <form onSubmit={handleSubmit}>
+            {/* Identifiant */}
+            <div className="form-group">
+              <label htmlFor="matricule">Identifiant / Matricule</label>
+              <input
+                id="matricule"
+                type="text"
+                placeholder="ex : 5454"
+                value={matricule}
+                onChange={e => setMatricule(e.target.value)}
+                autoComplete="username"
+              />
+            </div>
+
+            {/* Mot de passe */}
+            <div className="form-group">
+              <label htmlFor="password">Mot de passe</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="ex : JwJnZDpL10197@"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <a href="#" className="forgot-password">Mot de passe oublié ?</a>
+            </div>
+
+            {/* Boutons */}
+            <button type="submit" className="btn-submit">
+              Se connecter
+            </button>
+            <button type="button" className="btn-sg-connect">
+              Se connecter avec SG connect
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+
+
+import React, { useState } from 'react';
 import './PortailRH.css';
 
 // ===== NAVBAR =====
