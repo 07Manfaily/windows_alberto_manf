@@ -1,0 +1,443 @@
+import React, { useState } from 'react';
+import './PortailRH.css';
+
+// ===== NAVBAR =====
+function Navbar() {
+  const [active, setActive] = useState('Accueil');
+  const links = ['Accueil', 'Mot de la RH', 'Documents réglementaires', 'Carrière', 'Evènements', 'Actualités'];
+
+  return (
+    <nav className="navbar">
+      <div className="navbar-logo">
+        <span className="portail-text">VOTRE PORTAIL</span>
+        <div className="rh-brand">
+          <span className="rh-text">RH</span>
+          <div className="sg-badge">
+            <span className="sg-square"></span>
+            <span className="sg-square-dark"></span>
+            <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1px' }}>SOCIÉTÉ<br />GÉNÉRALE</span>
+          </div>
+        </div>
+      </div>
+
+      <ul className="navbar-nav">
+        {links.map(link => (
+          <li key={link}>
+            <a
+              href="#"
+              className={active === link ? 'active' : ''}
+              onClick={e => { e.preventDefault(); setActive(link); }}
+            >
+              {link}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="#" className="btn-connexion">Connexion</a>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
+// ===== HERO =====
+function Hero() {
+  return (
+    <div className="hero">
+      <div className="hero-content">
+        <h1>Bienvenue sur votre <span>portail RH</span></h1>
+        <p>Retrouvez rapidement et facilement vos documents RH</p>
+      </div>
+      <div className="hero-image-wrapper">
+        <div className="hero-circle">
+          <div className="hero-circle-placeholder">📸 Réunion d'équipe</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== FLASH INFO =====
+function FlashInfo() {
+  return (
+    <div className="flash-info">
+      <div className="flash-info-inner">
+        <span className="label">Flash Info :</span>
+        <span className="message">
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus."
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ===== MOT DE BIENVENUE =====
+function MotDeBienvenue() {
+  return (
+    <div className="bienvenue-section">
+      <h2 className="section-title">Mot de bienvenue RH</h2>
+      <div className="bienvenue-grid">
+        <div className="bienvenue-text">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.
+            Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies
+            sed, dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+            non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing
+          </p>
+          <p>
+            nec, ultricies sed, dolor. Lorem ipsum dolor sit amet, consectetur
+            adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit
+            amet, adipiscing nec, ultricies sed, dolor. Lorem ipsum dolor sit amet,
+            consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor,
+            dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+          </p>
+          <p>
+            ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.
+            Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies
+            sed, dolor.
+          </p>
+        </div>
+        <div className="bienvenue-image">
+          <span className="img-placeholder">📸 Image bureau</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== ESPACE SALARIE =====
+function EspaceSalarie() {
+  const docs = [
+    { label: 'Attestation de\ntravail', color: 'icon-doc-purple', icon: '📄' },
+    { label: 'Attestation de\ncongé', color: 'icon-doc-teal', icon: '📄' },
+    { label: "Notes\nd'informations", color: 'icon-doc-orange', icon: '📄' },
+    { label: 'Décisions\nRH', color: 'icon-doc-red', icon: '📄' },
+  ];
+
+  return (
+    <div className="espace-salarie">
+      <h2 className="section-title">Espace salarié</h2>
+      <p className="subtitle">
+        Cet espace personnel a été conçu pour vous offrir plus d'autonomie, de
+        transparence et de réactivité dans la gestion de votre vie professionnelle au
+        sein de la SGCI.
+      </p>
+      <div className="espace-icons">
+        {docs.map((d, i) => (
+          <div className="espace-icon-item" key={i}>
+            <svg className="icon-doc" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="0" width="34" height="44" rx="4"
+                fill={['#7c5cbf','#2db09e','#f4a032','#c8102e'][i]}
+                fillOpacity="0.15"
+                stroke={['#7c5cbf','#2db09e','#f4a032','#c8102e'][i]}
+                strokeWidth="2.2"
+              />
+              <line x1="12" y1="18" x2="30" y2="18" stroke={['#7c5cbf','#2db09e','#f4a032','#c8102e'][i]} strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="12" y1="25" x2="30" y2="25" stroke={['#7c5cbf','#2db09e','#f4a032','#c8102e'][i]} strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="12" y1="32" x2="22" y2="32" stroke={['#7c5cbf','#2db09e','#f4a032','#c8102e'][i]} strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+            <span>{d.label}</span>
+          </div>
+        ))}
+      </div>
+      <button className="btn-connecter">Se connecter</button>
+    </div>
+  );
+}
+
+// ===== DOCUMENTS REGLEMENTAIRES =====
+function DocumentsReglementaires() {
+  const docs = [
+    { title: 'Règlement intérieur', action: 'Télécharger' },
+    { title: 'Convention collective', action: 'Télécharger' },
+    { title: 'Annuaire', action: 'Consulter' },
+  ];
+
+  const accesRapide = [
+    { label: 'Attestation de travail', color: '#7c5cbf' },
+    { label: 'Attestation de congé', color: '#2db09e' },
+    { label: "Notes d'informations", color: '#f4a032' },
+    { label: 'Décisions RH', color: '#c8102e' },
+  ];
+
+  return (
+    <div className="documents-section">
+      <h2 className="section-title">Documents réglementaires</h2>
+      <div className="documents-grid" style={{ marginTop: '32px' }}>
+        {docs.map((d, i) => (
+          <div className="document-card" key={i}>
+            <div className="doc-icon">
+              <svg width="32" height="38" viewBox="0 0 32 38" fill="none">
+                <rect x="1" y="1" width="26" height="36" rx="3" fill="#ffeaea" stroke="#c8102e" strokeWidth="2"/>
+                <line x1="7" y1="14" x2="21" y2="14" stroke="#c8102e" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="7" y1="20" x2="21" y2="20" stroke="#c8102e" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="7" y1="26" x2="15" y2="26" stroke="#c8102e" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="doc-info">
+              <h4>{d.title}</h4>
+              <div className="date">Date de dernière mise à jour : 00/00/0000</div>
+              <a href="#" className="lien">{d.action} ↗</a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="documents-bottom">
+        {/* Card bienvenue */}
+        <div className="card-bienvenue">
+          <h4>Bienvenue à</h4>
+          <div className="avatar-circle">👤</div>
+          <div className="name">Simbo Marina</div>
+          <div className="dots">
+            <div className="dot active"></div>
+            <div className="dot"></div>
+            <div className="dot"></div>
+            <div className="dot"></div>
+          </div>
+          <div className="voir-tout-link">Voir tout ↗</div>
+        </div>
+
+        {/* Card magazine */}
+        <div className="card-magazine">
+          <div className="overlay">
+            <h4>Magazine SikaFinance</h4>
+            <div className="dl">Télécharger</div>
+          </div>
+        </div>
+
+        {/* Accès rapide */}
+        <div className="card-acces-rapide">
+          <h4>Accès rapide</h4>
+          <ul className="acces-list">
+            {accesRapide.map((item, i) => (
+              <li key={i}>
+                <svg width="20" height="24" viewBox="0 0 20 24" fill="none">
+                  <rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke={item.color} strokeWidth="1.8"/>
+                  <line x1="4" y1="9" x2="14" y2="9" stroke={item.color} strokeWidth="1.8" strokeLinecap="round"/>
+                  <line x1="4" y1="13" x2="14" y2="13" stroke={item.color} strokeWidth="1.8" strokeLinecap="round"/>
+                  <line x1="4" y1="17" x2="10" y2="17" stroke={item.color} strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                {item.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== EMPLOIS =====
+function EmploisSection() {
+  const emplois = [
+    { title: 'Data Analyste', badges: ['CDD'] },
+    { title: 'Data ingénieur', badges: ['CDI', 'Interim'] },
+  ];
+
+  return (
+    <div className="emplois-section">
+      <div className="section-header">
+        <h2 className="section-title">Emplois - Formation - Mobilité</h2>
+        <a href="#" className="voir-tout">Voir tout ↗</a>
+      </div>
+
+      <div className="emplois-carousel-controls">
+        <button className="carousel-btn">‹</button>
+        <button className="carousel-btn">›</button>
+      </div>
+
+      <div className="emplois-cards">
+        {emplois.map((e, i) => (
+          <div className="emploi-card" key={i}>
+            <h4>{e.title}</h4>
+            <div className="badge-group">
+              {e.badges.map((b, j) => (
+                <span className="badge" key={j}>{b}</span>
+              ))}
+            </div>
+            <a href="#" className="details-link">Détails ↗</a>
+          </div>
+        ))}
+      </div>
+
+      <div className="elearning-banner">
+        <div className="banner-elearning">
+          <button className="btn-banner">Accedez à votre espace E learning</button>
+        </div>
+        <div className="banner-azure">
+          <button className="btn-banner">Accedez à votre espace Azure RH</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== EVENEMENTS =====
+function EvenementsSection() {
+  const events = [
+    { day: '01', month: 'Mai', tags: ['Nouveau', 'CE'], title: 'Présentation CE', hasImg: false },
+    { day: '10', month: 'Mai', tags: ['Nouveau', 'Santé'], title: 'Don de sang agent', hasImg: false },
+    { day: '18', month: 'Mai', tags: ['Sport', 'CE'], title: 'Match de gala SGCI vs BDU', hasImg: true },
+  ];
+
+  return (
+    <div className="evenements-section">
+      <div className="section-header">
+        <h2 className="section-title">Evènements à venir</h2>
+        <a href="#" className="voir-tout">Voir tout ↗</a>
+      </div>
+      <div className="evenements-cards">
+        {events.map((e, i) => (
+          <div className="event-card" key={i}>
+            <div className="event-image" style={{ background: e.hasImg ? '#2a5c2a' : '#e8e8e8' }}>
+              {e.hasImg && (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'radial-gradient(ellipse at center, #3a7a3a 0%, #1a4a1a 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '32px'
+                }}>⚽</div>
+              )}
+              <div className="event-date-badge">
+                <div className="day">{e.day}</div>
+                <div className="month">{e.month}</div>
+              </div>
+            </div>
+            <div className="event-body">
+              <div className="event-tags-row">
+                <div className="event-tags">
+                  {e.tags.map((t, j) => (
+                    <span className="tag" key={j}>{t}</span>
+                  ))}
+                </div>
+                <span className="arrow-link">↗</span>
+              </div>
+              <h4>{e.title}</h4>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ===== ACTUALITES =====
+function ActualitesSection() {
+  const actus = [
+    { title: 'La santé mentale au travail', date: '07/05/2026', hasImg: false },
+    { title: 'Le burnout existe vraiment', date: '07/05/2026', hasImg: false },
+    { title: 'Santé alimentaire au travail', date: '07/05/2026', hasImg: true },
+  ];
+
+  return (
+    <div className="actualites-section">
+      <div className="section-header">
+        <h2 className="section-title">Actualités</h2>
+        <a href="#" className="voir-tout">Voir tout ↗</a>
+      </div>
+      <div className="actualites-cards">
+        {actus.map((a, i) => (
+          <div className="actu-card" key={i}>
+            <div className="actu-image" style={{ background: a.hasImg ? '#4a3020' : '#2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {a.hasImg && <span style={{ fontSize: '48px' }}>🍔</span>}
+            </div>
+            <div className="actu-body">
+              <h4>{a.title}</h4>
+              <div className="date">{a.date}</div>
+              <div className="excerpt">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.
+                Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+              </div>
+            </div>
+            <div className="actu-footer">
+              <div className="actu-stats">
+                <span>💬 3</span>
+                <span>🤍 15</span>
+                <span>🔖</span>
+              </div>
+              <a href="#" className="lire-link">Lire ↗</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ===== CONTACT BAR =====
+function ContactBar() {
+  return (
+    <div className="contact-bar">
+      <div className="contact-info">
+        <span className="contact-icon">📞</span>
+        <div>
+          <div className="label">Pour plus d'informations RH</div>
+          <div className="ip">IP : 2302</div>
+        </div>
+      </div>
+      <button className="btn-ecrire">Ecrivez-nous</button>
+    </div>
+  );
+}
+
+// ===== FOOTER =====
+function Footer() {
+  const links = ['Mot de la RH', 'Documents règlementaires', 'Evènements', 'Actualités', 'Connexion'];
+
+  return (
+    <footer className="footer">
+      <div className="footer-grid">
+        <div className="footer-brand">
+          <div className="portail-text">VOTRE PORTAIL</div>
+          <div className="rh-big">RH</div>
+          <p>
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+            sed do eiusmod tempor incididunt ut labore et dolore
+            magna aliqua."
+          </p>
+        </div>
+
+        <div className="footer-links">
+          <h4>Liens rapides</h4>
+          <ul>
+            {links.map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="footer-social">
+          <h4>Suivez nous sur</h4>
+          <div className="social-icons">
+            <div className="social-btn">in</div>
+            <div className="social-btn">f</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        CopyrightRH SGCI 2026
+      </div>
+    </footer>
+  );
+}
+
+// ===== APP PRINCIPALE =====
+export default function PortailRH() {
+  return (
+    <div>
+      <Navbar />
+      <Hero />
+      <FlashInfo />
+      <MotDeBienvenue />
+      <EspaceSalarie />
+      <DocumentsReglementaires />
+      <EmploisSection />
+      <EvenementsSection />
+      <ActualitesSection />
+      <ContactBar />
+      <Footer />
+    </div>
+  );
+}
