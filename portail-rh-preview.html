@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portail RH — Preview</title>
+<style>
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:#f5f5f5;color:#1a1a1a;font-size:14px}
+
+/* ===== NAVBAR ===== */
+.navbar{background:#fff;border-bottom:1px solid #e5e5e5;height:60px;display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100}
+.navbar-brand{display:flex;align-items:center;gap:10px;margin-right:28px;cursor:pointer}
+.sg-logo{width:36px;height:36px;background:#cc0000;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sg-logo-inner{width:20px;height:20px;background:#fff;clip-path:polygon(0 0,55% 0,100% 50%,55% 100%,0 100%,45% 50%)}
+.navbar-title{font-size:14px;font-weight:700;color:#1a1a1a;padding-left:12px;border-left:1px solid #ddd;white-space:nowrap}
+.navbar-nav{display:flex;align-items:center;gap:2px;flex:1}
+.nav-btn{padding:8px 12px;font-size:13px;color:#555;border:none;background:none;border-radius:4px;cursor:pointer;font-family:inherit;transition:background .15s}
+.nav-btn:hover{background:#f5f5f5;color:#1a1a1a}
+.nav-btn.active{background:#e0e0e0;color:#1a1a1a;font-weight:600}
+.navbar-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:none;color:#555;font-size:15px;position:relative;transition:background .15s}
+.icon-btn:hover{background:#f5f5f5}
+.badge{position:absolute;top:3px;right:3px;width:16px;height:16px;background:#c00;border-radius:50%;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.navbar-user{display:flex;align-items:center;gap:10px;margin-left:8px;padding-left:12px;border-left:1px solid #eee}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:13px}
+.user-info{display:flex;flex-direction:column}
+.user-name{font-size:13px;font-weight:700;white-space:nowrap}
+.user-logout{font-size:11px;color:#888;border:none;background:none;cursor:pointer;font-family:inherit;text-decoration:underline;text-align:left}
+.user-logout:hover{color:#c00}
+
+/* ===== CONTAINER ===== */
+.page-container{max-width:1280px;margin:0 auto;padding:28px 32px;background:#fff;min-height:calc(100vh - 60px)}
+
+/* ===== PAGE HEADER ===== */
+.page-h1{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:6px}
+
+/* ===== TABS ===== */
+.tabs-bar{display:flex;align-items:center;border-bottom:1px solid #e0e0e0;margin-bottom:28px}
+.tabs-label{font-size:14px;font-weight:800;color:#1a1a1a;padding:10px 16px 10px 0;margin-right:4px;white-space:nowrap}
+.tab-btn{padding:10px 14px;font-size:13px;color:#666;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;font-weight:500;white-space:nowrap;transition:color .15s}
+.tab-btn:hover{color:#1a1a1a}
+.tab-btn.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:600}
+
+/* ===== SECTION HEAD ===== */
+.section-eyebrow{font-size:13px;color:#777;margin-bottom:3px}
+.section-title{font-size:24px;font-weight:800;color:#1a1a1a;margin-bottom:8px}
+.red-line{width:38px;height:3px;background:#c00;border-radius:2px;margin-bottom:22px}
+
+/* ===== FILTER PILLS ===== */
+.filter-pills{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.pill{padding:6px 16px;border:1px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-family:inherit;font-weight:500;transition:all .15s}
+.pill:hover{border-color:#999;color:#1a1a1a}
+.pill.active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+
+/* ===== ACTION CARDS ===== */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+.action-card{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border:1px solid #e0e0e0;border-left:4px solid #1a6ed4;border-radius:4px;cursor:pointer;background:#fafafa;transition:box-shadow .15s,background .15s}
+.action-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.09);background:#fff}
+.ac-left{display:flex;align-items:center;gap:14px}
+.ac-icon{font-size:26px;color:#1a6ed4;width:40px;display:flex;align-items:center;justify-content:center}
+.ac-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:2px}
+.ac-title{font-size:15px;font-weight:700;color:#1a1a1a}
+.ac-chevron{font-size:20px;color:#aaa}
+
+/* ===== HISTORY ===== */
+.hist-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.date-label{font-size:12px;color:#999;padding:4px 0;border-bottom:1px solid #f0f0f0;margin-bottom:8px}
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid #e5e5e5;border-radius:6px;margin-bottom:10px;background:#fff;cursor:pointer;transition:box-shadow .15s}
+.hist-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.hist-item.available{background:#e0f7f4;border-color:#b2dbd6}
+.hi-left{display:flex;align-items:center;gap:14px}
+.hi-icon{font-size:22px;width:38px;height:38px;display:flex;align-items:center;justify-content:center}
+.hi-icon.blue{color:#1a6ed4}
+.hi-icon.teal{color:#00897b}
+.hi-icon.dark{color:#333}
+.hi-sub{font-size:11px;color:#999;display:block}
+.hi-name{font-size:14px;font-weight:600;color:#1a1a1a}
+
+/* ===== BUTTONS ===== */
+.btn{padding:8px 18px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn-pending{background:#fff;border-color:#ddd;color:#888;cursor:default}
+.btn-dl{background:#00897b;color:#fff;border-color:#00897b}
+.btn-dl:hover{background:#00796b}
+.btn-consult{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-consult:hover{background:#333}
+.btn-close{background:#fff;color:#1a1a1a;border-color:#ccc}
+.btn-close:hover{background:#f5f5f5}
+.btn-dl-dark{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-dl-dark:hover{background:#333}
+
+/* ===== EMPTY STATE ===== */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px}
+.empty-icon{font-size:44px;color:#ccc}
+.empty-text{font-size:14px;font-weight:700;color:#bbb}
+
+/* ===== FILTER ROW ===== */
+.filter-row{margin-bottom:20px}
+.filter-row label{display:block;font-size:13px;color:#555;margin-bottom:6px;font-weight:500}
+.filter-select{padding:8px 32px 8px 12px;border:1px solid #ccc;border-radius:4px;font-size:13px;color:#1a1a1a;background:#fff;appearance:none;min-width:180px;cursor:pointer;font-family:inherit}
+.filter-select:focus{outline:none;border-color:#1a6ed4}
+
+/* ===== MODAL ===== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal{background:#fff;border-radius:8px;width:100%;max-width:780px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.modal-head{padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee}
+.modal-head.teal-bg{background:#e0f7f4}
+.mh-left{display:flex;align-items:center;gap:14px}
+.mh-icon{font-size:26px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#00897b}
+.mh-icon.dark{color:#333}
+.mh-sub{font-size:11px;color:#777;display:block}
+.mh-title{font-size:17px;font-weight:800;color:#1a1a1a}
+.mh-date{font-size:11px;color:#999}
+.modal-body{flex:1;overflow-y:auto}
+.doc-preview{background:#f8f8f8;margin:18px;border:1px solid #ddd;border-radius:4px;min-height:380px;padding:40px;font-family:'Times New Roman',serif;font-size:13px;line-height:1.8;color:#1a1a1a}
+.doc-head-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;gap:24px}
+.doc-sender strong{display:block;font-size:14px;font-weight:700}
+.envelope{width:100px;height:68px;border:1px solid #bbb;border-radius:2px;position:relative;overflow:hidden;flex-shrink:0}
+.envelope::before,.envelope::after{content:'';position:absolute;inset:0;border-top:1px solid #bbb}
+.envelope::before{transform:rotate(30deg) translateY(-30px) scaleX(1.5)}
+.envelope::after{transform:rotate(-30deg) translateY(-30px) scaleX(1.5)}
+.doc-recipient{text-align:right}
+.doc-recipient strong{display:block;font-size:14px;font-weight:700}
+.doc-location{text-align:right;font-style:italic;margin:12px 0 20px;font-size:13px}
+.doc-subject{font-size:13px;margin-bottom:14px}
+.doc-main-title{font-size:15px;font-weight:900;text-align:center;text-decoration:underline;text-transform:uppercase;letter-spacing:.05em;margin-bottom:20px}
+.doc-body{font-size:13px;line-height:1.9;color:#222}
+/* Note spécifique */
+.note-place-date{margin-bottom:18px;font-size:13px}
+.note-recipient{font-size:13px;line-height:1.7;margin-bottom:28px}
+.note-subject-line{font-weight:800;font-size:13px;text-transform:uppercase;border-bottom:1.5px solid #222;padding-bottom:6px;margin-bottom:16px}
+.modal-foot{padding:14px 22px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee;background:#fff}
+
+/* ===== NOTES LIST ===== */
+.notes-section-title{font-size:16px;font-weight:700;margin-bottom:18px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="sg-logo"><div class="sg-logo-inner"></div></div>
+    <span class="navbar-title">Portail RH</span>
+  </div>
+  <div class="navbar-nav">
+    <button class="nav-btn" onclick="setNav('Accueil',this)">Accueil</button>
+    <button class="nav-btn active" onclick="setNav('Dashboard',this)">Dashboard</button>
+    <button class="nav-btn" onclick="setNav('Formation',this)">Formation et Carrière</button>
+    <button class="nav-btn" onclick="setNav('Contact',this)">Contactez les RH</button>
+  </div>
+  <div class="navbar-icons">
+    <button class="icon-btn">🔔<span class="badge">6</span></button>
+    <button class="icon-btn">⚙️</button>
+    <button class="icon-btn">❓</button>
+    <button class="icon-btn">⊞</button>
+  </div>
+  <div class="navbar-user">
+    <div class="user-avatar">👤</div>
+    <div class="user-info">
+      <span class="user-name">Lambertin Isidorin</span>
+      <button class="user-logout">Déconnexion</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ PAGE ═══════════════ -->
+<div class="page-container">
+  <div class="page-h1">Espace Salarié</div>
+
+  <!-- Tabs principales -->
+  <div class="tabs-bar">
+    <span class="tabs-label">Tableau de bord</span>
+    <button class="tab-btn active">Documents</button>
+    <button class="tab-btn">Carrière professionnelle</button>
+    <button class="tab-btn">Reconnaissance et culture d'entreprise</button>
+    <button class="tab-btn">Discipline</button>
+    <button class="tab-btn">Emplois &amp; Mobilité</button>
+  </div>
+
+  <!-- Section header -->
+  <div class="section-eyebrow">Accedez à vos documents RH</div>
+  <h2 class="section-title">Demande et consultation</h2>
+  <div class="red-line"></div>
+
+  <!-- Filter pills -->
+  <div class="filter-pills">
+    <button class="pill active" onclick="switchTab('demande',this)">Demande de document</button>
+    <button class="pill" onclick="switchTab('notes',this)">Notes d'informations</button>
+    <button class="pill" onclick="switchTab('decisions',this)">Décisions RH</button>
+  </div>
+
+  <!-- ─── TAB: Demande de document ─── -->
+  <div id="tab-demande">
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="ac-left">
+          <div class="ac-icon">📄</div>
+          <div>
+            <span class="ac-label">Faire une demande</span>
+            <span class="ac-title">Attestation de travail</span>
+          </div>
+        </div>
+        <span class="ac-chevron">›</span>
+      </div>
+      <div class="action-card">
+        <div class="ac-left">
+          <div class="ac-icon">📄</div>
+          <div>
+            <span class="ac-label">Faire une demande</span>
+            <span class="ac-title">Attestation de congé</span>
+          </div>
+        </div>
+        <span class="ac-chevron">›</span>
+      </div>
+    </div>
+
+    <div class="hist-title">Historique de demande</div>
+    <div class="date-label">11 Mai 2026</div>
+
+    <div class="hist-item">
+      <div class="hi-left">
+        <div class="hi-icon blue">📄</div>
+        <div>
+          <span class="hi-sub">Demande</span>
+          <span class="hi-name">Attestation de travail</span>
+        </div>
+      </div>
+      <button class="btn btn-pending" disabled>En cours ...</button>
+    </div>
+
+    <div class="hist-item available" onclick="openModal('attestation')">
+      <div class="hi-left">
+        <div class="hi-icon teal">📄</div>
+        <div>
+          <span class="hi-sub">Demande</span>
+          <span class="hi-name">Attestation de Congé</span>
+        </div>
+      </div>
+      <button class="btn btn-dl" onclick="openModal('attestation');event.stopPropagation()">Telecharger</button>
+    </div>
+  </div>
+
+  <!-- ─── TAB: Notes d'informations ─── -->
+  <div id="tab-notes" style="display:none">
+    <div class="notes-section-title">Liste des notes d'informations</div>
+    <div class="filter-row">
+      <label>Filtre</label>
+      <select class="filter-select"><option>Tout</option><option>Promotion</option><option>Mutation</option></select>
+    </div>
+    <div class="date-label">11 Mai 2026</div>
+
+    <div class="hist-item" onclick="openModal('note')">
+      <div class="hi-left">
+        <div class="hi-icon dark">📄</div>
+        <div><span class="hi-name">Note d'information</span></div>
+      </div>
+      <button class="btn btn-consult" onclick="openModal('note');event.stopPropagation()">Consulter</button>
+    </div>
+
+    <div class="hist-item" onclick="openModal('note')">
+      <div class="hi-left">
+        <div class="hi-icon dark">📄</div>
+        <div><span class="hi-name">Note d'information</span></div>
+      </div>
+      <button class="btn btn-consult" onclick="openModal('note');event.stopPropagation()">Consulter</button>
+    </div>
+  </div>
+
+  <!-- ─── TAB: Décisions RH ─── -->
+  <div id="tab-decisions" style="display:none">
+    <div class="notes-section-title">Liste des décisions RH</div>
+    <div class="filter-row">
+      <label>Filtre</label>
+      <select class="filter-select"><option>Tout</option></select>
+    </div>
+    <div class="empty">
+      <div class="empty-icon">📄</div>
+      <div class="empty-text">Aucune décision RH</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL — Attestation de Congé ═══════════════ -->
+<div class="overlay" id="modal-attestation" style="display:none" onclick="closeModal('attestation')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head teal-bg">
+      <div class="mh-left">
+        <div class="mh-icon">📄</div>
+        <div>
+          <span class="mh-sub">Demande</span>
+          <span class="mh-title">Attestation de Congé</span>
+          <span class="mh-date">11 Mai 2026</span>
+        </div>
+      </div>
+      <button class="btn btn-dl">Telecharger</button>
+    </div>
+    <div class="modal-body">
+      <div class="doc-preview">
+        <div class="doc-head-row">
+          <div class="doc-sender">
+            <strong>[Nom de l'entreprise]</strong>
+            [Adresse du siège social]<br/>[Code postal et Ville]
+          </div>
+          <div class="envelope"></div>
+          <div class="doc-recipient">
+            <strong>[Prénom et nom du destinataire]</strong>
+            [Adresse du destinataire]<br/>[Code postal et Ville]
+          </div>
+        </div>
+        <div class="doc-location">[Ville], le [date de création]</div>
+        <div class="doc-subject">Objet : Attestation de travail / [Nom et prénom du salarié]</div>
+        <div class="doc-main-title">Attestation de travail</div>
+        <div class="doc-body">
+          Nous, soussigné(e), [Nom et fonction du responsable], agissant au nom de la société [Nom de l'entreprise], certifions que Madame/Monsieur [Prénom et nom du salarié], né(e) le [date de naissance] à [lieu de naissance], exerce les fonctions de [intitulé du poste] au sein de notre entreprise depuis le [date d'entrée].<br/><br/>
+          En foi de quoi, nous lui délivrons la présente attestation pour servir et valoir ce que de droit.
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-close" onclick="closeModal('attestation')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL — Note d'information ═══════════════ -->
+<div class="overlay" id="modal-note" style="display:none" onclick="closeModal('note')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="mh-left">
+        <div class="mh-icon dark">📄</div>
+        <div>
+          <span class="mh-date">Date de publicatuion : 11 Mai 2026</span>
+          <span class="mh-title">Note d'information</span>
+        </div>
+      </div>
+      <button class="btn btn-dl-dark">Telecharger</button>
+    </div>
+    <div class="modal-body">
+      <div class="doc-preview">
+        <div class="note-place-date">[LIEU], [DATE]</div>
+        <div class="note-recipient">
+          [NOM DU DESTINATAIRE]<br/>
+          [ADRESSE 1]<br/>
+          [ADRESSE 2]<br/>
+          [VILLE, ÉTAT/PROVINCE]<br/>
+          [CODE POSTAL]
+        </div>
+        <div class="note-subject-line">OBJET : NOTE D'INFORMATION RELATIVE À UNE PROMOTION</div>
+        <p style="margin-bottom:12px;font-size:13px">Madame, Monsieur [NOM DE LA PERSONNE],</p>
+        <div class="doc-body">
+          Nous avons le plaisir d'informer tout le personnel que [NOM DE LA PERSONNE] a été promu au poste de [POSTE] au [DÉPARTEMENT]. [NOM DE LA PERSONNE] a rejoint notre entreprise il y a [NOMBRE] ans en qualité de [TITRE]. Il a aussi occupé les postes ci-après : [LISTE DES DIFFÉRENTS POSTES OCCUPÉS].
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-close" onclick="closeModal('note')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function setNav(name, el) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  ['demande','notes','decisions'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === tab ? '' : 'none';
+  });
+}
+
+function openModal(name) {
+  document.getElementById('modal-'+name).style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(name) {
+  document.getElementById('modal-'+name).style.display = 'none';
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>
