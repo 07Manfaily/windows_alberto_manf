@@ -637,59 +637,81 @@ body {
   color: #1a1a1a;
 }
 
+/* ── Rangée principale : expéditeur | enveloppe | destinataire ── */
 .modal-doc-letter-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 40px;
-  gap: 40px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
+/* Colonne gauche — expéditeur */
 .modal-doc-sender {
   font-size: 13px;
+  line-height: 1.6;
+  align-self: flex-start;
 }
 
 .modal-doc-sender strong {
   display: block;
   font-size: 14px;
   font-weight: 700;
+  margin-bottom: 2px;
 }
 
+/* Colonne centre — emplacement image enveloppe */
 .modal-doc-envelope {
-  width: 120px;
-  height: 80px;
-  border: 1px solid #bbb;
-  border-radius: 2px;
+  width: 180px;
+  height: 120px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f4f4f4;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
 }
 
+/* croix en X pour placeholder visuel */
 .modal-doc-envelope::before,
 .modal-doc-envelope::after {
   content: '';
   position: absolute;
-  width: 140%;
+  width: 105%;
   height: 1px;
   background: #bbb;
-  transform-origin: center;
+  top: 50%;
+  left: -2.5%;
 }
 
-.modal-doc-envelope::before { transform: rotate(35deg); }
-.modal-doc-envelope::after  { transform: rotate(-35deg); }
+.modal-doc-envelope::before { transform: rotate(34deg); }
+.modal-doc-envelope::after  { transform: rotate(-34deg); }
 
+/* si on passe une vraie image */
+.modal-doc-envelope img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+/* Colonne droite — destinataire aligné à droite */
 .modal-doc-recipient {
   text-align: right;
   font-size: 13px;
-  align-self: flex-end;
+  line-height: 1.6;
+  align-self: flex-start;
 }
 
 .modal-doc-recipient strong {
   font-size: 14px;
   font-weight: 700;
   display: block;
+  margin-bottom: 2px;
 }
 
 .modal-doc-location {
@@ -768,4 +790,423 @@ body {
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: 20px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   AJOUTS — Reconnaissance, Discipline, Emplois, Formation, Contact
+   ════════════════════════════════════════════════════════════ */
+
+/* ===== CARTES DISTINCTION / SANCTION (grille flexible) ===== */
+.cards-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.cards-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1000px) {
+  .cards-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  .cards-grid-3, .cards-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Carte générique avec bordure gauche colorée */
+.tag-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: #f4f4f4;
+  border-radius: 6px;
+  border-left: 4px solid #e0a000;
+  cursor: pointer;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+.tag-card:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+  background: #efefef;
+}
+
+.tag-card.red-border { border-left-color: #c00; }
+.tag-card.gold-border { border-left-color: #e0a000; }
+
+.tag-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tag-card-icon {
+  font-size: 24px;
+  color: #333;
+  width: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tag-card-label {
+  font-size: 11px;
+  color: #888;
+  display: block;
+  margin-bottom: 1px;
+}
+
+.tag-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.tag-card-chevron {
+  font-size: 18px;
+  color: #555;
+}
+
+/* ===== CARTE OFFRE D'EMPLOI ===== */
+.job-card {
+  padding: 18px;
+  background: #f4f4f4;
+  border-radius: 6px;
+  border-left: 4px solid #c00;
+  cursor: pointer;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+.job-card:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+  background: #efefef;
+}
+
+.job-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.job-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.job-tag {
+  padding: 4px 12px;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.job-card-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.job-card-details:hover { color: #c00; }
+
+/* ===== DÉTAIL OFFRE ===== */
+.job-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #1a1a1a;
+  cursor: pointer;
+  margin-bottom: 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+.job-detail-back:hover { color: #c00; }
+
+.job-detail-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.job-detail-meta {
+  font-size: 15px;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.job-detail-meta strong { font-weight: 700; }
+
+.job-detail-section { margin-bottom: 20px; }
+
+.job-detail-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.job-detail-section p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.job-detail-section ul {
+  list-style: disc;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.job-detail-apply {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 22px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  font-family: inherit;
+  z-index: 50;
+}
+
+.job-detail-apply:hover { background: #333; }
+
+/* ===== MODAL — Décision / Certificat ===== */
+.modal-doc-typed {
+  background: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.9;
+  color: #444;
+  padding: 50px 40px;
+}
+
+.modal-doc-typed-center-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: underline;
+  margin: 24px 0 32px;
+  color: #1a1a1a;
+}
+
+.modal-doc-typed p { margin-bottom: 14px; }
+.modal-doc-typed strong { color: #1a1a1a; font-weight: 700; }
+.modal-doc-typed u { text-decoration: underline; }
+
+/* Certificat image */
+.modal-doc-certificate {
+  background: #fff;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+}
+
+.modal-doc-certificate img {
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.certificate-placeholder {
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* ===== PAGE FORMATION (hero images) ===== */
+.page-full {
+  max-width: 1280px;
+  margin: 0 auto;
+  background: #fff;
+  min-height: calc(100vh - 60px);
+}
+
+.page-full-header {
+  padding: 24px 32px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.page-full-header h1 {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.formation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: calc(100vh - 130px);
+  min-height: 480px;
+}
+
+.formation-tile {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.formation-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+
+.formation-tile:hover img { transform: scale(1.04); }
+
+.formation-tile-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #b08968 0%, #7f5539 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.formation-tile-btn {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 28px;
+  background: rgba(0,0,0,0.25);
+  border: 1.5px solid #fff;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  white-space: nowrap;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.formation-tile-btn:hover { background: rgba(0,0,0,0.5); }
+
+/* ===== PAGE CONTACT ===== */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 130px);
+}
+
+.contact-image {
+  overflow: hidden;
+}
+
+.contact-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contact-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #8d99ae 0%, #2b2d42 100%);
+}
+
+.contact-form-wrap {
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.contact-form-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 28px;
+}
+
+.contact-field {
+  margin-bottom: 18px;
+}
+
+.contact-field label {
+  display: block;
+  font-size: 14px;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+}
+
+.contact-input,
+.contact-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.contact-input:focus,
+.contact-textarea:focus {
+  outline: none;
+  border-color: #1a6ed4;
+}
+
+.contact-input::placeholder,
+.contact-textarea::placeholder { color: #aaa; }
+
+.contact-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.contact-submit {
+  width: 100%;
+  padding: 13px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.contact-submit:hover { background: #333; }
+
+@media (max-width: 800px) {
+  .formation-grid, .contact-grid { grid-template-columns: 1fr; }
+  .contact-image { min-height: 240px; }
 }
