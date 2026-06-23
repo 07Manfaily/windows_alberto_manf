@@ -1,0 +1,60 @@
+.creer-panel {
+  background: #f6f6f7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 26px;
+}
+.creer-title { display: block; font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+.creer-actions { display: flex; gap: 14px; }
+
+.creer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1f2024;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 16px;
+  font-size: 15px;
+}
+.creer-btn:hover { background: #000; }
+
+.doc-list-title { margin-top: 10px; }
+
+.doc-list { display: flex; flex-direction: column; gap: 18px; }
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f6f6f7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  min-height: 96px;
+}
+
+.doc-left { display: flex; align-items: center; gap: 16px; }
+.doc-icon { color: var(--text); display: flex; }
+
+.doc-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.doc-type { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; }
+
+.doc-tags { display: flex; gap: 10px; align-items: center; }
+.doc-tag {
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.doc-consulter { padding: 12px 28px; font-size: 15px; }
+
+/* sur petite largeur, replace le tag agent sous le type */
+@media (max-width: 1100px) {
+  .doc-info { flex-direction: column; align-items: flex-start; }
+}

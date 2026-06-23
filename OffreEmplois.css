@@ -1,0 +1,134 @@
+/* ---------- En-tête liste ---------- */
+.offre-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+.offre-header .btn-dark { padding: 13px 22px; font-size: 15px; }
+
+/* ---------- Cartes offres ---------- */
+.offre-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.offre-card {
+  background: #f6f6f7;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--red);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+}
+.offre-card-title { font-size: 24px; font-weight: 800; margin: 0 0 14px; }
+
+.offre-tags { display: flex; gap: 10px; margin-bottom: 18px; }
+.offre-tag {
+  background: #1f2024;
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.offre-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 15px;
+  padding: 0;
+}
+.offre-details:hover { text-decoration: underline; }
+
+/* ---------- Retour ---------- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 28px;
+  padding: 0;
+}
+
+/* ---------- Formulaire ---------- */
+.form-field { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.form-label { font-size: 16px; color: var(--text); }
+
+.form-input {
+  height: 52px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 16px;
+  font-size: 15px;
+  outline: none;
+}
+.form-input:focus { border-color: var(--travail); }
+.form-cal { position: absolute; right: 14px; top: 16px; color: var(--text-mute); }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.form-textarea {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+.form-textarea:focus { border-color: var(--travail); }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 30px;
+}
+.form-btn { padding: 14px 34px; font-size: 16px; }
+
+/* ---------- Type de contrat (panneau bord rouge) ---------- */
+.contrat-panel {
+  background: #f6f6f7;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--red);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 26px;
+}
+.contrat-title { display: block; font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+
+.contrat-toggles { display: flex; gap: 12px; }
+
+.contrat-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: #ededee;
+  color: var(--text-soft);
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 15px;
+}
+.contrat-toggle--on { background: #1f2024; color: #fff; }
+.contrat-check { color: var(--text-mute); }
+
+/* ---------- Détail ---------- */
+.detail-lieu { font-size: 17px; margin: 6px 0 20px; }
+.detail-block { margin-bottom: 24px; }
+.detail-h { font-size: 18px; font-weight: 800; margin: 0 0 8px; }
+.detail-p { font-size: 16px; line-height: 1.55; margin: 0 0 6px; color: var(--text); }
+.detail-list { margin: 6px 0 0; padding-left: 22px; }
+.detail-list li { font-size: 16px; line-height: 1.7; }

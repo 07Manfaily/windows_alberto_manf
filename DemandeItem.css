@@ -1,0 +1,50 @@
+.demande-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  min-height: 92px;
+}
+
+/* Variante travail (violet) */
+.demande-item--travail { background: #f7f7fb; }
+
+/* Variante congé (vert/teal) */
+.demande-item--conge { background: var(--conge-soft); }
+
+.demande-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.demande-file { display: flex; }
+
+.demande-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demande-matricule {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.demande-nom {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.demande-libelle {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.demande-right { display: flex; align-items: center; }
+
+.demande-actions { display: flex; gap: 14px; }
+.demande-actions .btn { padding: 12px 26px; font-size: 15px; }

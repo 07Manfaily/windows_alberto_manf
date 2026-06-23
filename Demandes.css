@@ -1,0 +1,39 @@
+.sort-panel {
+  background: #f6f6f7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 28px;
+}
+
+.sort-title {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.tabs { display: flex; gap: 12px; }
+
+.tab {
+  border: none;
+  background: #ededee;
+  color: var(--text-soft);
+  border-radius: 9px;
+  padding: 10px 18px;
+  font-size: 15px;
+}
+.tab:hover { background: #e4e4e6; }
+.tab--active { background: #1f2024; color: #fff; }
+
+.sort-search { width: 320px; }
+.sort-search .search-input { background: #fff; }
+
+.demande-list { margin-top: 4px; }
