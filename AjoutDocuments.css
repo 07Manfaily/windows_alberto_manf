@@ -1,60 +1,236 @@
-.creer-panel {
-  background: #f6f6f7;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  margin-bottom: 26px;
+// src/api/axiosInstance.js
+import axios from 'axios';
+import Cookies from 'js-cookie';
+
+// 1. On crée notre instance personnalisée d'Axios
+const api = axios.create({
+  // Remplace cette URL par celle de ton serveur de développement ou de production
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.tonprojet.com', 
+  timeout: 10000, // Si le serveur ne répond pas après 10 secondes, la requête s'annule
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
+});
+
+// 2. On configure l'intercepteur de REQUÊTE
+// Ce code va s'exécuter AUTOMATIQUEMENT juste avant que le camion Axios ne parte vers ton API
+api.interceptors.request.use(
+  (config) => {
+    // On va chercher le token directement dans les cookies grâce à js-cookie
+    const token = Cookies.get('token'); 
+    
+    // Si le token existe, on l'ajoute dans les Headers (Authorization: Bearer <token>)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  (error) => {
+    // Si une erreur survient avant même d'envoyer la requête
+    return Promise.reject(error);
+  }
+);
+
+// 3. [Optionnel mais très recommandé] L'intercepteur de RÉPONSE
+// Ce code s'exécute dès que le serveur répond, avant que ton composant ne reçoive les données
+api.interceptors.response.use(
+  (response) => {
+    // Si la requête a réussi, on renvoie directement la réponse
+    return response;
+  },
+  (error) => {
+    // Si le serveur renvoie une erreur 401 (Non autorisé / Token expiré)
+    if (error.response && error.response.status === 401) {
+      console.warn("Token expiré ou invalide, déconnexion automatique...");
+      // C'est ici qu'on pourra appeler une action pour nettoyer Zustand et vider le cookie si besoin
+      Cookies.remove('token');
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+
+
+
+
+    // src/api/userApi.js
+import api from './axiosInstance';
+
+/**
+ * Envoie les identifiants (email, password) au serveur pour se connecter
+ * @param {Object} credentials - { email, password }
+ */
+export const loginRequest = (credentials) => {
+  return api.post('/auth/login', credentials);
+};
+
+/**
+ * Récupère les informations de l'utilisateur connecté grâce au token
+ * (Le token sera injecté automatiquement par notre intercepteur)
+ */
+export const getUserProfile = () => {
+  return api.get('/auth/me'); 
+  // Remplace '/auth/me' ou '/user/profile' selon les endpoints de ton backend
+};
+
+/**
+ * Met à jour les informations du profil de l'utilisateur
+ * @param {Object} data - Les nouvelles données du profil
+ */
+export const updateProfile = (data) => {
+  return api.put('/user/update', data);
+};
+
+
+
+
+    // src/store/useUserStore.js
+import { create } from 'zustand';
+import { getUserProfile } from '../api/userApi';
+import Cookies from 'js-cookie';
+
+const useUserStore = create((set) => ({
+  // 1. ÉTATS (Les données qu'on garde en mémoire)
+  user: null,             // Contiendra les infos de l'utilisateur ({ id, nom, email, etc. })
+  isAuthenticated: !!Cookies.get('token'), // true si le cookie 'token' existe au démarrage
+  isLoading: false,       // Utile pour afficher un loader pendant le chargement
+  error: null,            // Pour stocker une éventuelle erreur de connexion
+
+  // 2. ACTIONS (Les fonctions qui modifient les états)
+
+  /**
+   * Action pour charger le profil au démarrage de l'application
+   */
+  fetchUser: async () => {
+    // Si aucun token n'est présent dans les cookies, inutile de faire un appel API
+    if (!Cookies.get('token')) {
+      set({ isAuthenticated: false, isLoading: false });
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+
+    try {
+      // On appelle notre fonction API d'Axios
+      const response = await getUserProfile();
+      
+      // On stocke les données reçues du serveur dans Zustand
+      set({ 
+        user: response.data, 
+        isAuthenticated: true, 
+        isLoading: false 
+      });
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'utilisateur :", error);
+      
+      // Si le token en cookie était invalide ou expiré (ex: 401), on nettoie tout
+      Cookies.remove('token');
+      set({ 
+        user: null, 
+        isAuthenticated: false, 
+        isLoading: false,
+        error: error.response?.data?.message || "Session expirée"
+      });
+    }
+  },
+
+  /**
+   * Action pour déconnecter l'utilisateur
+   */
+  logout: () => {
+    // 1. On supprime le cookie
+    Cookies.remove('token');
+    
+    // 2. On remet le store Zustand à zéro
+    set({ user: null, isAuthenticated: false, error: null });
+  }
+}));
+
+export default useUserStore;
+
+
+
+  import { useEffect } from 'react';
+import useUserStore from './store/useUserStore';
+import Navbar from './components/Navbar';
+// Importe tes routes ou tes pages ici (ex: ProductsPage)
+
+function App() {
+  // On pioche l'action et l'état de chargement dans le store Zustand
+  const fetchUser = useUserStore((state) => state.fetchUser);
+  const isLoading = useUserStore((state) => state.isLoading);
+
+  useEffect(() => {
+    // L'appel API se lance UNE SEULE FOIS au chargement de l'application
+    fetchUser();
+  }, [fetchUser]);
+
+  // Si l'application est en train de vérifier le token, on affiche un écran de chargement
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p>Chargement de votre session...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Navbar />
+      <main style={{ padding: '20px' }}>
+        {/* Tes routes ou ton composant de page principale ici */}
+        <p>Contenu principal de l'application</p>
+      </main>
+    </div>
+  );
 }
-.creer-title { display: block; font-size: 20px; font-weight: 700; margin-bottom: 16px; }
-.creer-actions { display: flex; gap: 14px; }
 
-.creer-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #1f2024;
-  color: #fff;
-  border: none;
-  border-radius: 9px;
-  padding: 11px 16px;
-  font-size: 15px;
-}
-.creer-btn:hover { background: #000; }
+export default App;
 
-.doc-list-title { margin-top: 10px; }
 
-.doc-list { display: flex; flex-direction: column; gap: 18px; }
 
-.doc-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f6f6f7;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px 24px;
-  min-height: 96px;
-}
+import useUserStore from '../store/useUserStore';
 
-.doc-left { display: flex; align-items: center; gap: 16px; }
-.doc-icon { color: var(--text); display: flex; }
+function Navbar() {
+  // On récupère l'utilisateur et l'action de déconnexion
+  const user = useUserStore((state) => state.user);
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+  const logout = useUserStore((state) => state.logout);
 
-.doc-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.doc-type { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; }
+  return (
+    <nav style={{
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      padding: '10px 20px', 
+      background: '#2c3e50', 
+      color: '#white'
+    }}>
+      <h3>Mon Application</h3>
 
-.doc-tags { display: flex; gap: 10px; align-items: center; }
-.doc-tag {
-  background: #fff;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 14px;
-  color: var(--text);
+      <div>
+        {isAuthenticated && user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span>Bienvenue, <strong>{user.name}</strong></span>
+            <button 
+              onClick={logout} 
+              style={{ padding: '5px 10px', background: '#e74c3c', color: 'white', border: 'none', cursor: 'pointer' }}
+            >
+              Déconnexion
+            </button>
+          </div>
+        ) : (
+          <button style={{ padding: '5px 10px', background: '#2ecc71', color: 'white', border: 'none', cursor: 'pointer' }}>
+            Se connecter
+          </button>
+        )}
+      </div>
+    </nav>
+  );
 }
 
-.doc-consulter { padding: 12px 28px; font-size: 15px; }
+export default Navbar;
 
-/* sur petite largeur, replace le tag agent sous le type */
-@media (max-width: 1100px) {
-  .doc-info { flex-direction: column; align-items: flex-start; }
-}
+
