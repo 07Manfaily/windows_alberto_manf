@@ -1,4 +1,46 @@
-// src/api/axiosInstance.js
+import { useState } from 'react';
+import useUserStore from '../store/useUserStore';
+
+function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  // On récupère l'action du store et le statut de chargement
+  const loginUser = useUserStore((state) => state.loginUser);
+  const isLoading = useUserStore((state) => state.isLoading);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      // ICI : Au clic sur le bouton, on envoie les infos à Zustand
+      await loginUser({ email, password });
+      alert('Connexion réussie !');
+      // Ici tu peux rediriger l'utilisateur vers son tableau de bord
+    } catch (err) {
+      setError('Identifiants incorrects ou problème serveur.');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      
+      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      
+      {/* Ton bouton qui déclenche le onSubmit du formulaire */}
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Connexion...' : 'Se connecter'}
+      </button>
+    </form>
+  );
+}
+
+         
+         // src/api/axiosInstance.js
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
