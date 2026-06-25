@@ -86,71 +86,93 @@ export const updateProfile = (data) => {
 
 
 
-
-    // src/store/useUserStore.js
+// src/store/useUserStore.js
 import { create } from 'zustand';
-import { getUserProfile } from '../api/userApi';
+import { AuthService } from '../services/auth.service';
 import Cookies from 'js-cookie';
 
 const useUserStore = create((set) => ({
-  // 1. ÉTATS (Les données qu'on garde en mémoire)
-  user: null,             // Contiendra les infos de l'utilisateur ({ id, nom, email, etc. })
-  isAuthenticated: !!Cookies.get('token'), // true si le cookie 'token' existe au démarrage
-  isLoading: false,       // Utile pour afficher un loader pendant le chargement
-  error: null,            // Pour stocker une éventuelle erreur de connexion
+  // 1. ÉTATS (Données en mémoire)
+  user: null,
+  isAuthenticated: !!Cookies.get('token'),
+  isLoading: false,
+  error: null,
 
-  // 2. ACTIONS (Les fonctions qui modifient les états)
+  // 2. ACTIONS (Fonctions qui appellent les services et modifient les états)
 
   /**
-   * Action pour charger le profil au démarrage de l'application
+   * Action pour connecter un utilisateur et stocker sa session.
+   * @param {Object} credentials - { email, password }
    */
-  fetchUser: async () => {
-    // Si aucun token n'est présent dans les cookies, inutile de faire un appel API
-    if (!Cookies.get('token')) {
-      set({ isAuthenticated: false, isLoading: false });
-      return;
-    }
-
+  loginUser: async (credentials) => {
     set({ isLoading: true, error: null });
-
     try {
-      // On appelle notre fonction API d'Axios
-      const response = await getUserProfile();
+      // On appelle le service simplifié
+      const data = await AuthService.login(credentials);
       
-      // On stocke les données reçues du serveur dans Zustand
-      set({ 
-        user: response.data, 
-        isAuthenticated: true, 
-        isLoading: false 
-      });
+      // On stocke le token dans les cookies pour les prochaines visites
+      Cookies.set('token', data.token, { expires: 7 });
+      
+      // On met à jour l'état global avec l'utilisateur renvoyé par le service
+      set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'utilisateur :", error);
-      
-      // Si le token en cookie était invalide ou expiré (ex: 401), on nettoie tout
-      Cookies.remove('token');
       set({ 
-        user: null, 
-        isAuthenticated: false, 
-        isLoading: false,
-        error: error.response?.data?.message || "Session expirée"
+        isLoading: false, 
+        error: error.response?.data?.message || "Identifiants incorrects" 
       });
+      throw error; // Permet au composant JSX de savoir qu'il y a eu une erreur
     }
   },
 
   /**
-   * Action pour déconnecter l'utilisateur
+   * Action pour charger le profil au démarrage de l'application (ex: dans App.jsx).
+   */
+  fetchUser: async () => {
+    if (!Cookies.get('token')) {
+      set({ isAuthenticated: false, isLoading: false });
+      return;
+    }
+    set({ isLoading: true, error: null });
+    try {
+      const data = await AuthService.getProfile();
+      set({ user: data, isAuthenticated: true, isLoading: false });
+    } catch (error) {
+      Cookies.remove('token');
+      set({ user: null, isAuthenticated: false, isLoading: false });
+    }
+  },
+
+  /**
+   * Action pour enregistrer un nouvel utilisateur.
+   * @param {Object} userData - { name, email, password }
+   */
+  registerUser: async (userData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await AuthService.register(userData);
+      set({ isLoading: false });
+      return data;
+    } catch (error) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.message || "Échec de l'inscription" 
+      });
+      throw error;
+    }
+  },
+
+  /**
+   * Action pour déconnecter l'utilisateur.
    */
   logout: () => {
-    // 1. On supprime le cookie
     Cookies.remove('token');
-    
-    // 2. On remet le store Zustand à zéro
     set({ user: null, isAuthenticated: false, error: null });
   }
 }));
 
 export default useUserStore;
 
+    
 
 
   import { useEffect } from 'react';
